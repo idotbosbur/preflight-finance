@@ -6,6 +6,7 @@
 /data/
 /tools/
 /web/.impeccable/
+/.impeccable/
 
 # Docs are private by default; only the public design docs are allowlisted.
 /docs/*

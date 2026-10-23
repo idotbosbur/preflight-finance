@@ -17,6 +17,7 @@ import { join } from "node:path";
 import type { BenchmarkFile, BenchmarkRun } from "../../src/ui-contracts.ts";
 import { evaluateParity, evaluateTruth, loadSut, PROJECT_ROOT, readProjectBytes, sha256Node, summarizeFailures, WEB_ROOT } from "./harness.ts";
 import type { Manifest } from "./harness.ts";
+import { measureNearDuplicates } from "./near-dup-eval.ts";
 
 const COMMAND = "node tests/evaluation/benchmark.ts";
 const nowIso = () => new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
@@ -106,6 +107,9 @@ function pythonReferenceRun(manifest: Manifest): BenchmarkRun | null {
   return run;
 }
 
+const { pairsLabelled, tp, fp, fn } = measureNearDuplicates();
+console.log(`near-duplicate (near-dup-v1): ${pairsLabelled} labelled pairs; tp ${tp}, fp ${fp}, fn ${fn}`);
+
 const manifest = truth.manifest;
 const python = pythonReferenceRun(manifest);
 const mainRel = manifest.main.file;
@@ -115,8 +119,9 @@ const file: BenchmarkFile = {
   datasetSha256: sha256Node(readProjectBytes(mainRel)),
   manifestSha256: truth.manifestSha256,
   runs: python ? [browser, python] : [browser],
+  nearDuplicate: { pairsLabelled, tp, fp, fn },
   limitations: [
-    "Duplicate detection is within one batch only: a duplicate split across two uploaded files is not detected (known limitation, asserted by the split-batch fixtures).",
+    "In the synthetic demo and this benchmark, duplicate detection is within one batch only: a duplicate split across two demo files is not detected (known limitation, asserted by the split-batch fixtures). Your data mode checks across every file you import.",
     "Synthetic, self-constructed benchmark: invented figures generated and labelled within the same AI-assisted build that wrote the rules; it says nothing about real-world accuracy, fraud detection or money saved.",
     "The exact-key duplicate rule cannot tell legitimate invoice-number reuse from a genuine duplicate: the 2 legitimate reuse groups are flagged by design and need a human to dismiss them.",
     "Review history is stored only in this browser (IndexedDB), unauthenticated and per device: it is not an audit trail, is not shared, and can be cleared by the visitor.",

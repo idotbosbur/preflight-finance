@@ -3,7 +3,7 @@
 **synthetic benchmark; planned targets shown separately from measured values.** SYNTHETIC DATA - invented figures, not real financial records. No result here supports real-world fraud detection, money saved, or private-customer accuracy.
 
 - Status: **PASS** (263/263 checks passed, exit 0)
-- Run (UTC): 2026-10-23T18:30:33Z
+- Run (UTC): 2026-10-23T21:48:54Z
 - Command: `python -m tests.evaluation.evaluate`
 - Python 3.12.10, SQLite 3.49.1
 - Ruleset: invoice-v1

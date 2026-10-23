@@ -24,6 +24,7 @@ export const batch: BatchSummary = {
   findingCount: 32,
   duplicateCount: 12,
   mismatchCount: 20,
+  nearDuplicateCount: 0,
   openCount: 31,
   confirmedCount: 1,
   dismissedCount: 0,
@@ -176,9 +177,6 @@ export function queueProps(over: Partial<QueueProps> = {}): QueueProps {
     hrefForBatch: (id) => `#/queue/${id}`,
     demo: { kind: "ready", batchId: batch.batchId },
     onLoadDemo: noop,
-    importState: { kind: "idle" },
-    onImportFile: noop,
-    sampleCsvHref: "demo/sample.csv",
     onResetDemo: noop,
     ...over,
   };

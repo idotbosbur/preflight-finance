@@ -40,3 +40,8 @@ export function onConflictShown(latest: FindingView | null, prev: DraftBinding |
 export function onSaved(saved: FindingView): DraftBinding {
   return { token: tokenOf(saved), stale: false };
 }
+
+/** Reviewer prefill for a newly opened case: the fictional demo name only in demo mode; own mode starts empty. */
+export function reviewerFor(own: boolean, previous: string, demoDefault: string): string {
+  return own ? (previous === demoDefault ? "" : previous) : previous || demoDefault;
+}

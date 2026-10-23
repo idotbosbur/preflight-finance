@@ -12,6 +12,10 @@ export function parseRoute(hash: string): Route {
     case "demo":
       if (parts.length === 1) return { name: "demo" };
       break;
+    case "mine":
+      if (parts.length === 1) return { name: "mine" };
+      if (parts.length === 2 && a === "summary") return { name: "mine-summary" };
+      break;
     case "queue":
       if (parts.length === 1) return { name: "queue", batchId: null };
       if (parts.length === 2 && ID.test(a!)) return { name: "queue", batchId: a! };
@@ -42,6 +46,10 @@ export function formatRoute(route: Route): RouteHref {
     case "how":
     case "roadmap":
       return `#/${route.name}`;
+    case "mine":
+      return "#/mine";
+    case "mine-summary":
+      return "#/mine/summary";
     case "not_found":
       return "#/";
   }

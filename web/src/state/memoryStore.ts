@@ -2,12 +2,14 @@
  * In-memory adapter: used when browser storage is unavailable ("this tab only") and in tests.
  * `faults` lets tests simulate a failing commit (quota/blocked/aborted) without faking success.
  */
+import { OWN_BATCH_ID } from "../domain/contracts.ts";
 import type { BatchImportOutcome, DecisionRequest, ReviewEvent, ReviewResult } from "../domain/contracts.ts";
 import { validateDecision, compareCases } from "./review.ts";
 import {
-  STALE_IMPORT_MESSAGE, buildCase, decide, makeBatchRecord, makeFindingRecords, summarize, toFindingView,
+  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords, planOwnMerge,
+  summarize, toFindingView,
 } from "./store.ts";
-import type { BatchRecord, FindingRecord, ImportMeta, ReviewStore, StoreChange } from "./store.ts";
+import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore, StoreChange } from "./store.ts";
 import type { PreparedBatch } from "../domain/contracts.ts";
 
 export interface MemoryFaults {
@@ -17,6 +19,7 @@ export interface MemoryFaults {
 
 export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { faults: MemoryFaults } {
   let generation = 0;
+  let ownGeneration = 0;
   let batches = new Map<string, BatchRecord>();
   let findings = new Map<string, FindingRecord>(); // key `${batchId}/${findingId}`
   let events: ReviewEvent[] = [];
@@ -85,13 +88,50 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
     },
     async resetAll() {
       const error = commit(() => {
+        // Demo reset keeps the own workspace, re-stamped with the new generation (R22).
+        const next = generation + 1;
+        const ownBatch = batches.get(OWN_BATCH_ID);
+        const ownFindings = findingsOf(OWN_BATCH_ID);
         batches = new Map();
         findings = new Map();
-        events = [];
-        generation += 1;
+        if (ownBatch) batches.set(OWN_BATCH_ID, { ...ownBatch, resetGeneration: next });
+        for (const f of ownFindings) findings.set(key(f.batchId, f.findingId), { ...f, resetGeneration: next });
+        events = events.filter((e) => e.batchId === OWN_BATCH_ID).map((e) => ({ ...e, resetGeneration: next }));
+        generation = next;
       });
       if (error) return { ok: false, message: error };
       return { ok: true, resetGeneration: generation };
+    },
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration): Promise<OwnMergeOutcome> {
+      if (expectedResetGeneration !== generation) return { status: "storage_error", message: OWN_RESET_MESSAGE };
+      if (expectedOwnGeneration !== ownGeneration) return { status: "storage_error", message: ownStaleMessage(batches.get(OWN_BATCH_ID)) };
+      const plan = planOwnMerge(batches.get(OWN_BATCH_ID), findingsOf(OWN_BATCH_ID), rows, newFindings, file, now, generation);
+      const error = commit(() => {
+        ownGeneration += 1; // a stale import from another tab now refuses (R23)
+        batches.set(OWN_BATCH_ID, plan.batch);
+        for (const r of plan.put) findings.set(key(r.batchId, r.findingId), r);
+        for (const r of plan.remove) findings.delete(key(r.batchId, r.findingId));
+      });
+      if (error) return { status: "storage_error", message: error };
+      return { status: "merged", added: plan.added, alreadySeen: plan.alreadySeen, batch: plan.summary };
+    },
+    async getOwnGeneration() {
+      return ownGeneration;
+    },
+    async listOwnRows() {
+      return (batches.get(OWN_BATCH_ID)?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+    async listOwnFiles() {
+      return [...(batches.get(OWN_BATCH_ID)?.files ?? [])];
+    },
+    async deleteOwnData() {
+      const error = commit(() => {
+        ownGeneration += 1;
+        batches.delete(OWN_BATCH_ID);
+        for (const f of findingsOf(OWN_BATCH_ID)) findings.delete(key(f.batchId, f.findingId));
+        events = events.filter((e) => e.batchId !== OWN_BATCH_ID);
+      });
+      return error ? { ok: false, message: error } : { ok: true };
     },
     async getResetGeneration() {
       return generation;

@@ -1,0 +1,3 @@
+ContactName,InvoiceNumber,InvoiceDate,DueDate,Total,TaxTotal,Currency
+Hooli Example,XR-001,2026-03-05,2026-04-04,120.00,20.00,USD
+Pied Piper Sample,XR-002,2026-03-06,2026-04-05,60.50,10.08,GBP

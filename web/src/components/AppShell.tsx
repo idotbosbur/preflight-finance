@@ -3,7 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, RefObject } from "react";
 import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
 import type { Durability } from "../domain/contracts.ts";
-import { SYNTHETIC_LABEL } from "../domain/contracts.ts";
+import { FEEDBACK_URL, SYNTHETIC_LABEL } from "../domain/contracts.ts";
+import { DEMO_BADGE, OWN_BADGE } from "./labels.ts";
+
+const OWN_LABEL = "Your data — stays in this browser. Nothing is uploaded.";
 
 interface NavItem {
   readonly href: string;
@@ -13,18 +16,25 @@ interface NavItem {
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "#/demo", label: "Demo", match: ["demo", "queue", "case"] },
+  { href: "#/mine", label: "Your data", match: ["mine", "mine-summary"] },
   { href: "#/results", label: "Results", match: ["results"] },
   { href: "#/how", label: "How it works", match: ["how"] },
   { href: "#/roadmap", label: "Roadmap", match: ["roadmap"] },
 ];
 
 /** The footer's single "what next" step, chosen for the page the visitor is on. */
-export function nextStep(route: Route): { readonly kicker: string; readonly label: string; readonly href: string } {
+export function nextStep(route: Route, own = false): { readonly kicker: string; readonly label: string; readonly href: string } {
+  if (own && (route.name === "queue" || route.name === "case")) {
+    return { kicker: "Next", label: "Add files or delete your data", href: "#/mine" };
+  }
   switch (route.name) {
     case "demo":
     case "queue":
     case "case":
       return { kicker: "Next", label: "See how the checks scored", href: "#/results" };
+    case "mine":
+    case "mine-summary":
+      return { kicker: "Next", label: "See how the checks work", href: "#/how" };
     case "results":
       return { kicker: "Next", label: "Try it yourself", href: "#/demo" };
     default:
@@ -49,12 +59,14 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   results: "Results",
   how: "How it works",
   roadmap: "Roadmap",
+  mine: "Your data",
+  "mine-summary": "Your data summary",
   not_found: "Page not found",
 };
 
-/** document.title for a route: "<page name> — Preflight (synthetic demo)". */
-export function pageTitle(route: Route): string {
-  return `${PAGE_NAME[route.name]} — Preflight (synthetic demo)`;
+/** document.title for a route: "<page name> — Preflight (synthetic demo)", or no suffix in own mode. */
+export function pageTitle(route: Route, own = false): string {
+  return own ? `${PAGE_NAME[route.name]} — Preflight` : `${PAGE_NAME[route.name]} — Preflight (synthetic demo)`;
 }
 
 /** Move focus only on a real route change after the first render (never on initial load). */
@@ -92,11 +104,11 @@ function focusMain(event: ReactMouseEvent<HTMLAnchorElement>) {
   main?.focus();
 }
 
-function NavLinks({ route, onNavigate, className }: { readonly route: Route; readonly onNavigate?: (href: string) => void; readonly className: string }) {
+function NavLinks({ route, own, onNavigate, className }: { readonly route: Route; readonly own: boolean; readonly onNavigate?: (href: string) => void; readonly className: string }) {
   return (
     <ul className={className}>
       {NAV_ITEMS.map((item) => {
-        const current = item.match.includes(route.name);
+        const current = own ? item.href === "#/mine" : item.match.includes(route.name);
         return (
           <li key={item.href}>
             <a href={item.href} aria-current={current ? "page" : undefined} className={current ? "nav-link is-current" : "nav-link"} onClick={onNavigate ? () => onNavigate(item.href) : undefined}>
@@ -146,6 +158,7 @@ export function GuideBar({ guide, onExit, durability }: { readonly guide: GuideV
 
 interface MobileMenuProps {
   readonly route: Route;
+  readonly own: boolean;
   /** restoreFocus=false when the close is caused by navigation (the route-focus effect wins). */
   readonly onClose: (restoreFocus: boolean) => void;
   readonly triggerRef: RefObject<HTMLButtonElement | null>;
@@ -158,7 +171,7 @@ function isCurrentHash(href: string): boolean {
   return hash === href;
 }
 
-function MobileMenu({ route, onClose, triggerRef, restoreRef }: MobileMenuProps) {
+function MobileMenu({ route, own, onClose, triggerRef, restoreRef }: MobileMenuProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -197,19 +210,36 @@ function MobileMenu({ route, onClose, triggerRef, restoreRef }: MobileMenuProps)
       <div className="menu-scrim" aria-hidden="true" onClick={() => onClose(true)} />
       <div id={MENU_ID} ref={panelRef} className="menu-panel" role="dialog" aria-modal="true" aria-label="Site menu" onKeyDown={onKeyDown}>
         <div className="menu-panel-head">
-          <span className="badge badge-synthetic">Synthetic demo</span>
+          <span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span>
           <button type="button" className="btn btn-quiet" onClick={() => onClose(true)}>
             Close menu
           </button>
         </div>
         <a href="#/" className="menu-home" onClick={() => onClose(isCurrentHash("#/"))}>Preflight overview</a>
-        <NavLinks route={route} onNavigate={(href) => onClose(isCurrentHash(href))} className="menu-links" />
+        <NavLinks route={route} own={own} onNavigate={(href) => onClose(isCurrentHash(href))} className="menu-links" />
       </div>
     </div>
   );
 }
 
-export function AppShell({ route, guide, onGuideExit, durability, announcement, children }: AppShellProps) {
+/** Shown only when a feedback URL is configured. */
+export function FeedbackLink({ url }: { url: string }) {
+  return url ? <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a> : null;
+}
+
+function SiteLinks({ feedbackUrl }: { feedbackUrl: string }) {
+  return (
+    <nav className="footer-links" aria-label="About">
+      <a href="./privacy.html">Privacy</a>
+      <a href="./terms.html">Terms</a>
+      <a href="./pilot-guide.html">Guide</a>
+      <a href="./companies.html">Companies</a>
+      <FeedbackLink url={feedbackUrl} />
+    </nav>
+  );
+}
+
+export function AppShell({ route, guide, onGuideExit, durability, announcement, own = false, feedbackUrl = FEEDBACK_URL, children }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const restoreRef = useRef(true);
@@ -226,7 +256,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
   useEffect(() => {
     restoreRef.current = false;
     setMenuOpen(false);
-    document.title = pageTitle(route);
+    document.title = pageTitle(route, own);
     const move = shouldFocusOnRouteChange(prevRouteKey.current, routeKey);
     prevRouteKey.current = routeKey;
     if (!move) return;
@@ -237,7 +267,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
     });
     return () => cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- routeKey captures route
-  }, [routeKey]);
+  }, [routeKey, own]);
 
   return (
     <div className="shell">
@@ -250,9 +280,9 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             <ChromeMark className="brand-mark" />
             Preflight
           </a>
-          <NavLinks route={route} className="nav-links" />
-          <span className="badge badge-synthetic" title={SYNTHETIC_LABEL}>
-            Synthetic demo
+          <NavLinks route={route} own={own} className="nav-links" />
+          <span className={own ? "badge badge-synthetic badge-own" : "badge badge-synthetic"} title={own ? OWN_LABEL : SYNTHETIC_LABEL}>
+            {own ? OWN_BADGE : DEMO_BADGE}
           </span>
           <button
             ref={triggerRef}
@@ -269,14 +299,14 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
           </button>
         </nav>
       </header>
-      {menuOpen ? <MobileMenu route={route} onClose={closeMenu} triggerRef={triggerRef} restoreRef={restoreRef} /> : null}
+      {menuOpen ? <MobileMenu route={route} own={own} onClose={closeMenu} triggerRef={triggerRef} restoreRef={restoreRef} /> : null}
       <div className="shell-body" inert={menuOpen}>
         {durability === "memory" ? (
           <p className="banner banner-warn" role="alert">
             {MEMORY_BANNER}
           </p>
         ) : null}
-        {guide?.active ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
+        {guide?.active && !own ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
         <main id={MAIN_ID} tabIndex={-1} className="main">
           {children}
         </main>
@@ -284,8 +314,9 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
           <footer className="footer footer-hero">
             <div className="footer-top">
               <div className="footer-meta">
-                <p className="footer-label">{SYNTHETIC_LABEL}</p>
+                <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
                 <p className="footer-attrib">{ATTRIBUTION}</p>
+                <SiteLinks feedbackUrl={feedbackUrl} />
               </div>
             </div>
             <p className="footer-wordmark" aria-hidden="true">
@@ -296,17 +327,18 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
           </footer>
         ) : (
           <footer className="footer footer-compact">
-            <a className="footer-next" href={nextStep(route).href}>
-              <span className="footer-next-kicker">{nextStep(route).kicker}</span>
+            <a className="footer-next" href={nextStep(route, own).href}>
+              <span className="footer-next-kicker">{nextStep(route, own).kicker}</span>
               <span className="footer-next-line">
-                {nextStep(route).label}
+                {nextStep(route, own).label}
                 <span className="footer-next-arrow" aria-hidden="true">→</span>
               </span>
             </a>
             <div className="footer-fine">
               <ChromeMark className="footer-brand-mark" />
-              <p className="footer-label">{SYNTHETIC_LABEL}</p>
+              <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
               <p className="footer-credit">Concept: project owner · Code: Claude · QA: Codex</p>
+              <SiteLinks feedbackUrl={feedbackUrl} />
             </div>
           </footer>
         )}

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { AppShell, MEMORY_BANNER } from "../../src/components/index.ts";
 import { SYNTHETIC_LABEL } from "../../src/domain/contracts.ts";
 import { guide } from "./fixtures.ts";
+import { renderToStaticMarkup } from "react-dom/server";
 import { render } from "./helpers.ts";
 
 const base = {
@@ -56,5 +57,18 @@ test("shell: guide steps render status words and Exit guide", () => {
 
 test("shell: inactive guide is hidden", () => {
   const html = render(<AppShell {...base} guide={{ ...guide, active: false }}><p /></AppShell>);
+  assert.ok(!html.includes("Exit guide"));
+});
+
+test("shell: footer links to the public pages; feedback link only when a URL is set", () => {
+  const html = render(<AppShell {...base}><p /></AppShell>);
+  for (const p of ["privacy", "terms", "pilot-guide", "companies"]) assert.ok(html.includes(`href="./${p}.html"`), p);
+  assert.ok(!html.includes("Send feedback"));
+  const withUrl = renderToStaticMarkup(<AppShell {...base} feedbackUrl="https://example.test/f"><p /></AppShell>);
+  assert.ok(withUrl.includes('href="https://example.test/f"') && withUrl.includes("Send feedback"));
+});
+
+test("M1: the guided-demo bar is hidden on own pages", () => {
+  const html = render(<AppShell {...base} guide={guide} own route={{ name: "mine" }}><p /></AppShell>);
   assert.ok(!html.includes("Exit guide"));
 });

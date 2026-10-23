@@ -1,0 +1,62 @@
+/* Public information pages: plain HTML + this file, no JavaScript. Same ink-on-white look as the app. */
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./fonts/instrument-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./fonts/instrument-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --ink: #181818;
+  --ink-soft: #5c5c5c;
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --line: #e6e6e3;
+  --warn-bg: #fff4dc;
+  --warn-ink: #6b4500;
+  --focus: 3px solid #1b6fd1;
+  --font: "Instrument Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 1rem/1.6 var(--font); }
+a { color: #000; text-underline-offset: 0.15em; }
+a:focus-visible { outline: var(--focus); outline-offset: 2px; }
+
+.site-nav { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: baseline; padding: 14px clamp(16px, 4vw, 40px); border-bottom: 1px solid var(--line); background: var(--surface); }
+.site-nav .brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; margin-right: auto; }
+.site-nav a[aria-current="page"] { font-weight: 600; }
+
+main { max-width: 44rem; margin: 0 auto; padding: 40px clamp(16px, 4vw, 40px) 32px; overflow-wrap: anywhere; }
+h1, h2, h3 { font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0 0 12px; }
+h2 { font-size: 1.5rem; margin: 2.2em 0 0.4em; }
+h3 { font-size: 1.15rem; margin: 1.6em 0 0.3em; }
+.lede { font-size: 1.15rem; color: var(--ink-soft); margin-top: 0; }
+.updated, .note { color: var(--ink-soft); font-size: 0.9rem; }
+.callout { background: var(--warn-bg); color: var(--warn-ink); border-radius: 14px; padding: 12px 16px; }
+ul, ol { padding-left: 1.3em; }
+li { margin: 0.3em 0; }
+.cta { display: inline-block; margin: 8px 0; padding: 12px 22px; border-radius: 999px; background: var(--ink); color: #fff; font-weight: 600; text-decoration: none; }
+.cta:focus-visible { outline: var(--focus); outline-offset: 3px; }
+
+footer { max-width: 44rem; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 40px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.85rem; }
+footer a { color: var(--ink-soft); }
+footer p { margin: 0.3em 0; }
+/* Phones: the brand gets its own line, so the four links sit together on the next one. */
+@media (max-width: 480px) {
+  .site-nav { gap: 4px 16px; }
+  .site-nav .brand { flex-basis: 100%; }
+}

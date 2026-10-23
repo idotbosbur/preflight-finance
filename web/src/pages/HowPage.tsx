@@ -52,8 +52,9 @@ export function HowPage() {
         <p className="eyebrow">How it works</p>
         <h1 className="page-title" tabIndex={-1}>Small, checkable guarantees</h1>
         <p className="lede">
-          Two deterministic rules (possible duplicates within one batch and total mismatches), a human review step and a measured
-          synthetic benchmark. No AI model is used, and nothing leaves your browser.
+          Deterministic rules (possible duplicates and total mismatches), a human review step and a measured synthetic
+          benchmark. With your own files, a third lower-confidence rule also looks for same-vendor, same-amount bills within
+          14 days. No AI model is used, and nothing leaves your browser.
         </p>
       </header>
 
@@ -73,8 +74,8 @@ export function HowPage() {
       <section className="panel" aria-labelledby="limits-heading">
         <h2 id="limits-heading" className="section-title">Limits</h2>
         <ul>
-          <li>Synthetic USD invoices only; at most 1 MiB and {MAX_ROWS.toLocaleString("en-US")} rows per file.</li>
-          <li>Duplicates are found within one batch only, by exact normalized vendor + invoice number + currency; there is no fuzzy matching.</li>
+          <li>Demo: synthetic USD invoices only; at most 1 MiB and {MAX_ROWS.toLocaleString("en-US")} rows per file.</li>
+          <li>Demo: duplicates are found within one batch only, by exact normalized vendor + invoice number + currency. With your own files, checks run across every file you import, and only the 14-day same-amount rule is approximate.</li>
           <li>Legitimate invoice-number reuse looks the same as a duplicate to this rule; a person must decide.</li>
           <li>No real integrations, payments or accounts.</li>
         </ul>
