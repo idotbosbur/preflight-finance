@@ -1709,3 +1709,9 @@ h3 {
     display: none;
   }
 }
+
+/* Your-data flow */
+.mapping { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.75rem 1rem; margin-bottom: 1rem; }
+.date-order { border: 1px solid var(--line, #e2e2df); border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0 0; }
+.radio { display: block; padding: 0.35rem 0; cursor: pointer; }
+.radio input { margin-right: 0.4rem; }

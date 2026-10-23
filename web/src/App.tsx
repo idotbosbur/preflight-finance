@@ -5,23 +5,26 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BatchSummary, CaseView, Durability, FindingView, ReviewAction } from "./domain/contracts.ts";
-import { MODULES, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
+import type { ColumnMapping } from "./domain/own/columns.ts";
+import type { DateOrder } from "./domain/own/values.ts";
+import { MODULES, OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
 import { parseInvoiceCsv } from "./domain/csv.ts";
 import { runInvoiceRules } from "./domain/rules.ts";
 import { makeBatchId, makeFindingId, sha256Hex } from "./domain/ids.ts";
 import type {
-  BenchmarkFile, DecisionForm, DemoStatus, GuideView, ImportUiState, QueueFilter, Route, SaveStatus, StoryData,
+  BenchmarkFile, DecisionForm, DemoStatus, GuideView, QueueFilter, Route, SaveStatus, StoryData,
 } from "./ui-contracts.ts";
 import { AppShell } from "./components/index.ts";
 import { Intro, shouldPlayIntro } from "./components/Intro.tsx";
 import {
-  CasePage, HowPage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
+  CasePage, HowPage, MinePage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
 } from "./pages/index.ts";
 import { formatRoute, parseRoute } from "./state/router.ts";
 import { openBestStore } from "./state/openStore.ts";
-import { importBytes, readFileBytes } from "./state/importer.ts";
+import { importBytes } from "./state/importer.ts";
+import { importOwnFile } from "./state/ownImporter.ts";
 import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
-import type { ReviewStore } from "./state/store.ts";
+import type { OwnFileRecord, ReviewStore } from "./state/store.ts";
 import { onCaseLoaded, onConflictShown, onSaved } from "./state/draft.ts";
 import type { DraftBinding } from "./state/draft.ts";
 
@@ -88,21 +91,6 @@ function stableOrder(findings: readonly FindingView[]): FindingView[] {
   return [...findings].sort((a, b) => (a.ruleId !== b.ruleId ? (a.ruleId < b.ruleId ? -1 : 1) : compareTuples(a.memberIds, b.memberIds)));
 }
 
-function messageForOutcome(name: string, outcome: Awaited<ReturnType<typeof importBytes>>, demoBatchId: string | null): string {
-  switch (outcome.status) {
-    case "created":
-      return `Imported ${name}: ${outcome.batch.rowCount} invoices, ${outcome.batch.findingCount} findings to review.`;
-    case "existing":
-      return outcome.batch.batchId === demoBatchId
-        ? `${name} is the demo batch. It is already loaded; your earlier decisions are kept.`
-        : `${name} was imported before (same file bytes). Opening it with your earlier decisions kept.`;
-    case "rejected":
-      return `${name} was rejected: ${outcome.issueCount} issue(s). Nothing was imported.`;
-    case "storage_error":
-      return `${name} could not be saved: ${outcome.message}`;
-  }
-}
-
 export function App() {
   const [route, setRoute] = useState<Route>(() => parseRoute(window.location.hash));
   // Brand intro: only when a visit starts on the landing page.
@@ -119,6 +107,7 @@ export function App() {
   const [demoError, setDemoError] = useState<string | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
   const [batches, setBatches] = useState<BatchSummary[]>([]);
+  const [ownFiles, setOwnFiles] = useState<OwnFileRecord[]>([]);
   const [benchmark, setBenchmark] = useState<BenchmarkFile | null>(null);
   const [benchmarkError, setBenchmarkError] = useState<string | null>(null);
 
@@ -128,7 +117,6 @@ export function App() {
   const [caseOrder, setCaseOrder] = useState<FindingView[]>([]);
   const [form, setForm] = useState<DecisionForm>({ reviewer: DEFAULT_REVIEWER, reason: "" });
   const [save, setSave] = useState<SaveStatus>({ kind: "idle" });
-  const [importState, setImportState] = useState<ImportUiState>({ kind: "idle" });
   const [readError, setReadError] = useState<string | null>(null);
   const onReadError = useCallback(() => setReadError(READ_ERROR), []);
   const [demoFailure, setDemoFailure] = useState<string | null>(null);
@@ -188,6 +176,7 @@ export function App() {
     if (!store) return;
     let cancelled = false;
     store.listBatches().then((b) => !cancelled && setBatches(b), onReadError);
+    store.listOwnFiles().then((f) => !cancelled && setOwnFiles(f), onReadError);
     return () => { cancelled = true; };
   }, [store, version, onReadError]);
 
@@ -201,6 +190,8 @@ export function App() {
     ? route.batchId ?? (demoLoaded ? demo!.batchId : batches[0]?.batchId ?? null)
     : route.name === "case" ? route.batchId : null;
   const queueBatch = batches.find((b) => b.batchId === queueBatchId) ?? null;
+  const ownMode = route.name === "mine" || route.name === "mine-summary"
+    || (route.name === "queue" && queueBatch?.source === "own") || (route.name === "case" && route.batchId === OWN_BATCH_ID);
 
   useEffect(() => {
     if (!store || !queueBatchId) { setQueueFindings([]); return; }
@@ -372,26 +363,22 @@ export function App() {
     bump();
   }, [store, caseView, form, durability, bump]);
 
-  const onImportFile = useCallback(async (file: File) => {
-    if (!store) return;
-    setImportState({ kind: "working", fileName: file.name });
-    try {
-      // Captured BEFORE reading/hashing; the import transaction rejects it if a reset committed since.
-      const expectedResetGeneration = await store.getResetGeneration();
-      const bytes = await readFileBytes(file);
-      if (!(bytes instanceof Uint8Array)) {
-        setImportState({ kind: "error", fileName: file.name, message: `The file is ${bytes.size} bytes; the limit is 1,048,576 bytes (1 MiB). Nothing was read or imported.` });
-        return;
-      }
-      // Staleness is decided by the outcome only (the transaction compares reset generations).
-      const outcome = await importBytes(store, bytes, { displayName: file.name, source: "upload", now: nowIso(), expectedResetGeneration });
-      setImportState({ kind: "done", fileName: file.name, outcome });
-      setAnnouncement(messageForOutcome(file.name, outcome, demo?.batchId ?? null));
+  const onImportOwn = useCallback(async (bytes: Uint8Array, mapping: ColumnMapping, opts: { displayName: string; dateOrder: DateOrder | null }) => {
+    if (!store) return { status: "storage_error" as const, message: "Browser storage is still opening. Try again in a moment." };
+    const outcome = await importOwnFile(store, bytes, mapping, { ...opts, now: nowIso(), expectedResetGeneration: await store.getResetGeneration() });
+    if ("status" in outcome && outcome.status === "merged") {
+      setAnnouncement(`Added ${outcome.added} invoices to your data.`);
       bump();
-    } catch {
-      setImportState({ kind: "error", fileName: file.name, message: "The browser could not read this file. Nothing was imported." });
     }
-  }, [store, demo, bump]);
+    return outcome;
+  }, [store, bump]);
+
+  const onDeleteOwn = useCallback(async () => {
+    if (!store) return;
+    const out = await store.deleteOwnData();
+    setAnnouncement(out.ok ? "Your data was deleted from this browser." : `Delete failed: ${out.message ?? "storage error"}`);
+    bump();
+  }, [store, bump]);
 
   const onResetDemo = useCallback(async () => {
     if (!store) return;
@@ -399,7 +386,6 @@ export function App() {
     if (out.ok) {
       draftRef.current = null;
       setAnnouncement("This browser's demo data and decisions were reset.");
-      setImportState({ kind: "idle" });
       setVisitedResults(false);
       navigate({ name: "queue", batchId: null });
     } else {
@@ -442,8 +428,7 @@ export function App() {
           batch={queueBatch} batches={batches} findings={filtered} filter={filter} onFilterChange={setFilter}
           hrefForCase={(id) => formatRoute({ name: "case", batchId: queueBatchId ?? "", findingId: id })}
           hrefForBatch={(id) => formatRoute({ name: "queue", batchId: id })}
-          demo={demoStatus} onLoadDemo={explore} importState={importState} onImportFile={onImportFile}
-          sampleCsvHref={DEMO_CSV} onResetDemo={onResetDemo}
+          demo={demoStatus} onLoadDemo={explore} onResetDemo={onResetDemo}
         />
       );
       break;
@@ -478,6 +463,18 @@ export function App() {
       }
       break;
     }
+    case "mine":
+      page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
+        <MinePage
+          ownBatch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} files={ownFiles}
+          onImport={onImportOwn} onDeleteOwn={() => void onDeleteOwn()}
+          queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} summaryHref={formatRoute({ name: "mine-summary" })}
+        />
+      );
+      break;
+    case "mine-summary":
+      page = <p className="app-loading">Your-data summary is coming soon.</p>;
+      break;
     case "results":
       page = <ResultsPage benchmark={benchmark} benchmarkError={benchmarkError} visitor={demoLoaded ? batches.find((b) => b.batchId === demo!.batchId) ?? null : null} />;
       break;
@@ -495,7 +492,7 @@ export function App() {
   return (
     <>
     {intro ? <Intro onDone={endIntro} /> : null}
-    <AppShell route={route} guide={guide} onGuideExit={exitGuide} durability={durability}
+    <AppShell route={route} guide={guide} own={ownMode} onGuideExit={exitGuide} durability={durability}
       announcement={storeError && durability === "memory" ? `${announcement} ${storeError}`.trim() : announcement}>
       {page}
     </AppShell>

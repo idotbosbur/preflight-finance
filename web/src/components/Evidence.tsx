@@ -1,4 +1,4 @@
-import type { DuplicateEvidence, MismatchEvidence, ReviewState, RuleId } from "../domain/contracts.ts";
+import type { DuplicateEvidence, MismatchEvidence, NearDuplicateEvidence, ReviewState, RuleId } from "../domain/contracts.ts";
 import { RULE_LABEL, STATE_LABEL } from "./labels.ts";
 
 export function StateBadge({ state }: { readonly state: ReviewState }) {
@@ -24,7 +24,7 @@ export function RuleBadge({ rule }: { readonly rule: RuleId }) {
  * Plain-English receipt for a total mismatch. Every amount is an evidence string rendered verbatim;
  * nothing is computed here.
  */
-export function MismatchArithmetic({ evidence, headingLevel = 3 }: { readonly evidence: MismatchEvidence; readonly headingLevel?: 2 | 3 | 4 }) {
+export function MismatchArithmetic({ evidence, headingLevel = 3, currency = "USD" }: { readonly evidence: MismatchEvidence; readonly headingLevel?: 2 | 3 | 4; readonly currency?: string }) {
   const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
   const lower = evidence.delta.startsWith("-");
   return (
@@ -49,18 +49,18 @@ export function MismatchArithmetic({ evidence, headingLevel = 3 }: { readonly ev
       <p className="calc-check">
         <span className="sr-only">Formula: </span>
         <code>{evidence.subtotal} + {evidence.tax} + {evidence.shipping} − {evidence.discount} = {evidence.expected}</code>
-        <span> · USD, compared in exact cents</span>
+        <span> · {currency}, compared in exact cents</span>
       </p>
     </div>
   );
 }
 
 /** Side-by-side comparison of a duplicate group; values that differ between members are emphasised. */
-export function DuplicateMembers({ evidence, headingLevel = 3 }: { readonly evidence: DuplicateEvidence; readonly headingLevel?: 2 | 3 | 4 }) {
+export function DuplicateMembers({ evidence, headingLevel = 3, currency = "USD" }: { readonly evidence: DuplicateEvidence; readonly headingLevel?: 2 | 3 | 4; readonly currency?: string }) {
   const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
   const rows: ReadonlyArray<readonly [string, (m: DuplicateEvidence["members"][number]) => string, boolean]> = [
     ["Invoice date", (m) => m.invoiceDate, false],
-    ["Total (USD)", (m) => m.total, true],
+    [`Total (${currency})`, (m) => m.total, true],
     ["Vendor as written", (m) => m.rawVendor, false],
     ["Invoice no. as written", (m) => m.rawInvoice, false],
   ];
@@ -96,6 +96,40 @@ export function DuplicateMembers({ evidence, headingLevel = 3 }: { readonly evid
                 </tr>
               );
             })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** Lower-confidence pair: same vendor and total a few days apart. Currency comes from the member invoices. */
+export function NearDuplicateMembers({ evidence, currency, headingLevel = 3 }: { readonly evidence: NearDuplicateEvidence; readonly currency: string; readonly headingLevel?: 2 | 3 | 4 }) {
+  const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
+  return (
+    <div className="dup">
+      <p className="dup-key">
+        Same vendor <code>{evidence.vendor}</code> and total <strong className="num">{evidence.total}</strong>{" "}
+        <span className="muted">({currency})</span>, <strong>{evidence.daysApart} days</strong> apart.
+      </p>
+      <div className="dup-scroll">
+        <table className="dup-table">
+          <thead>
+            <tr>
+              <th scope="col"><span className="sr-only">Field</span></th>
+              {evidence.members.map((m) => (
+                <th key={m.recordId} scope="col">
+                  <H className="dup-member-title">{m.recordId}</H>
+                  <span className="muted">row {m.row}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Invoice date</th>{evidence.members.map((m) => <td key={m.recordId}><code>{m.invoiceDate}</code></td>)}</tr>
+            <tr><th scope="row">Total ({currency})</th>{evidence.members.map((m) => <td key={m.recordId} className="num">{m.total}</td>)}</tr>
+            <tr className="is-different"><th scope="row">Invoice no. as written<span className="dup-diff-tag">differs</span></th>{evidence.members.map((m) => <td key={m.recordId}><code>{m.rawInvoice}</code></td>)}</tr>
+            <tr><th scope="row">Vendor as written</th>{evidence.members.map((m) => <td key={m.recordId}><code>{m.rawVendor}</code></td>)}</tr>
           </tbody>
         </table>
       </div>

@@ -8,6 +8,9 @@ export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   NEAR_DUPLICATE: "Possible duplicate (lower confidence)",
 };
 
+export const OWN_BADGE = "Your data — stays in this browser";
+export const DEMO_BADGE = "Synthetic demo";
+
 export const STATE_LABEL: Readonly<Record<ReviewState, string>> = {
   open: "Open",
   confirmed: "Confirmed",

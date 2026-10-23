@@ -177,9 +177,6 @@ export function queueProps(over: Partial<QueueProps> = {}): QueueProps {
     hrefForBatch: (id) => `#/queue/${id}`,
     demo: { kind: "ready", batchId: batch.batchId },
     onLoadDemo: noop,
-    importState: { kind: "idle" },
-    onImportFile: noop,
-    sampleCsvHref: "demo/sample.csv",
     onResetDemo: noop,
     ...over,
   };

@@ -1,84 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, RefObject } from "react";
-import type { ImportUiState, QueueFilter, QueueProps } from "../ui-contracts.ts";
+import type { RefObject } from "react";
+import type { QueueFilter, QueueProps } from "../ui-contracts.ts";
 import type { ReviewState, RuleId } from "../domain/contracts.ts";
-import { CSV_HEADER, MAX_ROWS } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
-import { RULE_LABEL, STATE_LABEL, caseTitle } from "../components/labels.ts";
+import { DEMO_BADGE, OWN_BADGE, RULE_LABEL, STATE_LABEL, caseTitle } from "../components/labels.ts";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
-/** Visible issue rows; the rest are summarized as "N more". */
-export const VISIBLE_ISSUES = 25;
-
-function issueLocation(row: number | null, field: string | null): string {
-  const where = row === null ? "File" : `Row ${row}`;
-  return field ? `${where}, field ${field}` : where;
-}
-
-export function ImportStatus({ state, hrefForBatch }: { readonly state: ImportUiState; readonly hrefForBatch: (batchId: string) => string }) {
-  if (state.kind === "idle") return null;
-  if (state.kind === "working") {
-    return <p className="notice" role="status">Checking {state.fileName} in your browser…</p>;
-  }
-  if (state.kind === "error") {
-    return (
-      <div className="notice notice-error" role="alert">
-        <p>
-          {state.fileName}: {state.message}
-        </p>
-      </div>
-    );
-  }
-  const outcome = state.outcome;
-  if (outcome.status === "created" || outcome.status === "existing") {
-    const b = outcome.batch;
-    return (
-      <div className="notice notice-ok" role="status">
-        <p>
-          {outcome.status === "created"
-            ? `Imported ${state.fileName}: ${b.rowCount} rows, ${b.findingCount} candidate findings.`
-            : `${state.fileName} was already imported (same file hash and ruleset). The existing batch and its decisions are kept.`}
-        </p>
-        {b.source === "demo" ? <p>This file is the synthetic demo batch.</p> : null}
-        <p>
-          <a href={hrefForBatch(b.batchId)}>Open {b.displayName}</a>
-        </p>
-      </div>
-    );
-  }
-  if (outcome.status === "storage_error") {
-    return (
-      <div className="notice notice-error" role="alert">
-        <p>
-          {state.fileName} could not be saved in this browser: {outcome.message}. Do not assume it was imported; check the
-          batch list after reloading.
-        </p>
-      </div>
-    );
-  }
-  if (outcome.status !== "rejected") return null;
-  const shown = outcome.issues.slice(0, VISIBLE_ISSUES);
-  const more = outcome.issueCount - shown.length;
-  return (
-    <div className="notice notice-error" role="alert">
-      <p>
-        <strong>{state.fileName} was rejected. Nothing was imported.</strong> {outcome.issueCount}{" "}
-        {outcome.issueCount === 1 ? "issue" : "issues"} found; fix them and try the whole file again.
-      </p>
-      <ul className="issues">
-        {shown.map((issue, i) => (
-          <li key={i} className="issue">
-            <span className="issue-where">{issueLocation(issue.row, issue.field)}</span>
-            <code className="issue-code">{issue.code}</code>
-            <span className="issue-msg">{issue.message}</span>
-          </li>
-        ))}
-      </ul>
-      {more > 0 ? <p>{more} more {more === 1 ? "issue" : "issues"} not listed.</p> : null}
-    </div>
-  );
-}
+const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, "NEAR_DUPLICATE"];
+/** Findings shown per page of the queue. */
+export const PAGE_SIZE = 50;
 
 export const QUEUE_HEADING_ID = "queue-heading";
 
@@ -151,49 +82,13 @@ function ResetControl({ onResetDemo }: { readonly onResetDemo: () => void }) {
   );
 }
 
-function AdvancedImport({ importState, onImportFile, sampleCsvHref, hrefForBatch }: Pick<QueueProps, "importState" | "onImportFile" | "sampleCsvHref" | "hrefForBatch">) {
-  function onChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) onImportFile(file);
-    event.target.value = "";
-  }
-  return (
-    <details className="advanced">
-      <summary>Advanced: try your own synthetic CSV</summary>
-      <div className="advanced-body">
-        <p>The file is read and checked in this browser only. It is never uploaded.</p>
-        <h3 className="small-title">Accepted format</h3>
-        <ul className="format-list">
-          <li>UTF-8 text (an optional byte-order mark is fine), at most 1 MiB and {MAX_ROWS.toLocaleString("en-US")} data rows.</li>
-          <li>Currency USD only; amounts written as plain decimals, as in the sample file.</li>
-          <li>Dates as YYYY-MM-DD.</li>
-          <li>
-            Exact header: <code className="header-code">{CSV_HEADER.join(",")}</code>
-          </li>
-          <li>One bad row rejects the whole file, with row and field for each issue.</li>
-          <li>Importing identical bytes again opens the same batch and keeps its decisions.</li>
-        </ul>
-        <p>
-          <a href={sampleCsvHref} download>
-            Download the synthetic sample CSV
-          </a>
-        </p>
-        <label className="field-label" htmlFor="csv-file">
-          Choose a synthetic CSV file
-        </label>
-        <input id="csv-file" className="file-input" type="file" accept=".csv,text/csv" onChange={onChange} disabled={importState.kind === "working"} />
-        <div className="import-status">
-          <ImportStatus state={importState} hrefForBatch={hrefForBatch} />
-        </div>
-      </div>
-    </details>
-  );
-}
-
 export function QueuePage(props: QueueProps) {
   const { batch, batches, findings, filter, onFilterChange, hrefForCase, hrefForBatch, demo, onLoadDemo } = props;
+  const [shown, setShown] = useState(PAGE_SIZE);
+  const own = batch?.source === "own";
 
   function setFilter(next: Partial<QueueFilter>) {
+    setShown(PAGE_SIZE);
     onFilterChange({ ...filter, ...next });
   }
 
@@ -201,13 +96,14 @@ export function QueuePage(props: QueueProps) {
     <div className="workspace">
       <header className="page-head">
         <p className="eyebrow">Review queue</p>
+        {batch ? <p><span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span></p> : null}
         <h1 id={QUEUE_HEADING_ID} className="page-title" tabIndex={-1}>
           {batch ? batch.displayName : "Findings to review"}
         </h1>
         {batch ? (
           <p className="lede">
             {batch.rowCount} invoices checked · {batch.findingCount} candidate findings ({batch.duplicateCount} possible duplicate
-            groups, {batch.mismatchCount} total mismatches) · {batch.openCount} open, {batch.confirmedCount} confirmed,{" "}
+            groups, {batch.mismatchCount} total mismatches{own ? `, ${batch.nearDuplicateCount} lower-confidence` : ""}) · {batch.openCount} open, {batch.confirmedCount} confirmed,{" "}
             {batch.dismissedCount} dismissed
           </p>
         ) : null}
@@ -223,7 +119,7 @@ export function QueuePage(props: QueueProps) {
                   {b.displayName}
                 </a>{" "}
                 <span className="muted">
-                  ({b.source === "demo" ? "demo" : "your file"}, {b.findingCount} findings)
+                  ({b.source === "demo" ? "demo" : "your data"}, {b.findingCount} findings)
                 </span>
               </li>
             ))}
@@ -265,7 +161,7 @@ export function QueuePage(props: QueueProps) {
             <div className="filter">
               <label htmlFor="filter-rule" className="field-label">Rule</label>
               <select id="filter-rule" value={filter.rule} onChange={(e) => setFilter({ rule: e.target.value as RuleId | "all" })}>
-                {RULE_OPTIONS.map((r) => (
+                {(own ? OWN_RULE_OPTIONS : RULE_OPTIONS).map((r) => (
                   <option key={r} value={r}>{r === "all" ? "All rules" : RULE_LABEL[r]}</option>
                 ))}
               </select>
@@ -279,7 +175,7 @@ export function QueuePage(props: QueueProps) {
             <p className="empty-inline">No findings match these filters.</p>
           ) : (
             <ul className="case-rows">
-              {findings.map((f) => (
+              {findings.slice(0, shown).map((f) => (
                 <li key={f.findingId} className={`case-row is-${f.state}`}>
                   <a className="case-row-link" href={hrefForCase(f.findingId)}>
                     <span className="case-row-kind">{RULE_LABEL[f.ruleId]}</span>
@@ -294,14 +190,23 @@ export function QueuePage(props: QueueProps) {
               ))}
             </ul>
           )}
+          {findings.length > shown ? (
+            <p>
+              <button type="button" className="btn btn-secondary" onClick={() => setShown(shown + PAGE_SIZE)}>
+                Show {PAGE_SIZE} more
+              </button>{" "}
+              <span className="muted">Showing {shown} of {findings.length}</span>
+            </p>
+          ) : null}
         </section>
       )}
 
-      <section className="tools" aria-label="Import and reset">
-        <AdvancedImport importState={props.importState} onImportFile={props.onImportFile} sampleCsvHref={props.sampleCsvHref} hrefForBatch={hrefForBatch} />
-        <div className="reset">
-          <ResetControl onResetDemo={props.onResetDemo} />
-        </div>
+      <section className="tools" aria-label={own ? "Your data" : "Reset"}>
+        {own ? <p><a href="#/mine">Add files or delete your data</a></p> : (
+          <div className="reset">
+            <ResetControl onResetDemo={props.onResetDemo} />
+          </div>
+        )}
       </section>
     </div>
   );

@@ -6,7 +6,6 @@
  * hashing or routing state changes themselves. App.tsx (lead) wires state to props.
  */
 import type {
-  BatchImportOutcome,
   BatchSummary,
   CaseView,
   Durability,
@@ -78,12 +77,6 @@ export type SaveStatus =
   | { readonly kind: "conflict"; readonly message: string }
   | { readonly kind: "error"; readonly message: string };
 
-export type ImportUiState =
-  | { readonly kind: "idle" }
-  | { readonly kind: "working"; readonly fileName: string }
-  | { readonly kind: "done"; readonly fileName: string; readonly outcome: BatchImportOutcome }
-  | { readonly kind: "error"; readonly fileName: string; readonly message: string };
-
 export interface QueueFilter {
   readonly state: ReviewState | "all";
   readonly rule: RuleId | "all";
@@ -147,6 +140,8 @@ export interface AppShellProps {
   readonly durability: Durability;
   /** Polite live-region text (import/save/navigation announcements). */
   readonly announcement: string;
+  /** Own-data mode: shows the "Your data" badge/title instead of the synthetic-demo ones. */
+  readonly own?: boolean;
   readonly children: React.ReactNode;
 }
 
@@ -169,9 +164,6 @@ export interface QueueProps {
   readonly hrefForBatch: (batchId: string) => RouteHref;
   readonly demo: DemoStatus;
   readonly onLoadDemo: () => void;
-  readonly importState: ImportUiState;
-  readonly onImportFile: (file: File) => void;
-  readonly sampleCsvHref: string; // static sample download
   readonly onResetDemo: () => void; // explicit reset of this visitor's local state (UI must confirm first)
 }
 

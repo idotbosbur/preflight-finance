@@ -1,8 +1,8 @@
 import type { CaseProps, SaveStatus } from "../ui-contracts.ts";
 import type { Invoice, ReviewAction } from "../domain/contracts.ts";
-import { ACTIONS, CSV_HEADER, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, codePointLength } from "../domain/contracts.ts";
-import { DuplicateMembers, MismatchArithmetic, RuleBadge, StateBadge } from "../components/Evidence.tsx";
-import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, STATE_LABEL, caseTitle } from "../components/labels.ts";
+import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, codePointLength } from "../domain/contracts.ts";
+import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
+import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, DEMO_BADGE, OWN_BADGE, STATE_LABEL, caseTitle } from "../components/labels.ts";
 
 const ERRORS_ID = "decision-errors";
 const STATUS_ID = "decision-status";
@@ -77,6 +77,8 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
   const hasErrors = save.kind === "invalid" || save.kind === "conflict" || save.kind === "error";
   const describedBy = hasErrors ? `${ERRORS_ID} reason-hint` : "reason-hint";
   const isDup = ev.kind === RULE_DUPLICATE;
+  const own = batch.source === "own" || batch.batchId === OWN_BATCH_ID;
+  const currency = members[0]?.currency ?? "USD";
 
   return (
     <div className="workspace case">
@@ -93,6 +95,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
         <div className="case-card-badges">
           <RuleBadge rule={finding.ruleId} />
           <StateBadge state={finding.state} />
+          <span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span>
         </div>
         <h1 id="case-heading" className="page-title case-title" tabIndex={-1}>
           {caseTitle(finding)}
@@ -118,20 +121,23 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
               upper-cased). That can mean the same invoice was entered twice — or that a vendor legitimately reused an invoice
               number. The rule cannot tell which, so a person decides.
             </p>
-            <DuplicateMembers evidence={ev} />
+            <DuplicateMembers evidence={ev} currency={currency} />
           </>
-        ) : ev.kind === "NEAR_DUPLICATE" ? (
-          <p>
-            Same vendor and total amount, {ev.daysApart} days apart, but different invoice numbers. Lower confidence: this
-            may be a repeat charge or two genuine invoices, so a person decides.
-          </p>
+        ) : ev.kind === RULE_NEAR_DUPLICATE ? (
+          <>
+            <p>
+              Same vendor and total amount a few days apart, but different invoice numbers. Lower confidence: this
+              may be a repeat charge or two genuine invoices, so a person decides.
+            </p>
+            <NearDuplicateMembers evidence={ev} currency={currency} />
+          </>
         ) : (
           <>
             <p>
               The total declared on this invoice does not equal subtotal + tax + shipping − discount, checked in exact cents. Even a
               one-cent difference is flagged.
             </p>
-            <MismatchArithmetic evidence={ev} />
+            <MismatchArithmetic evidence={ev} currency={currency} />
           </>
         )}
       </section>
@@ -145,7 +151,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
           <p className="notice notice-warn">Browser storage is unavailable: decisions in this tab will be lost on reload.</p>
         ) : null}
         <div className="field">
-          <label className="field-label" htmlFor="reviewer">Reviewer (fictional demo name)</label>
+          <label className="field-label" htmlFor="reviewer">Reviewer{own ? "" : " (fictional demo name)"}</label>
           <input
             id="reviewer"
             className="text-input"
@@ -225,7 +231,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
         <p className="hint">
           {durability === "memory"
             ? "Browser storage is unavailable, so this history is kept only in this tab and will be lost on reload. It is not an audit log."
-            : "History is kept in this browser only, until you reset the demo data. It is not an audit log."}
+            : `History is kept in this browser only, until you ${own ? "delete your data" : "reset the demo data"}. It is not an audit log.`}
         </p>
       </section>
 
