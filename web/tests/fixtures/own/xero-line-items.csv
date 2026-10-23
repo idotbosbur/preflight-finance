@@ -1,0 +1,5 @@
+*ContactName,EmailAddress,*InvoiceNumber,*InvoiceDate,*DueDate,Total,TaxTotal,Description,*Quantity,*UnitAmount,LineAmount,Currency
+Initech Example,ap@initech.example,LI-001,2026-03-05,2026-04-04,300.00,30.00,Widgets,2,50.00,100.00,USD
+Initech Example,ap@initech.example,LI-001,2026-03-05,2026-04-04,300.00,30.00,Gadgets,1,120.00,120.00,USD
+Initech Example,ap@initech.example,LI-001,2026-03-05,2026-04-04,300.00,30.00,Freight,1,50.00,50.00,USD
+Globex Sample,ap@globex.example,LI-002,2026-03-06,2026-04-05,75.00,7.50,Consulting,1,67.50,67.50,USD

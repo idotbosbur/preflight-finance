@@ -149,3 +149,60 @@ test("guessMapping prefers InvoiceNumber over Reference regardless of order", ()
   assert.equal(m.invoiceNumber, 2);
   assert.deepEqual(guessMapping(["Supplier Name", "Inv #", "Amount Due"]), { vendor: 0, invoiceNumber: 1, total: 2 });
 });
+
+// --- line-item rows of one bill are combined ---
+import { runOwnRules } from "../../src/domain/rules.ts";
+
+test("Xero line-item fixture: header mapping", () => {
+  const m = guessMapping(headersOf("xero-line-items.csv"));
+  assert.equal(m.vendor, 0);
+  assert.equal(m.invoiceNumber, 2);
+  assert.equal(m.date, 3);
+  assert.equal(m.total, 5);
+  assert.equal(m.tax, 6);
+  assert.equal(m.currency, 11);
+});
+
+test("Xero line-item fixture: rows of one bill combine, no false duplicate", () => {
+  const r = buildOwnRows(fx("xero-line-items.csv"), guessMapping(headersOf("xero-line-items.csv")), opts);
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
+  assert.equal(r.invoices[0]!.rowNumber, 2);
+  assert.equal(r.invoices[0]!.total, 30000);
+  assert.deepEqual(r.warnings.filter((w) => w.row === 0), [
+    { row: 0, field: "rows", reason: "3 line-item rows were combined into 1 invoice (same vendor, invoice number, date, total and currency)" },
+  ]);
+  assert.deepEqual(runOwnRules(r.invoices), []);
+});
+
+test("different date is not combined and is still flagged", () => {
+  const csv = "v,n,d,t\nAcme,A1,2026-03-01,10.00\nAcme,A1,2026-03-02,10.00\n";
+  const r = buildOwnRows(enc(csv), { vendor: 0, invoiceNumber: 1, date: 2, total: 3 }, opts);
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
+  assert.ok(runOwnRules(r.invoices).length > 0);
+  assert.equal(r.warnings.some((w) => w.field === "rows"), false);
+});
+
+test("combined components: identical kept, differing drop to hasComponents false", () => {
+  const M2 = { vendor: 0, invoiceNumber: 1, total: 2, subtotal: 3 };
+  const same = buildOwnRows(enc("v,n,t,s,d\nAcme,A1,100.00,100.00,one\nAcme,A1,100.00,100.00,two\n"), M2, opts);
+  assert.ok("invoices" in same);
+  assert.equal(same.invoices.length, 1);
+  assert.equal(same.invoices[0]!.hasComponents, true);
+  assert.equal(same.invoices[0]!.subtotal, 10000);
+  assert.match(same.warnings.find((w) => w.field === "rows")!.reason, /^2 line-item rows were combined into 1 invoice/);
+  const diff = buildOwnRows(enc("v,n,t,s,d\nAcme,A1,100.00,40.00,x\nAcme,A1,100.00,60.00,y\n"), M2, opts);
+  assert.ok("invoices" in diff);
+  assert.equal(diff.invoices.length, 1);
+  assert.equal(diff.invoices[0]!.hasComponents, false);
+  assert.equal(diff.invoices[0]!.subtotal, 0);
+  assert.equal(runOwnRules(diff.invoices).length, 0);
+});
+
+test("a row identical in every cell is a re-entry, not a line item", () => {
+  const r = buildOwnRows(enc("v,n,t\nAcme,A1,10.00\nAcme,A1,10.00\n"), M, opts);
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
+  assert.equal(r.warnings.some((w) => w.field === "rows"), false);
+});
