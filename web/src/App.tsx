@@ -17,7 +17,7 @@ import type {
 import { AppShell } from "./components/index.ts";
 import { Intro, shouldPlayIntro } from "./components/Intro.tsx";
 import {
-  CasePage, HowPage, MinePage, MineSummaryPage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
+  CasePage, HowPage, MinePage, MineSummaryPage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage, FeedbackPage,
 } from "./pages/index.ts";
 import { formatRoute, parseRoute } from "./state/router.ts";
 import { openBestStore } from "./state/openStore.ts";
@@ -513,6 +513,9 @@ export function App() {
       break;
     case "roadmap":
       page = <RoadmapPage modules={MODULES} />;
+      break;
+    case "feedback":
+      page = <FeedbackPage demoHref={formatRoute({ name: "demo" })} />;
       break;
     case "not_found":
       page = <NotFoundPage message="There is no page at this address." homeHref="#/" onLoadDemo={null} />;

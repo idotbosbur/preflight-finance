@@ -212,7 +212,7 @@ test("summary page while loading: no counts, no Print or Download", async () => 
 
 test("mine page: feedback link only when a URL is set", () => {
   const props = { ownBatch, files: [], onImport: () => Promise.reject(new Error("unused")), onDeleteOwn: () => Promise.resolve({ ok: true }), queueHref: "#/q", summaryHref: "#/s" };
-  assert.ok(!render(<MinePage {...props} />).includes("Send feedback"));
+  assert.ok(!render(<MinePage {...props} feedbackUrl="" />).includes("Send feedback"));
   const html = renderToStaticMarkup(<MinePage {...props} feedbackUrl="https://example.test/f" />);
   assert.ok(html.includes('href="https://example.test/f"'));
 });

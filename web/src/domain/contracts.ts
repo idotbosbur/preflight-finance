@@ -17,7 +17,7 @@ export const RULESET_VERSION = "invoice-v1";
 export const SCHEMA_VERSION = 1;
 
 /** Where visitors send feedback. Empty = no feedback link is shown anywhere. */
-export const FEEDBACK_URL = "";
+export const FEEDBACK_URL = "#/feedback";
 
 export const CSV_HEADER = [
   "record_id",

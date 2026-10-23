@@ -61,11 +61,12 @@ test("shell: inactive guide is hidden", () => {
 });
 
 test("shell: footer links to the public pages; feedback link only when a URL is set", () => {
-  const html = render(<AppShell {...base}><p /></AppShell>);
+  const html = render(<AppShell {...base} feedbackUrl=""><p /></AppShell>);
   for (const p of ["privacy", "terms", "pilot-guide", "companies"]) assert.ok(html.includes(`href="./${p}.html"`), p);
   assert.ok(!html.includes("Send feedback"));
   const withUrl = renderToStaticMarkup(<AppShell {...base} feedbackUrl="https://example.test/f"><p /></AppShell>);
   assert.ok(withUrl.includes('href="https://example.test/f"') && withUrl.includes("Send feedback"));
+  assert.ok(render(<AppShell {...base}><p /></AppShell>).includes('href="#/feedback"'));
 });
 
 test("M1: the guided-demo bar is hidden on own pages", () => {

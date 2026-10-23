@@ -59,6 +59,7 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   results: "Results",
   how: "How it works",
   roadmap: "Roadmap",
+  feedback: "Feedback",
   mine: "Your data",
   "mine-summary": "Your data summary",
   not_found: "Page not found",
@@ -224,7 +225,8 @@ function MobileMenu({ route, own, onClose, triggerRef, restoreRef }: MobileMenuP
 
 /** Shown only when a feedback URL is configured. */
 export function FeedbackLink({ url }: { url: string }) {
-  return url ? <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a> : null;
+  if (!url) return null;
+  return url.startsWith("#") ? <a href={url}>Feedback</a> : <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a>;
 }
 
 function SiteLinks({ feedbackUrl }: { feedbackUrl: string }) {

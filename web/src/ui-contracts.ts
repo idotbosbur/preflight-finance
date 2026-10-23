@@ -30,6 +30,7 @@ export type Route =
   | { readonly name: "roadmap" }
   | { readonly name: "mine" } // own-data workspace
   | { readonly name: "mine-summary" }
+  | { readonly name: "feedback" }
   | { readonly name: "not_found"; readonly hash: string };
 
 /** Canonical hrefs: "#/", "#/demo", "#/queue", "#/queue/<batchId>", "#/case/<batchId>/<findingId>",

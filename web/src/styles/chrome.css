@@ -1756,3 +1756,18 @@ h3 {
   margin-top: 0;
   flex-basis: 100%;
 }
+
+/* ---------- Feedback form ---------- */
+.feedback-form { max-width: 40rem; }
+.fb-q { border: 0; padding: 0; margin: 0 0 1.5rem; min-width: 0; }
+.fb-q legend { padding: 0; margin-bottom: 0.25rem; }
+.fb-sub { margin-top: 0.6rem; }
+.hint-inline { font-weight: 400; color: var(--ink-soft); }
+.feedback .text-input { width: 100%; box-sizing: border-box; }
+.fb-scale { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.fb-scale-opt { position: relative; }
+.fb-scale-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; width: 100%; height: 100%; cursor: pointer; }
+.fb-scale-opt span { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; border: 1px solid #b7c1c8; border-radius: 10px; background: var(--surface); color: var(--ink); font-weight: 600; }
+.fb-scale-opt input:checked + span { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.fb-scale-opt input:focus-visible + span { outline: 3px solid currentColor; outline-offset: 2px; }
+.fb-error { color: var(--err-ink); font-weight: 600; }

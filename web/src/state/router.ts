@@ -26,6 +26,7 @@ export function parseRoute(hash: string): Route {
     case "results":
     case "how":
     case "roadmap":
+    case "feedback":
       if (parts.length === 1) return { name: head };
       break;
   }
@@ -45,6 +46,7 @@ export function formatRoute(route: Route): RouteHref {
     case "results":
     case "how":
     case "roadmap":
+    case "feedback":
       return `#/${route.name}`;
     case "mine":
       return "#/mine";

@@ -7,3 +7,4 @@ export { RoadmapPage } from "./RoadmapPage.tsx";
 export { NotFoundPage } from "./NotFoundPage.tsx";
 export { MinePage } from "./MinePage.tsx";
 export { MineSummaryPage } from "./MineSummaryPage.tsx";
+export { FeedbackPage } from "./FeedbackPage.tsx";

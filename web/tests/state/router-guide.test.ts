@@ -12,7 +12,7 @@ test("routes round-trip and reject malformed hashes", () => {
   const routes: Route[] = [
     { name: "overview" }, { name: "demo" }, { name: "queue", batchId: null }, { name: "queue", batchId: B },
     { name: "case", batchId: B, findingId: F }, { name: "results" }, { name: "how" }, { name: "roadmap" },
-    { name: "mine" }, { name: "mine-summary" },
+    { name: "mine" }, { name: "mine-summary" }, { name: "feedback" },
   ];
   for (const r of routes) assert.deepEqual(parseRoute(formatRoute(r)), r);
   assert.deepEqual(parseRoute(""), { name: "overview" });
