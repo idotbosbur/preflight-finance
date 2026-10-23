@@ -245,3 +245,21 @@ test("M10: preview scroll area is a focusable labelled region", () => {
   assert.match(div, /role="region"/);
   assert.match(div, /aria-label="/);
 });
+
+test("M2: near-duplicate key shows the vendor as written", () => {
+  const props = { view: nearView, form: { reviewer: "Me", reason: "" }, onFormChange: noop, onAction: noop, save: { kind: "idle" } as const,
+    durability: "persistent" as const, guideHint: null, queueHref: "#/q", prevHref: null, nextHref: null, suggestedReasons: [] };
+  const key = render(<CasePage {...props} />).match(/<p class="dup-key">.*?<\/p>/s)![0];
+  assert.ok(key.includes("<code>Acme</code>"), key);
+  assert.ok(!key.includes("<code>ACME</code>"), key);
+});
+
+test("M15: a legacy uploaded batch is labelled neutrally, never as synthetic", () => {
+  const up = { ...batch, source: "upload" as const };
+  const html = render(<QueuePage {...queueProps({ batch: up, batches: [up] })} />);
+  assert.ok(html.includes("Uploaded file (older version)"));
+  assert.ok(!/<span class="badge badge-synthetic">Synthetic demo/.test(html));
+  assert.ok(render(<CasePage {...{ view: { ...caseView("open"), batch: up }, form: { reviewer: "Me", reason: "" }, onFormChange: noop, onAction: noop,
+    save: { kind: "idle" } as const, durability: "persistent" as const, guideHint: null, queueHref: "#/q", prevHref: null, nextHref: null,
+    suggestedReasons: [] }} />).includes("Uploaded file (older version)"));
+});

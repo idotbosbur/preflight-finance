@@ -55,3 +55,8 @@ li { margin: 0.3em 0; }
 footer { max-width: 44rem; margin: 0 auto; padding: 24px clamp(16px, 4vw, 40px) 40px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.85rem; }
 footer a { color: var(--ink-soft); }
 footer p { margin: 0.3em 0; }
+/* Phones: the brand gets its own line, so the four links sit together on the next one. */
+@media (max-width: 480px) {
+  .site-nav { gap: 4px 16px; }
+  .site-nav .brand { flex-basis: 100%; }
+}

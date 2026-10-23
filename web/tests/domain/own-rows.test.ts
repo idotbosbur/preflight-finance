@@ -224,3 +224,7 @@ test("R20: line-item header but rows equal in every line-item column are not com
   assert.ok("invoices" in r);
   assert.equal(r.invoices.length, 2);
 });
+
+test("M9: bill-level TaxTotal outranks line-level Tax Amount", () => {
+  assert.equal(guessMapping(["Vendor", "Tax Amount", "TaxTotal"]).tax, 2);
+});

@@ -67,3 +67,8 @@ test("shell: footer links to the public pages; feedback link only when a URL is 
   const withUrl = renderToStaticMarkup(<AppShell {...base} feedbackUrl="https://example.test/f"><p /></AppShell>);
   assert.ok(withUrl.includes('href="https://example.test/f"') && withUrl.includes("Send feedback"));
 });
+
+test("M1: the guided-demo bar is hidden on own pages", () => {
+  const html = render(<AppShell {...base} guide={guide} own route={{ name: "mine" }}><p /></AppShell>);
+  assert.ok(!html.includes("Exit guide"));
+});

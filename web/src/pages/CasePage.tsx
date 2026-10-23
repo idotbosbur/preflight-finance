@@ -2,7 +2,7 @@ import type { CaseProps, SaveStatus } from "../ui-contracts.ts";
 import type { Invoice, ReviewAction } from "../domain/contracts.ts";
 import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, codePointLength } from "../domain/contracts.ts";
 import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
-import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, DEMO_BADGE, OWN_BADGE, STATE_LABEL, caseTitle } from "../components/labels.ts";
+import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
 
 const ERRORS_ID = "decision-errors";
 const STATUS_ID = "decision-status";
@@ -95,7 +95,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
         <div className="case-card-badges">
           <RuleBadge rule={finding.ruleId} />
           <StateBadge state={finding.state} />
-          <span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span>
+          <span className="badge badge-synthetic">{own ? OWN_BADGE : sourceBadge(batch.source)}</span>
         </div>
         <h1 id="case-heading" className="page-title case-title" tabIndex={-1}>
           {caseTitle(finding, own)}

@@ -11,7 +11,7 @@ const SYNONYMS: Readonly<Record<OwnField, readonly string[]>> = {
   date: ["Invoice Date", "InvoiceDate", "Bill Date", "Txn Date", "Transaction Date", "Date"],
   total: ["Total", "Total Amount", "Grand Total", "Bill Total", "Amount Due", "Amount", "Open Balance"],
   subtotal: ["Subtotal", "Sub Total", "Net Amount"],
-  tax: ["Tax", "Tax Amount", "TaxTotal", "Sales Tax", "VAT"],
+  tax: ["Tax", "TaxTotal", "Tax Amount", "Sales Tax", "VAT"],
   shipping: ["Shipping", "Freight", "Delivery"],
   discount: ["Discount", "Discount Amount"],
   currency: ["Currency", "Currency Code"],

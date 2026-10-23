@@ -106,10 +106,13 @@ export function DuplicateMembers({ evidence, headingLevel = 3, currency = "USD" 
 /** Lower-confidence pair: same vendor and total a few days apart. Currency comes from the member invoices. */
 export function NearDuplicateMembers({ evidence, currency, headingLevel = 3 }: { readonly evidence: NearDuplicateEvidence; readonly currency: string; readonly headingLevel?: 2 | 3 | 4 }) {
   const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
+  // The vendor as the file wrote it (the key itself is upper-cased for matching).
+  const written = [...new Set(evidence.members.map((m) => m.rawVendor.trim()).filter((v) => v !== ""))];
+  const vendors = written.length > 0 ? written : [evidence.vendor];
   return (
     <div className="dup">
       <p className="dup-key">
-        Same vendor <code>{evidence.vendor}</code> and total <strong className="num">{evidence.total}</strong>{" "}
+        Same vendor {vendors.map((v, i) => <span key={v}>{i > 0 ? " / " : ""}<code>{v}</code></span>)} and total <strong className="num">{evidence.total}</strong>{" "}
         <span className="muted">({currency})</span>, <strong>{evidence.daysApart} days</strong> apart.
       </p>
       <div className="dup-scroll">

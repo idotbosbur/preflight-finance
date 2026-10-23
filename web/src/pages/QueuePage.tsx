@@ -4,7 +4,7 @@ import type { QueueFilter, QueueProps } from "../ui-contracts.ts";
 import type { ReviewState, RuleId } from "../domain/contracts.ts";
 import { RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
-import { DEMO_BADGE, OWN_BADGE, RULE_LABEL, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
+import { RULE_LABEL, sourceBadge, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
@@ -98,7 +98,7 @@ export function QueuePage(props: QueueProps) {
     <div className="workspace">
       <header className="page-head">
         <p className="eyebrow">Review queue</p>
-        {batch ? <p><span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span></p> : null}
+        {batch ? <p><span className="badge badge-synthetic">{sourceBadge(batch.source)}</span></p> : null}
         <h1 id={QUEUE_HEADING_ID} className="page-title" tabIndex={-1}>
           {batch ? batch.displayName : "Findings to review"}
         </h1>
@@ -121,7 +121,7 @@ export function QueuePage(props: QueueProps) {
                   {b.displayName}
                 </a>{" "}
                 <span className="muted">
-                  ({b.source === "demo" ? "demo" : "your data"}, {b.findingCount} findings)
+                  ({b.source === "demo" ? "demo" : b.source === "upload" ? "older upload" : "your data"}, {b.findingCount} findings)
                 </span>
               </li>
             ))}

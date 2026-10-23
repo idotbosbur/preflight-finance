@@ -306,7 +306,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             {MEMORY_BANNER}
           </p>
         ) : null}
-        {guide?.active ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
+        {guide?.active && !own ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
         <main id={MAIN_ID} tabIndex={-1} className="main">
           {children}
         </main>

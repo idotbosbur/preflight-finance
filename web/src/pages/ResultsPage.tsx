@@ -1,4 +1,5 @@
 import type { BenchmarkRun, ResultsProps } from "../ui-contracts.ts";
+import { plural } from "../components/labels.ts";
 
 const SOURCE_LABEL: Readonly<Record<BenchmarkRun["source"], { readonly title: string; readonly note: string }>> = {
   "browser-port": { title: "Browser port (this TypeScript app)", note: "The rules running in this website." },
@@ -117,6 +118,12 @@ export function ResultsPage({ benchmark, benchmarkError, visitor }: ResultsProps
               Fixed synthetic benchmark: {main.mismatch.tp + main.mismatch.fp + main.mismatch.fn + main.mismatch.tn} invented invoices,
               {" "}generated and labelled within the same AI-assisted build that wrote the rules. It shows the rules behave as designed, not accuracy on real invoices.
             </p>
+            {benchmark.nearDuplicate ? (
+              <p className="results-honesty results-near">
+                Lower-confidence duplicates (Your data mode): {benchmark.nearDuplicate.pairsLabelled} labelled pairs, {benchmark.nearDuplicate.tp} found,
+                {" "}{plural(benchmark.nearDuplicate.fp, "false alarm")}, {benchmark.nearDuplicate.fn} missed. A small synthetic labelled set, not a measure of real-world accuracy.
+              </p>
+            ) : null}
 
             <h2 className="results-h2">{runsAgree(benchmark.runs) ? "Both versions agree" : "The two versions differ"}</h2>
             <div className="runs">

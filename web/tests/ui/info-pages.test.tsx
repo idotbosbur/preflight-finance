@@ -74,3 +74,11 @@ test("every page renders inside the shell with the synthetic label", () => {
     assert.ok(html.includes(SYNTHETIC_LABEL));
   }
 });
+
+test("M5: results show the near-duplicate measurement in one honest line", () => {
+  const nd = { pairsLabelled: 18, tp: 5, fp: 2, fn: 1 };
+  const html = render(<ResultsPage benchmark={{ ...benchmark, nearDuplicate: nd }} benchmarkError={null} visitor={batch} />);
+  const line = html.match(/<p class="[^"]*results-near">.*?<\/p>/s)?.[0] ?? "";
+  for (const s of ["18 labelled pairs", "5 found", "2 false alarms", "1 missed", "small"]) assert.ok(line.includes(s), `${s} in ${line}`);
+  assert.ok(!render(<ResultsPage benchmark={benchmark} benchmarkError={null} visitor={batch} />).includes("results-near"));
+});
