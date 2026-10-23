@@ -1,0 +1,28 @@
+{
+  "fixture": "near-dup-v1.csv",
+  "rows": "CSV line numbers (header = line 1), i.e. buildOwnRows rowNumber",
+  "truth": "genuine = the same bill entered twice (what a reviewer should catch); written from the scenario, before the rule existed",
+  "pairs": [
+    { "rows": [2, 19], "genuine": true, "scenario": "re-entry: digits transposed NW-5521 / NW-5512, 2 days apart" },
+    { "rows": [4, 21], "genuine": true, "scenario": "re-entry: leading zeros dropped C-00417 / C-417, same day" },
+    { "rows": [7, 24], "genuine": true, "scenario": "re-entry: suffix added F2026-88 / F2026-88A, 3 days apart" },
+    { "rows": [10, 27], "genuine": true, "scenario": "re-entry: separator changed LW/301 / LW-301, 10 days apart" },
+    { "rows": [12, 29], "genuine": true, "scenario": "re-entry: hyphen added TS7781 / TS-7781, 14 days apart" },
+    { "rows": [13, 30], "genuine": true, "scenario": "re-entry: extra digit PW-120 / PW-1200, entered 20 days later" },
+    { "rows": [3, 20], "genuine": false, "scenario": "legitimate repeat: monthly rent Jan/Feb" },
+    { "rows": [20, 36], "genuine": false, "scenario": "legitimate repeat: monthly rent Feb/Mar" },
+    { "rows": [3, 36], "genuine": false, "scenario": "legitimate repeat: monthly rent Jan/Mar" },
+    { "rows": [8, 25], "genuine": false, "scenario": "legitimate repeat: monthly subscription" },
+    { "rows": [6, 23], "genuine": false, "scenario": "legitimate repeat: weekly cleaning, 7 days apart" },
+    { "rows": [18, 35], "genuine": false, "scenario": "legitimate repeat: quarterly insurance" },
+    { "rows": [14, 31], "genuine": false, "scenario": "legitimate repeat: two different courier shipments, same day, same price" },
+    { "rows": [5, 22], "genuine": false, "scenario": "near miss: different bills one cent apart" },
+    { "rows": [9, 26], "genuine": false, "scenario": "near miss: different bills one cent apart" },
+    { "rows": [16, 33], "genuine": false, "scenario": "near miss: different bills one cent apart" },
+    { "rows": [17, 34], "genuine": false, "scenario": "near miss: different bills one cent apart" },
+    { "rows": [15, 32], "genuine": false, "scenario": "same vendor and amount but different currencies (USD / GBP)" }
+  ],
+  "exactDuplicatePairs": [
+    { "rows": [11, 28], "scenario": "inv-2040 / INV-2040: same number after normalisation — the exact-key rule's job, never a near-duplicate" }
+  ]
+}
