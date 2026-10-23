@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy | Preflight</title>
+    <meta name="description" content="What Preflight stores, what it does not, and how to delete your data. Your files stay in your browser and are never uploaded." />
+    <link rel="canonical" href="https://preflight-finance-portfolio.vercel.app/privacy.html" />
+    <link rel="stylesheet" href="/src/styles/static.css" />
+  </head>
+  <body>
+    <nav class="site-nav" aria-label="Site">
+      <a class="brand" href="./">Preflight</a>
+      <a href="./pilot-guide.html">Guide</a>
+      <a href="./privacy.html" aria-current="page">Privacy</a>
+      <a href="./terms.html">Terms</a>
+      <a href="./companies.html">Companies</a>
+    </nav>
+    <main>
+      <h1>Privacy</h1>
+      <p class="lede">Preflight runs in your browser. Your invoice files are read on your device and are never uploaded.</p>
+
+      <h2>What is stored, and where</h2>
+      <ul>
+        <li>In "your data" mode, the invoices you import and your review decisions are saved in this browser's IndexedDB. They stay on this device, in this browser profile.</li>
+        <li>The demo also keeps your review decisions on the synthetic invoices in IndexedDB.</li>
+        <li>Small preferences use browser storage (localStorage and sessionStorage): whether the guided tour is on, whether the intro was shown, and which CSV columns you matched to which fields.</li>
+      </ul>
+
+      <h2>What is not collected</h2>
+      <ul>
+        <li>No uploads. Your CSV is parsed by code running in your browser.</li>
+        <li>No accounts and no sign-in.</li>
+        <li>No analytics, advertising or tracking scripts, and no cookies set by the app. The app's only network requests are for its own files (the synthetic demo data and the benchmark results).</li>
+      </ul>
+
+      <h2>Hosting</h2>
+      <p>The site is hosted by Vercel, which serves the app's files. Like most hosts, Vercel may keep standard server logs (for example IP address, time and page requested) when your browser loads those files. Your invoice data is not part of any request, because it never leaves your browser.</p>
+
+      <h2>Deleting your data</h2>
+      <ul>
+        <li>Open <a href="./#/mine">Your data</a> and choose "Delete my data". It erases the invoices and decisions stored in this browser.</li>
+        <li>Or clear this site's data in your browser settings. That removes everything, including the small preferences above.</li>
+      </ul>
+      <p>Because nothing is stored on a server, there is no copy for us to delete, and your data cannot be recovered if you delete it or your browser clears it.</p>
+
+      <h2>Contact</h2>
+      <p>Send feedback through the feedback link in the app when one is shown. This prototype has no other contact channel yet.</p>
+      <p class="updated">Last updated 23 October 2026.</p>
+    </main>
+    <footer>
+      <p>Preflight is a prototype. Your files stay in your browser and are never uploaded. <a href="./">Open the app</a>.</p>
+    </footer>
+  </body>
+</html>

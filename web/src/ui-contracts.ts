@@ -142,6 +142,8 @@ export interface AppShellProps {
   readonly announcement: string;
   /** Own-data mode: shows the "Your data" badge/title instead of the synthetic-demo ones. */
   readonly own?: boolean;
+  /** Feedback link target; defaults to FEEDBACK_URL. Empty hides the link. */
+  readonly feedbackUrl?: string;
   readonly children: React.ReactNode;
 }
 

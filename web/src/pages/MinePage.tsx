@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { ChangeEvent } from "react";
 import type { BatchSummary } from "../domain/contracts.ts";
-import { OWN_MAX_BYTES } from "../domain/contracts.ts";
+import { FEEDBACK_URL, OWN_MAX_BYTES } from "../domain/contracts.ts";
 import { parseCsvRecords } from "../domain/csv.ts";
 import { REQUIRED_FIELDS, guessMapping } from "../domain/own/columns.ts";
 import type { ColumnMapping, OwnField } from "../domain/own/columns.ts";
@@ -12,6 +12,7 @@ import type { DateOrder } from "../domain/own/values.ts";
 import type { OwnFileRecord, OwnMergeOutcome } from "../state/store.ts";
 import type { OwnParseError } from "../state/ownImporter.ts";
 import { OWN_BADGE, plural } from "../components/labels.ts";
+import { FeedbackLink } from "../components/AppShell.tsx";
 
 const FIELD_LABEL: Readonly<Record<OwnField, string>> = {
   vendor: "Vendor", invoiceNumber: "Invoice number", date: "Invoice date", total: "Total", subtotal: "Subtotal",
@@ -203,6 +204,7 @@ export interface MinePageProps {
   readonly onDeleteOwn: () => Promise<{ ok: boolean; message?: string }>;
   readonly queueHref: string;
   readonly summaryHref: string;
+  readonly feedbackUrl?: string;
 }
 
 const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
@@ -211,7 +213,7 @@ const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
   "missing required column": "Choose a column for each required field.", "ambiguous date order": "Choose day first or month first.",
 };
 
-export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, summaryHref }: MinePageProps) {
+export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, summaryHref, feedbackUrl = FEEDBACK_URL }: MinePageProps) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping>({});
   const [dateOrder, setDateOrder] = useState<DateOrder | null>(null);
@@ -335,6 +337,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
           <button ref={triggerRef} type="button" className="btn btn-quiet" disabled={working}
             onClick={() => { focusAfter.current = "cancel"; setDeleteError(null); setConfirming(true); }}>Delete my data</button>
         )) : null}
+        {feedbackUrl ? <p className="hint"><FeedbackLink url={feedbackUrl} /></p> : null}
       </section>
     </div>
   );

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, RefObject } from "react";
 import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
 import type { Durability } from "../domain/contracts.ts";
-import { SYNTHETIC_LABEL } from "../domain/contracts.ts";
+import { FEEDBACK_URL, SYNTHETIC_LABEL } from "../domain/contracts.ts";
 import { DEMO_BADGE, OWN_BADGE } from "./labels.ts";
 
 const OWN_LABEL = "Your data — stays in this browser. Nothing is uploaded.";
@@ -222,7 +222,24 @@ function MobileMenu({ route, own, onClose, triggerRef, restoreRef }: MobileMenuP
   );
 }
 
-export function AppShell({ route, guide, onGuideExit, durability, announcement, own = false, children }: AppShellProps) {
+/** Shown only when a feedback URL is configured. */
+export function FeedbackLink({ url }: { url: string }) {
+  return url ? <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a> : null;
+}
+
+function SiteLinks({ feedbackUrl }: { feedbackUrl: string }) {
+  return (
+    <nav className="footer-links" aria-label="About">
+      <a href="./privacy.html">Privacy</a>
+      <a href="./terms.html">Terms</a>
+      <a href="./pilot-guide.html">Guide</a>
+      <a href="./companies.html">Companies</a>
+      <FeedbackLink url={feedbackUrl} />
+    </nav>
+  );
+}
+
+export function AppShell({ route, guide, onGuideExit, durability, announcement, own = false, feedbackUrl = FEEDBACK_URL, children }: AppShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const restoreRef = useRef(true);
@@ -299,6 +316,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               <div className="footer-meta">
                 <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
                 <p className="footer-attrib">{ATTRIBUTION}</p>
+                <SiteLinks feedbackUrl={feedbackUrl} />
               </div>
             </div>
             <p className="footer-wordmark" aria-hidden="true">
@@ -320,6 +338,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               <ChromeMark className="footer-brand-mark" />
               <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
               <p className="footer-credit">Concept: project owner · Code: Claude · QA: Codex</p>
+              <SiteLinks feedbackUrl={feedbackUrl} />
             </div>
           </footer>
         )}

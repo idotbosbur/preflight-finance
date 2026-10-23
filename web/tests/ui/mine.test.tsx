@@ -8,6 +8,7 @@ import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contr
 import { guessMapping } from "../../src/domain/own/columns.ts";
 import { reviewerFor } from "../../src/state/draft.ts";
 import { XSS, batch, caseView, dupEvidence, finding, queueProps } from "./fixtures.ts";
+import { renderToStaticMarkup } from "react-dom/server";
 import { buttons, render } from "./helpers.ts";
 
 const noop = () => {};
@@ -207,4 +208,11 @@ test("summary page while loading: no counts, no Print or Download", async () => 
   assert.ok(html.includes("Reading your results"));
   assert.ok(!html.includes("Invoices checked") && !html.includes("Confirmed"));
   assert.deepEqual(buttons(html), []);
+});
+
+test("mine page: feedback link only when a URL is set", () => {
+  const props = { ownBatch, files: [], onImport: () => Promise.reject(new Error("unused")), onDeleteOwn: () => Promise.resolve({ ok: true }), queueHref: "#/q", summaryHref: "#/s" };
+  assert.ok(!render(<MinePage {...props} />).includes("Send feedback"));
+  const html = renderToStaticMarkup(<MinePage {...props} feedbackUrl="https://example.test/f" />);
+  assert.ok(html.includes('href="https://example.test/f"'));
 });

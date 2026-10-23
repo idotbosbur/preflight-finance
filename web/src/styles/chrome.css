@@ -1734,3 +1734,19 @@ h3 {
   body, .shell, .shell-body, .main { background: #fff !important; color: #000 !important; }
   .main *, .summary-stat { color: #000 !important; border-color: #000 !important; }
 }
+
+/* Footer link line: one small row, same quiet small print. */
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+}
+.footer-links a {
+  color: var(--ink-soft);
+}
+.footer-fine .footer-links {
+  margin-top: 0;
+  flex-basis: 100%;
+}
