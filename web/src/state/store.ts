@@ -10,7 +10,7 @@ import {
   SCHEMA_VERSION,
   WEB_CONTRACTS_VERSION,
   RULE_DUPLICATE,
-  RULE_MISMATCH,
+  RULE_MISMATCH, RULE_NEAR_DUPLICATE,
   assertSafeCents,
 } from "../domain/contracts.ts";
 import type {
@@ -165,6 +165,7 @@ export function summarize(b: BatchRecord, findings: readonly FindingRecord[]): B
     ruleset: b.ruleset, importedAt: b.importedAt, rowCount: b.rowCount, findingCount: findings.length,
     duplicateCount: count((f) => f.ruleId === RULE_DUPLICATE),
     mismatchCount: count((f) => f.ruleId === RULE_MISMATCH),
+    nearDuplicateCount: count((f) => f.ruleId === RULE_NEAR_DUPLICATE),
     openCount: count((f) => f.state === "open"),
     confirmedCount: count((f) => f.state === "confirmed"),
     dismissedCount: count((f) => f.state === "dismissed"),

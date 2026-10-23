@@ -29,10 +29,12 @@ export type Route =
   | { readonly name: "results" }
   | { readonly name: "how" }
   | { readonly name: "roadmap" }
+  | { readonly name: "mine" } // own-data workspace
+  | { readonly name: "mine-summary" }
   | { readonly name: "not_found"; readonly hash: string };
 
 /** Canonical hrefs: "#/", "#/demo", "#/queue", "#/queue/<batchId>", "#/case/<batchId>/<findingId>",
- *  "#/results", "#/how", "#/roadmap". Implemented by state/router.ts (formatRoute/parseRoute). */
+ *  "#/results", "#/how", "#/roadmap", "#/mine", "#/mine/summary". Implemented by state/router.ts (formatRoute/parseRoute). */
 export type RouteHref = string;
 
 // ---- Guided demo ----

@@ -41,7 +41,13 @@ export const MAX_AMOUNT_CENTS = 99_999_999_999;
 
 export const RULE_DUPLICATE = "DUPLICATE_CANDIDATE";
 export const RULE_MISMATCH = "TOTAL_MISMATCH";
-export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH;
+export const RULE_NEAR_DUPLICATE = "NEAR_DUPLICATE";
+export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE;
+
+export const OWN_BATCH_ID = "00000000000000a1";
+export const OWN_MAX_BYTES = 10_485_760;
+export const OWN_MAX_ROWS = 20_000;
+export const NEAR_DUP_WINDOW_DAYS = 14;
 
 export type ReviewState = "open" | "confirmed" | "dismissed";
 export type ReviewAction = "confirm" | "dismiss" | "reopen";
@@ -203,7 +209,14 @@ export interface MismatchEvidence {
   /** declared - expected, signed: "+0.01", "-0.01" (never "0.00" — no finding then). */
   readonly delta: string;
 }
-export type Evidence = DuplicateEvidence | MismatchEvidence;
+export interface NearDuplicateEvidence {
+  readonly kind: typeof RULE_NEAR_DUPLICATE;
+  readonly vendor: string;
+  readonly total: string;
+  readonly daysApart: number;
+  readonly members: readonly DuplicateMemberEvidence[];
+}
+export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence;
 
 /** Rule output before ID finalization. memberIds sorted ascending (compareStrings). */
 export interface CandidateFinding {
@@ -238,7 +251,7 @@ export interface PreparedBatch {
 // Visitor state (src/state, lead): store port + views
 // ---------------------------------------------------------------------------
 
-export type BatchSource = "demo" | "upload";
+export type BatchSource = "demo" | "upload" | "own";
 
 export interface BatchSummary {
   readonly batchId: string;
@@ -251,6 +264,7 @@ export interface BatchSummary {
   readonly findingCount: number;
   readonly duplicateCount: number;
   readonly mismatchCount: number;
+  readonly nearDuplicateCount: number;
   readonly openCount: number;
   readonly confirmedCount: number;
   readonly dismissedCount: number;

@@ -49,6 +49,8 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   results: "Results",
   how: "How it works",
   roadmap: "Roadmap",
+  mine: "Your data",
+  "mine-summary": "Your data summary",
   not_found: "Page not found",
 };
 

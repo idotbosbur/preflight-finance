@@ -24,6 +24,7 @@ export const batch: BatchSummary = {
   findingCount: 32,
   duplicateCount: 12,
   mismatchCount: 20,
+  nearDuplicateCount: 0,
   openCount: 31,
   confirmedCount: 1,
   dismissedCount: 0,

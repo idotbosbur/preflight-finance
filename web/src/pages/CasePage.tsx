@@ -120,6 +120,11 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
             </p>
             <DuplicateMembers evidence={ev} />
           </>
+        ) : ev.kind === "NEAR_DUPLICATE" ? (
+          <p>
+            Same vendor and total amount, {ev.daysApart} days apart, but different invoice numbers. Lower confidence: this
+            may be a repeat charge or two genuine invoices, so a person decides.
+          </p>
         ) : (
           <>
             <p>

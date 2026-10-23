@@ -1,10 +1,11 @@
 /** Plain-language labels shared by pages. Text only — no arithmetic on money. */
 import type { ReviewAction, ReviewState, RuleId, FindingView } from "../domain/contracts.ts";
-import { RULE_DUPLICATE } from "../domain/contracts.ts";
+import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 
 export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   DUPLICATE_CANDIDATE: "Possible duplicate",
   TOTAL_MISMATCH: "Total mismatch",
+  NEAR_DUPLICATE: "Possible duplicate (lower confidence)",
 };
 
 export const STATE_LABEL: Readonly<Record<ReviewState, string>> = {
@@ -33,6 +34,9 @@ export function caseTitle(finding: FindingView): string {
   const ev = finding.evidence;
   if (ev.kind === RULE_DUPLICATE) {
     return `Same vendor and invoice number: ${ev.key.vendor} · ${ev.key.invoice}`;
+  }
+  if (ev.kind === RULE_NEAR_DUPLICATE) {
+    return `Same vendor and amount, ${ev.daysApart} days apart: ${ev.vendor} · ${ev.total}`;
   }
   return `Total doesn't add up: invoice says ${ev.declared}, parts add to ${ev.expected}`;
 }
