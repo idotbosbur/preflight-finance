@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
 const SITE = "https://preflight-finance-portfolio.vercel.app/";
-const PAGES = ["index.html", "privacy.html", "terms.html", "companies.html", "pilot-guide.html"];
+const PAGES = ["index.html", "privacy.html", "terms.html", "companies.html", "pilot-guide.html", "guide-quickbooks-duplicate-bills.html", "guide-xero-export-bills-csv.html", "guide-excel-duplicate-invoices.html"];
 const read = (p: string) => readFileSync(new URL(`../../dist/${p}`, import.meta.url), "utf8");
 
 for (const page of PAGES) {

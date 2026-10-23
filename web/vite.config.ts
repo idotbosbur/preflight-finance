@@ -14,7 +14,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: {
       input: Object.fromEntries(
-        ["index", "privacy", "terms", "companies", "pilot-guide"].map((n) => [n, resolve(import.meta.dirname, `${n}.html`)]),
+        ["index", "privacy", "terms", "companies", "pilot-guide", "guide-quickbooks-duplicate-bills", "guide-xero-export-bills-csv", "guide-excel-duplicate-invoices"].map((n) => [n, resolve(import.meta.dirname, `${n}.html`)]),
       ),
     },
   },
