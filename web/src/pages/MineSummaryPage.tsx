@@ -14,6 +14,8 @@ export interface MineSummaryPageProps {
   readonly reasons: ReadonlyMap<string, string>;
   readonly mineHref: string;
   readonly initialDetails?: boolean;
+  /** True until findings, rows and reasons have all been read. */
+  readonly loading?: boolean;
 }
 
 function download(name: string, text: string) {
@@ -21,11 +23,13 @@ function download(name: string, text: string) {
   const a = document.createElement("a");
   a.href = url;
   a.download = name;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHref, initialDetails = false }: MineSummaryPageProps) {
+export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHref, initialDetails = false, loading = false }: MineSummaryPageProps) {
   const [details, setDetails] = useState(initialDetails);
   const s = batch ? buildPilotSummary(batch, findings, files, rows, reasons, details) : null;
   const stat = (label: string, value: string | number) => <div className="summary-stat"><dt>{label}</dt><dd>{value}</dd></div>;
@@ -36,7 +40,9 @@ export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHre
         <h1 className="page-title" tabIndex={-1}>Pilot summary</h1>
         <p><span className="badge badge-synthetic">{OWN_BADGE}</span></p>
       </header>
-      {!s ? (
+      {loading ? (
+        <p className="app-loading" role="status">Reading your results…</p>
+      ) : !s ? (
         <p className="muted">Nothing to summarise yet. <a href={mineHref}>Add a CSV file</a> first.</p>
       ) : (
         <>

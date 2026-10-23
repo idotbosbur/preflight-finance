@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildPilotSummary, summaryCsv } from "../../src/domain/own/summary.ts";
+import { buildPilotSummary, csvCell, summaryCsv } from "../../src/domain/own/summary.ts";
 import { OWN_BATCH_ID } from "../../src/domain/contracts.ts";
 import type { BatchSummary, FindingView, Invoice } from "../../src/domain/contracts.ts";
 import { batch, dupEvidence, finding, mismatchEvidence } from "../ui/fixtures.ts";
@@ -47,5 +47,12 @@ test("details on: vendor, invoice and reason appear; formula cells and commas ar
   assert.ok(csv.includes("Zed Secret Co,SECRET-1"));
   assert.ok(csv.includes("\"Paid twice, +refund\""));
   assert.ok(csv.includes("'=EVIL"));
-  for (const line of csv.split("\r\n")) for (const cell of line.split(",")) assert.ok(!/^[=+\-@]/.test(cell), `formula cell ${cell}`);
+  assert.ok(!csv.includes(",=EVIL") && csv.includes(",'=EVIL"));
+});
+
+test("csvCell prefixes every formula starter incl. tab and CR, and quotes specials", () => {
+  for (const c of ["=1", "+1", "-1", "@x", "\tx", "\rx"]) assert.ok(csvCell(c).replace(/^"/, "").startsWith("'"), JSON.stringify(c));
+  assert.equal(csvCell("a,b"), '"a,b"');
+  assert.equal(csvCell('say "hi"'), '"say ""hi"""');
+  assert.equal(csvCell("plain"), "plain");
 });

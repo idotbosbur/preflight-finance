@@ -208,16 +208,18 @@ export function App() {
   const [ownFindings, setOwnFindings] = useState<FindingView[]>([]);
   const [ownRows, setOwnRows] = useState<Invoice[]>([]);
   const [ownReasons, setOwnReasons] = useState<ReadonlyMap<string, string>>(new Map());
+  const [ownLoaded, setOwnLoaded] = useState(false);
   useEffect(() => {
     if (!store || route.name !== "mine-summary") return;
     let cancelled = false;
+    setOwnLoaded(false);
     (async () => {
       const [f, r] = await Promise.all([store.listFindings(OWN_BATCH_ID), store.listOwnRows()]);
       const decided = f.filter((x) => x.state !== "open");
       const cases = await Promise.all(decided.map((x) => store.getCase(OWN_BATCH_ID, x.findingId)));
       const reasons = new Map<string, string>();
       cases.forEach((c, i) => { const last = c?.history[c.history.length - 1]; if (last) reasons.set(decided[i]!.findingId, last.reason); });
-      if (!cancelled) { setOwnFindings(f); setOwnRows(r); setOwnReasons(reasons); }
+      if (!cancelled) { setOwnFindings(f); setOwnRows(r); setOwnReasons(reasons); setOwnLoaded(true); }
     })().catch(onReadError);
     return () => { cancelled = true; };
   }, [store, route.name, version, onReadError]);
@@ -495,7 +497,7 @@ export function App() {
     case "mine-summary":
       page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
         <MineSummaryPage batch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} findings={ownFindings} files={ownFiles}
-          rows={ownRows} reasons={ownReasons} mineHref={formatRoute({ name: "mine" })} />
+          rows={ownRows} reasons={ownReasons} loading={!ownLoaded} mineHref={formatRoute({ name: "mine" })} />
       );
       break;
     case "results":

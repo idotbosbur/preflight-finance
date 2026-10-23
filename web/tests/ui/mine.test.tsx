@@ -200,3 +200,11 @@ test("summary page: counts only by default, details only when ticked, own badge"
   const empty = render(<MineSummaryPage {...props} batch={null} findings={[]} files={[]} rows={[]} />);
   assert.ok(empty.includes('href="#/mine"'));
 });
+
+test("summary page while loading: no counts, no Print or Download", async () => {
+  const { MineSummaryPage } = await import("../../src/pages/MineSummaryPage.tsx");
+  const html = render(<MineSummaryPage batch={ownBatch} findings={[]} files={[]} rows={[]} reasons={new Map()} mineHref="#/mine" loading />);
+  assert.ok(html.includes("Reading your results"));
+  assert.ok(!html.includes("Invoices checked") && !html.includes("Confirmed"));
+  assert.deepEqual(buttons(html), []);
+});
