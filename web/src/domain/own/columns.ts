@@ -16,7 +16,7 @@ const SYNONYMS: Readonly<Record<OwnField, readonly string[]>> = {
   discount: ["Discount", "Discount Amount"],
   currency: ["Currency", "Currency Code"],
 };
-const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+export const key = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 const FIELDS = Object.keys(SYNONYMS) as OwnField[];
 
 /** Per field, the best-ranked synonym wins (ties: leftmost column); a column is never used twice. */

@@ -2,7 +2,7 @@
 import { CSV_HEADER, OWN_MAX_BYTES, OWN_MAX_ROWS, normalizeIdentifier } from "../contracts.ts";
 import type { Invoice } from "../contracts.ts";
 import { CsvError, parseCsvRecords } from "../csv.ts";
-import { REQUIRED_FIELDS } from "./columns.ts";
+import { REQUIRED_FIELDS, key } from "./columns.ts";
 import type { ColumnMapping, OwnField } from "./columns.ts";
 import { detectDateOrder, parseLooseAmount, parseLooseDate } from "./values.ts";
 import type { DateOrder } from "./values.ts";
@@ -21,6 +21,8 @@ const CSV_COLUMN: Record<OwnField, string> = {
   vendor: "vendor_id", invoiceNumber: "invoice_number", date: "invoice_date", currency: "currency",
   subtotal: "subtotal", tax: "tax", shipping: "shipping", discount: "discount", total: "total",
 };
+// Only exports with a line-item column repeat one bill over several rows (R20).
+const LINE_ITEM_KEYS = new Set(["description", "quantity", "qty", "unitamount", "unitprice", "lineamount", "item", "itemcode", "lineitem"]);
 const RAW_INDEX = Object.fromEntries(
   (Object.keys(CSV_COLUMN) as OwnField[]).map((f) => [f, CSV_HEADER.indexOf(CSV_COLUMN[f] as (typeof CSV_HEADER)[number])]),
 ) as Record<OwnField, number>;
@@ -45,6 +47,7 @@ export function buildOwnRows(
   if (records.length - 1 > OWN_MAX_ROWS) return { error: "too many rows", detail: `${fileLabel} has over ${OWN_MAX_ROWS} rows` };
 
   const width = records[0]!.length;
+  const lineCols = records[0]!.flatMap((h, i) => (LINE_ITEM_KEYS.has(key(h)) ? [i] : []));
   const missing = REQUIRED_FIELDS.filter((f) => !(mapping[f] !== undefined && mapping[f]! < width));
   if (missing.length) return { error: "missing required column", detail: `Map a column for: ${missing.join(", ")}` };
 
@@ -98,7 +101,7 @@ export function buildOwnRows(
     const currency = normalizeIdentifier(cell(rec, "currency")) || "USD";
     const raw = CSV_HEADER.map(() => "");
     for (const f of Object.keys(RAW_INDEX) as OwnField[]) if (mapping[f] !== undefined) raw[RAW_INDEX[f]] = cell(rec, f);
-    recKeys.push(JSON.stringify(rec));
+    recKeys.push(JSON.stringify(lineCols.map((i) => rec[i] ?? "")));
     invoices.push({
       recordId: "", rowNumber: row, raw,
       vendorNorm: normalizeIdentifier(vendor), invoiceNorm: normalizeIdentifier(number),
@@ -111,11 +114,13 @@ export function buildOwnRows(
   const rowsIn = new Map<string, number>();
   const seenRecs = new Set<string>();
   for (const [i, inv] of invoices.entries()) {
-    // A row identical in every cell to an earlier one is a re-entry (a real duplicate), not another line item.
-    const dup = seenRecs.has(recKeys[i]!);
-    seenRecs.add(recKeys[i]!);
-    if (dup) { combined.set(`dup${i}`, inv); continue; }
     const k = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total, inv.currency].join("\u0000");
+    // Same bill with identical line-item cells (or no line-item column at all) is a re-entry,
+    // a real duplicate, not another line item (R19/R20).
+    const lineKey = k + "\u0000" + recKeys[i]!;
+    const dup = seenRecs.has(lineKey);
+    seenRecs.add(lineKey);
+    if (dup) { combined.set(`dup${i}`, inv); continue; }
     rowsIn.set(k, (rowsIn.get(k) ?? 0) + 1);
     const first = combined.get(k);
     if (!first) { combined.set(k, inv); continue; }

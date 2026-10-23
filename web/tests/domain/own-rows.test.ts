@@ -186,13 +186,13 @@ test("different date is not combined and is still flagged", () => {
 
 test("combined components: identical kept, differing drop to hasComponents false", () => {
   const M2 = { vendor: 0, invoiceNumber: 1, total: 2, subtotal: 3 };
-  const same = buildOwnRows(enc("v,n,t,s,d\nAcme,A1,100.00,100.00,one\nAcme,A1,100.00,100.00,two\n"), M2, opts);
+  const same = buildOwnRows(enc("v,n,t,s,Description\nAcme,A1,100.00,100.00,one\nAcme,A1,100.00,100.00,two\n"), M2, opts);
   assert.ok("invoices" in same);
   assert.equal(same.invoices.length, 1);
   assert.equal(same.invoices[0]!.hasComponents, true);
   assert.equal(same.invoices[0]!.subtotal, 10000);
   assert.match(same.warnings.find((w) => w.field === "rows")!.reason, /^2 line-item rows were combined into 1 invoice/);
-  const diff = buildOwnRows(enc("v,n,t,s,d\nAcme,A1,100.00,40.00,x\nAcme,A1,100.00,60.00,y\n"), M2, opts);
+  const diff = buildOwnRows(enc("v,n,t,s,Description\nAcme,A1,100.00,40.00,x\nAcme,A1,100.00,60.00,y\n"), M2, opts);
   assert.ok("invoices" in diff);
   assert.equal(diff.invoices.length, 1);
   assert.equal(diff.invoices[0]!.hasComponents, false);
@@ -205,4 +205,22 @@ test("a row identical in every cell is a re-entry, not a line item", () => {
   assert.ok("invoices" in r);
   assert.equal(r.invoices.length, 2);
   assert.equal(r.warnings.some((w) => w.field === "rows"), false);
+});
+
+test("R20: QuickBooks-shaped bill twice, differing only in Open Balance, stays 2 invoices and is flagged", () => {
+  const head = "Vendor,Date,Bill No.,Due Date,Amount,Open Balance";
+  const csv = [head,
+    "Acme Test Supplies,03/05/2026,INV-1001,04/04/2026,$100.00,$100.00",
+    "Acme Test Supplies,03/05/2026,INV-1001,04/04/2026,$100.00,$0.00", ""].join("\n");
+  const r = buildOwnRows(enc(csv), guessMapping(head.split(",")), { ...opts, dateOrder: "MDY" });
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
+  assert.equal(r.warnings.some((w) => w.field === "rows"), false);
+  assert.ok(runOwnRules(r.invoices).some((f) => f.ruleId === "DUPLICATE_CANDIDATE"));
+});
+
+test("R20: line-item header but rows equal in every line-item column are not combined", () => {
+  const r = buildOwnRows(enc(["v,n,t,Description,Note", "Acme,A1,10.00,Widgets,a", "Acme,A1,10.00,Widgets,b", ""].join("\n")), M, opts);
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
 });
