@@ -7,11 +7,17 @@ const SOURCE_LABEL: Readonly<Record<BenchmarkRun["source"], { readonly title: st
 
 const n = (v: number) => v.toLocaleString("en-US");
 
+/** True when every run reports identical duplicate and mismatch counts. */
+function runsAgree(runs: readonly BenchmarkRun[]): boolean {
+  const key = (r: BenchmarkRun) => JSON.stringify([r.duplicate, r.mismatch, r.findings, r.affectedRows]);
+  return runs.every((r) => key(r) === key(runs[0]!));
+}
+
 function Tile({ big, label, sub }: { readonly big: string; readonly label: string; readonly sub?: string }) {
   return (
     <div className="tile lift">
-      <dd className="tile-big">{big}</dd>
       <dt className="tile-label">{label}</dt>
+      <dd className="tile-big">{big}</dd>
       {sub ? <p className="tile-sub">{sub}</p> : null}
     </div>
   );
@@ -97,22 +103,22 @@ export function ResultsPage({ benchmark, benchmarkError, visitor }: ResultsProps
               <Tile
                 big={`${main.mismatch.tp} of ${main.mismatch.tp + main.mismatch.fn}`}
                 label="Math errors caught"
-                sub={main.mismatch.fn === 0 ? "None missed, including one-cent errors" : `${main.mismatch.fn} missed`}
+                sub={main.mismatch.fn === 0 ? "None missed" : `${main.mismatch.fn} missed`}
               />
               <Tile
                 big={`${main.duplicate.pairTP} of ${main.duplicate.pairTP + main.duplicate.pairFN}`}
                 label="Real duplicates caught"
                 sub={main.duplicate.pairFN === 0 ? "None missed" : `${main.duplicate.pairFN} missed`}
               />
-              <Tile big={String(main.duplicate.pairFP)} label="False alarms" sub="Legitimate reuses a person dismisses" />
+              <Tile big={String(main.duplicate.pairFP)} label="False alarms" sub={main.duplicate.pairFP === main.duplicate.legitimateReuseGroups ? "Legitimate reuses a person dismisses" : "Flags a person reviews and dismisses"} />
               <Tile big={`${main.checksPassed} of ${main.checksTotal}`} label="Automated checks passed" sub="Against the answer key" />
             </dl>
             <p className="results-honesty">
-              Fixed synthetic benchmark: 120 invented invoices, labelled by the same AI tool that wrote the rules. It shows the rules
-              behave as designed, not accuracy on real invoices.
+              Fixed synthetic benchmark: {main.mismatch.tp + main.mismatch.fp + main.mismatch.fn + main.mismatch.tn} invented invoices,
+              {" "}generated and labelled within the same AI-assisted build that wrote the rules. It shows the rules behave as designed, not accuracy on real invoices.
             </p>
 
-            <h2 className="results-h2">Both versions agree</h2>
+            <h2 className="results-h2">{runsAgree(benchmark.runs) ? "Both versions agree" : "The two versions differ"}</h2>
             <div className="runs">
               {benchmark.runs.map((run) => (
                 <RunCard key={`${run.source}-${run.runAt}`} run={run} />
@@ -152,10 +158,10 @@ export function ResultsPage({ benchmark, benchmarkError, visitor }: ResultsProps
         <h2 id="visitor-heading" className="results-h2">Your demo batch in this browser</h2>
         {visitor ? (
           <dl className="mini-stats">
-            <div className="lift"><dd>{visitor.findingCount}</dd><dt>Findings</dt></div>
-            <div className="lift"><dd>{visitor.openCount}</dd><dt>Open</dt></div>
-            <div className="lift"><dd>{visitor.confirmedCount}</dd><dt>Confirmed by you</dt></div>
-            <div className="lift"><dd>{visitor.dismissedCount}</dd><dt>Dismissed by you</dt></div>
+            <div className="lift"><dt>Findings</dt><dd>{visitor.findingCount}</dd></div>
+            <div className="lift"><dt>Open</dt><dd>{visitor.openCount}</dd></div>
+            <div className="lift"><dt>Confirmed by you</dt><dd>{visitor.confirmedCount}</dd></div>
+            <div className="lift"><dt>Dismissed by you</dt><dd>{visitor.dismissedCount}</dd></div>
           </dl>
         ) : (
           <p>

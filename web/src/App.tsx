@@ -423,7 +423,8 @@ export function App() {
     );
   } else switch (route.name) {
     case "overview":
-      page = <OverviewPage story={demo?.story ?? null} demo={demoStatus} onStartGuide={startGuide} onExplore={explore} />;
+      page = <OverviewPage story={demo?.story ?? null} demo={demoStatus} onStartGuide={startGuide} onExplore={explore}
+        benchmark={benchmark?.runs.find((r) => r.source === "browser-port") ?? null} />;
       break;
     case "demo":
       page = demoError || demoFailure ? (

@@ -29,8 +29,9 @@ const PRINCIPLES = [
   ["Honest measurement", "Results are counted against independent labels, including the false alerts the rule cannot avoid."],
 ] as const;
 
-export function OverviewPage({ story, demo, onStartGuide, onExplore }: OverviewProps) {
+export function OverviewPage({ story, demo, onStartGuide, onExplore, benchmark = null }: OverviewProps) {
   const busy = demo.kind === "loading";
+  const dup = benchmark?.duplicate;
   return (
     <div className="overview">
       <ChromeField className="chrome-field" />
@@ -96,7 +97,7 @@ export function OverviewPage({ story, demo, onStartGuide, onExplore }: OverviewP
               </Step>
               <Step n="2" title="Why it was flagged">
                 <div className="ov-evidence">
-                  <MismatchArithmetic evidence={story.mismatch} />
+                  <MismatchArithmetic evidence={story.mismatch} headingLevel={4} />
                 </div>
                 <p className="muted">The rule compares exact cents, so even a difference of {story.mismatch.delta} is flagged for review.</p>
               </Step>
@@ -106,14 +107,18 @@ export function OverviewPage({ story, demo, onStartGuide, onExplore }: OverviewP
                   is an error: these two invoices share a vendor and invoice number. Compare the dates and totals before deciding.
                 </p>
                 <div className="ov-evidence">
-                  <DuplicateMembers evidence={story.reuse} />
+                  <DuplicateMembers evidence={story.reuse} headingLevel={4} />
                 </div>
                 <p className="muted">Each decision is added to the case history in this browser. A decision never approves, blocks or pays anything.</p>
               </Step>
               <Step n="4" title="Measured on a synthetic benchmark">
-                <p className="ov-bench">12 groups flagged: 10 genuine duplicates, 2 legitimate invoice-number reuses</p>
+                <p className="ov-bench">
+                  {dup
+                    ? `${dup.groupsFlagged} groups flagged: ${dup.genuineGroups} genuine duplicates, ${dup.legitimateReuseGroups} legitimate invoice-number reuses`
+                    : "12 groups flagged: 10 genuine duplicates, 2 legitimate invoice-number reuses"}
+                </p>
                 <p>
-                  In the synthetic benchmark's 120 invoices, the exact-key duplicate rule cannot tell a legitimate reuse from a real
+                  In the synthetic benchmark's {story.invoiceCount} invoices, the exact-key duplicate rule cannot tell a legitimate reuse from a real
                   duplicate, so a person reviews every candidate. Raw counts and their denominators are on the{" "}
                   <a href="#/results">Results</a> page.
                 </p>
@@ -155,8 +160,8 @@ export function OverviewPage({ story, demo, onStartGuide, onExplore }: OverviewP
           <dl className="ov-figures">
             <Reveal><dt>Invented invoices</dt><dd>{story.invoiceCount}</dd></Reveal>
             <Reveal><dt>Candidate findings</dt><dd>{story.findingCount}</dd></Reveal>
-            <Reveal><dt>Genuine duplicates found</dt><dd>10</dd></Reveal>
-            <Reveal><dt>Legitimate reuses flagged</dt><dd>2</dd></Reveal>
+            {dup ? <Reveal><dt>Genuine duplicates found</dt><dd>{dup.pairTP}</dd></Reveal> : null}
+            {dup ? <Reveal><dt>Legitimate reuses flagged</dt><dd>{dup.pairFP}</dd></Reveal> : null}
           </dl>
           <p className="ov-body ov-numbers-note">
             Measured against independent labels. The two legitimate reuses are why a person reviews every candidate.{" "}

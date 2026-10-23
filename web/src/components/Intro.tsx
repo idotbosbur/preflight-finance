@@ -6,10 +6,17 @@ const FLY_AT = 1850;
 const FLY_MS = 750;
 const DONE_AT = FLY_AT + FLY_MS + 50;
 
-/** Plays on every fresh load of the landing page, never for reduced-motion visitors. */
+const SEEN_KEY = "preflight.introSeen";
+
+/** Plays once per browser session on the landing page; never for reduced-motion visitors. */
 export function shouldPlayIntro(): boolean {
   if (typeof window === "undefined") return false;
-  return !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return false;
+  try {
+    return !window.sessionStorage.getItem(SEEN_KEY);
+  } catch {
+    return true; // storage blocked: the short intro simply plays
+  }
 }
 
 /**
@@ -23,6 +30,7 @@ export function Intro({ onDone }: { readonly onDone: () => void }) {
   const markRef = useRef<HTMLSpanElement | null>(null);
 
   useEffect(() => {
+    try { window.sessionStorage.setItem(SEEN_KEY, "1"); } catch { /* convenience only */ }
     const html = document.documentElement;
     html.dataset.intro = "playing";
     const timers: number[] = [];
@@ -74,6 +82,7 @@ export function Intro({ onDone }: { readonly onDone: () => void }) {
         <span className="intro-word intro-word-right"><span>flight</span></span>
       </div>
       <p className="intro-caption">Invoice review · working prototype · synthetic data</p>
+      <p className="intro-skip">Click or press any key to skip</p>
     </div>
   );
 }

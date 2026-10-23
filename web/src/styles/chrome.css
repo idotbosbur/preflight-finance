@@ -286,7 +286,21 @@ h3 {
   transition: opacity 280ms ease;
 }
 
+.intro-skip {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  animation: fade-in 500ms ease 900ms both;
+  transition: opacity 280ms ease;
+}
+
 .intro.is-flying .intro-word,
+.intro.is-flying .intro-skip,
 .intro.is-flying .intro-caption {
   opacity: 0;
 }
@@ -491,7 +505,7 @@ h3 {
 }
 
 .ov-soft {
-  color: #858a91;
+  color: #6b7078;
 }
 
 .ov-section {
@@ -760,7 +774,7 @@ h3 {
   margin: 56px 0 0;
   font-family: var(--display);
   font-weight: 500;
-  font-size: clamp(4.5rem, 21vw, 19rem);
+  font-size: clamp(3.4rem, 17vw, 16rem);
   line-height: 0.82;
   letter-spacing: -0.06em;
   color: var(--ink);
@@ -868,7 +882,7 @@ h3 {
 }
 
 .guide-step.is-upcoming .guide-step-title {
-  color: #8a8a8a;
+  color: var(--ink-soft);
 }
 
 .guide-instruction {

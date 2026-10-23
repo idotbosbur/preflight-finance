@@ -144,7 +144,7 @@ export function ChromeField({ className }: { readonly className?: string }) {
     };
 
     const cur = { alpha: 0, swirl: 0, cx: -0.5, cy: -0.04, clear: 1 };
-    let raf = 0, last = performance.now(), time = 7;
+    let raf = 0, last = performance.now(), time = 7, cleared = false;
     const draw = (t: number, a: number, s: number, shift: number) => {
       gl.uniform3f(uClear, cur.cx, cur.cy, cur.clear);
       gl.uniform2f(uRes, canvas.width, canvas.height);
@@ -156,18 +156,41 @@ export function ChromeField({ className }: { readonly className?: string }) {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
-    const sections = () =>
-      Array.from(document.querySelectorAll<HTMLElement>("[data-chrome]")).map((el) => {
+    // Section elements are re-queried only every ~30 frames; their positions are read each frame (cheap, no writes).
+    let sectionEls: HTMLElement[] = [];
+    let sinceQuery = 30;
+    const sections = () => {
+      if (++sinceQuery >= 30) {
+        sectionEls = Array.from(document.querySelectorAll<HTMLElement>("[data-chrome]"));
+        sinceQuery = 0;
+      }
+      return sectionEls.map((el) => {
         const r = el.getBoundingClientRect();
         return { top: r.top, bottom: r.bottom, mode: el.dataset.chrome ?? "haze" };
       });
+    };
+
+    // GPU reset / context loss: stop drawing and fall back to the CSS gradient instead of a blank canvas.
+    let lost = false;
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      lost = true;
+      cancelAnimationFrame(raf);
+      canvas.classList.add("chrome-fallback");
+    };
+    canvas.addEventListener("webglcontextlost", onLost);
 
     resize();
     if (reduce) {
-      draw(time, 0.85, 0, 0);
-      const onResize = () => { resize(); draw(time, 0.85, 0, 0); };
+      // One still, faint frame (no scroll linkage) so body text never sits on strong chrome.
+      const still = () => draw(time, 0.22, 0, 0);
+      still();
+      const onResize = () => { resize(); still(); };
       window.addEventListener("resize", onResize);
-      return () => window.removeEventListener("resize", onResize);
+      return () => {
+        window.removeEventListener("resize", onResize);
+        canvas.removeEventListener("webglcontextlost", onLost);
+      };
     }
 
     const frame = (now: number) => {
@@ -179,6 +202,12 @@ export function ChromeField({ className }: { readonly className?: string }) {
       const target = TARGET[modeAt(sections(), window.innerHeight / 2)];
       const ease = 1 - Math.exp(-dt * 3.2);
       for (const k of ["alpha", "swirl", "cx", "cy", "clear"] as const) cur[k] += (target[k] - cur[k]) * ease;
+      if (lost) return;
+      if (cur.alpha < 0.004 && target.alpha === 0) {
+        if (!cleared) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); cleared = true; }
+        return; // invisible (e.g. behind the dark band): skip the full-screen shader
+      }
+      cleared = false;
       draw(time, cur.alpha, cur.swirl, window.scrollY / Math.max(window.innerHeight, 1));
     };
     raf = requestAnimationFrame(frame);
@@ -190,7 +219,8 @@ export function ChromeField({ className }: { readonly className?: string }) {
       gl.deleteProgram(prog);
       gl.deleteShader(vs);
       gl.deleteShader(fs);
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      canvas.removeEventListener("webglcontextlost", onLost);
+      // No loseContext(): React StrictMode re-runs this effect on the same canvas in development.
     };
   }, []);
 

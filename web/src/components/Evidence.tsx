@@ -24,8 +24,8 @@ export function RuleBadge({ rule }: { readonly rule: RuleId }) {
  * Plain-English receipt for a total mismatch. Every amount is an evidence string rendered verbatim;
  * nothing is computed here.
  */
-export function MismatchArithmetic({ evidence, headingLevel = 3 }: { readonly evidence: MismatchEvidence; readonly headingLevel?: 2 | 3 }) {
-  const H = headingLevel === 2 ? "h2" : "h3";
+export function MismatchArithmetic({ evidence, headingLevel = 3 }: { readonly evidence: MismatchEvidence; readonly headingLevel?: 2 | 3 | 4 }) {
+  const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
   const lower = evidence.delta.startsWith("-");
   return (
     <div className="calc">
@@ -56,8 +56,8 @@ export function MismatchArithmetic({ evidence, headingLevel = 3 }: { readonly ev
 }
 
 /** Side-by-side comparison of a duplicate group; values that differ between members are emphasised. */
-export function DuplicateMembers({ evidence, headingLevel = 3 }: { readonly evidence: DuplicateEvidence; readonly headingLevel?: 2 | 3 }) {
-  const H = headingLevel === 2 ? "h2" : "h3";
+export function DuplicateMembers({ evidence, headingLevel = 3 }: { readonly evidence: DuplicateEvidence; readonly headingLevel?: 2 | 3 | 4 }) {
+  const H = headingLevel === 2 ? "h2" : headingLevel === 4 ? "h4" : "h3";
   const rows: ReadonlyArray<readonly [string, (m: DuplicateEvidence["members"][number]) => string, boolean]> = [
     ["Invoice date", (m) => m.invoiceDate, false],
     ["Total (USD)", (m) => m.total, true],

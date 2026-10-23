@@ -148,6 +148,8 @@ export interface AppShellProps {
 
 export interface OverviewProps {
   readonly story: StoryData | null;
+  /** The measured browser-port run, when loaded; the landing page shows its figures. */
+  readonly benchmark?: BenchmarkRun | null;
   readonly demo: DemoStatus;
   readonly onStartGuide: () => void;
   readonly onExplore: () => void;
