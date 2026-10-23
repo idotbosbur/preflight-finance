@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { IDBFactory } from "fake-indexeddb";
-import { OWN_BATCH_ID, RULE_DUPLICATE } from "../../src/domain/contracts.ts";
+import { OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH } from "../../src/domain/contracts.ts";
 import type { Invoice } from "../../src/domain/contracts.ts";
 import { finalizeBatch } from "../../src/domain/ids.ts";
 import { createMemoryStore } from "../../src/state/memoryStore.ts";
@@ -171,6 +171,83 @@ function suite(name: string, make: () => Promise<ReviewStore>) {
       const [f] = await s.listOwnFiles();
       assert.equal(f?.rowsAdded, 3);
       assert.equal(f?.importedAt, NOW);
+      s.close();
+    });
+
+    test("C1: demo reset keeps the own workspace and its decisions stay saveable", async () => {
+      const s = await make();
+      const demoRow = (id: string): Invoice => ({
+        recordId: id, rowNumber: 1, raw: [], vendorNorm: "V", invoiceNorm: "I", invoiceDate: "2026-01-01",
+        currency: "USD", subtotal: 0, tax: 0, shipping: 0, discount: 0, total: 100,
+      });
+      const demo = await finalizeBatch(enc("demo"), [demoRow("R-1")], []);
+      assert.equal((await s.importPrepared(demo, { displayName: "demo.csv", source: "demo", now: NOW })).status, "created");
+      await own(s, JAN, "jan.csv");
+      const rowsBefore = await s.listOwnRows();
+      const pair = (await s.listFindings(OWN_BATCH_ID)).find((f) => f.ruleId === RULE_DUPLICATE)!;
+      assert.equal((await s.saveDecision({
+        batchId: OWN_BATCH_ID, findingId: pair.findingId, action: "confirm", reason: "checked", reviewer: "Me",
+        expected: { sequence: 0, resetGeneration: 0 },
+      }, NOW)).status, "saved");
+
+      const reset = await s.resetAll();
+      assert.ok(reset.ok);
+      assert.deepEqual((await s.listBatches()).map((b) => b.batchId), [OWN_BATCH_ID]);
+      assert.deepEqual(await s.listOwnRows(), rowsBefore);
+      assert.equal((await s.listOwnFiles()).length, 1);
+      const kept = await s.getCase(OWN_BATCH_ID, pair.findingId);
+      assert.equal(kept?.finding.state, "confirmed");
+      assert.equal(kept?.finding.resetGeneration, reset.resetGeneration);
+      assert.equal(kept?.history.length, 1);
+      const reopen = await s.saveDecision({
+        batchId: OWN_BATCH_ID, findingId: pair.findingId, action: "reopen", reason: "again", reviewer: "Me",
+        expected: { sequence: 1, resetGeneration: reset.resetGeneration },
+      }, NOW);
+      assert.equal(reopen.status, "saved", JSON.stringify(reopen));
+      assert.equal((await s.getCase(OWN_BATCH_ID, pair.findingId))?.history.length, 2);
+      // Importing again after a reset still works.
+      await own(s, FEB, "feb.csv");
+      s.close();
+    });
+
+    test("I1: a corrected re-export replaces the stored row; unrelated decisions survive", async () => {
+      const s = await make();
+      const M6 = { vendor: 0, invoiceNumber: 1, date: 2, subtotal: 3, tax: 4, total: 5 };
+      const head = "Vendor,Invoice,Date,Subtotal,Tax,Total\nBeta,B-1,2026-01-02,10.00,0.00,10.00\nBeta,B-1,2026-01-02,10.00,0.00,10.00\n";
+      const imp = async (csv: string) => {
+        const out = await importOwnFile(s, enc(csv), M6, { displayName: "a.csv", dateOrder: null, now: NOW, expectedResetGeneration: 0 });
+        assert.ok("status" in out && out.status === "merged", JSON.stringify(out));
+        return out;
+      };
+      await imp(head + "Acme,X-1,2026-01-03,100.00,5.00,110.00\n");
+      const before = await s.listFindings(OWN_BATCH_ID);
+      assert.ok(before.some((f) => f.ruleId === RULE_MISMATCH));
+      const pair = before.find((f) => f.ruleId === RULE_DUPLICATE)!;
+      assert.equal((await s.saveDecision({
+        batchId: OWN_BATCH_ID, findingId: pair.findingId, action: "confirm", reason: "checked", reviewer: "Me",
+        expected: { sequence: 0, resetGeneration: 0 },
+      }, NOW)).status, "saved");
+      const out = await imp(head + "Acme,X-1,2026-01-03,100.00,10.00,110.00\n");
+      assert.equal(out.added, 0);
+      const after = await s.listFindings(OWN_BATCH_ID);
+      assert.equal(after.some((f) => f.ruleId === RULE_MISMATCH), false);
+      assert.equal(after.find((f) => f.findingId === pair.findingId)?.state, "confirmed");
+      assert.equal((await s.listOwnRows()).find((r) => r.vendorNorm === "ACME")?.tax, 1000);
+      s.close();
+    });
+
+    test("I3: an import that read rows before another tab's import refuses with a clear message", async () => {
+      const s = await make();
+      const racing: ReviewStore = {
+        ...s,
+        listOwnRows: async () => { const rows = await s.listOwnRows(); await own(s, FEB, "other-tab.csv"); return rows; },
+      };
+      const out = await importOwnFile(racing, enc(JAN), MAPPING, {
+        displayName: "jan.csv", dateOrder: null, now: NOW, expectedResetGeneration: 0,
+      });
+      assert.ok("status" in out && out.status === "storage_error", JSON.stringify(out));
+      assert.equal((out as { message: string }).message, "Your data changed in another tab, so nothing was imported. Import the file again.");
+      assert.deepEqual((await s.listOwnFiles()).map((f) => f.displayName), ["other-tab.csv"]);
       s.close();
     });
 

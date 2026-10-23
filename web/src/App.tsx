@@ -351,6 +351,7 @@ export function App() {
     else if (result.status === "conflict" || result.status === "invalid_transition") {
       draftRef.current = onConflictShown(result.latest, draftRef.current);
     }
+    const isOwn = f.batchId === OWN_BATCH_ID;
     switch (result.status) {
       case "saved": {
         const label = result.event.nextState === "open" ? "Reopened" : result.event.nextState === "confirmed" ? "Confirmed" : "Dismissed";
@@ -367,14 +368,18 @@ export function App() {
         break;
       case "conflict":
         setSave({ kind: "conflict", message: result.cause === "reset"
-          ? "The demo data was reset after this page loaded, so nothing was saved. Reload the case."
+          ? (isOwn
+            ? "The demo was reset in this browser after this page loaded, so nothing was saved. Your data is kept; reload the case and try again."
+            : "The demo data was reset after this page loaded, so nothing was saved. Reload the case.")
           : "Another tab changed this case first, so nothing was saved. The latest state is shown." });
         break;
       case "invalid_transition":
         setSave({ kind: "conflict", message: "That action no longer applies to this case's current state, so nothing was saved." });
         break;
       case "not_found":
-        setSave({ kind: "error", message: "This case no longer exists in this browser (the demo data may have been reset). Nothing was saved." });
+        setSave({ kind: "error", message: isOwn
+          ? "This case no longer exists in this browser (your data may have been deleted or re-checked). Nothing was saved."
+          : "This case no longer exists in this browser (the demo data may have been reset). Nothing was saved." });
         break;
       case "storage_error":
         setSave({ kind: "error", message: `Not saved: ${result.message}` });

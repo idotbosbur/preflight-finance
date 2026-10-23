@@ -57,7 +57,7 @@ export function MappingForm({ headers, mapping, onChange }: { readonly headers: 
 
 export function PreviewTable({ headers, rows }: { readonly headers: readonly string[]; readonly rows: readonly (readonly string[])[] }) {
   return (
-    <div className="dup-scroll">
+    <div className="dup-scroll" tabIndex={0} role="region" aria-label={`First ${PREVIEW_ROWS} rows of your file`}>
       <table className="dup-table">
         <caption className="sr-only">First {PREVIEW_ROWS} rows of your file</caption>
         <thead><tr>{headers.map((h, i) => <th key={i} scope="col">{h}</th>)}</tr></thead>
@@ -121,16 +121,36 @@ export function ImportSummary({ readable, skipped, warnings, totalsCheck, onCont
 
 export interface Loaded { readonly name: string; readonly bytes: Uint8Array; readonly headers: string[]; readonly rows: string[][] }
 
-function readPreview(name: string, bytes: Uint8Array): Loaded | string {
+const NOT_UTF8 = "This file is not saved as UTF-8 text. In Excel, choose Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
+
+export function readPreview(name: string, bytes: Uint8Array): Loaded | string {
+  let text: string;
   try {
     const bom = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
-    const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bom ? bytes.subarray(3) : bytes);
+    text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bom ? bytes.subarray(3) : bytes);
+  } catch {
+    return NOT_UTF8;
+  }
+  try {
     const [headers, ...rows] = parseCsvRecords(text);
     if (!headers || headers.every((h) => h.trim() === "")) return "This file has no header row.";
+    if (headers.length === 1 && headers[0]!.includes(";")) {
+      return "This file looks semicolon-separated. Export it again with commas as the separator (in Excel: “CSV UTF-8 (Comma delimited)”).";
+    }
     return { name, bytes, headers, rows: rows.filter((r) => r.some((c) => c.trim() !== "")).slice(0, PREVIEW_ROWS) };
   } catch {
-    return "This file could not be read as a UTF-8 CSV export.";
+    return "This file could not be read as a CSV export.";
   }
+}
+
+/** "Delete my data" also forgets remembered column choices (they are kept per header layout). */
+export function forgetOwnMappings(storage: Storage | undefined): void {
+  try {
+    if (!storage) return;
+    const keys: string[] = [];
+    for (let i = 0; i < storage.length; i++) { const k = storage.key(i); if (k?.startsWith(MAP_KEY)) keys.push(k); }
+    for (const k of keys) storage.removeItem(k);
+  } catch { /* remembering is a convenience only */ }
 }
 
 const readableTime = (iso: string) => {
@@ -188,7 +208,7 @@ export function DeleteConfirmation({ onConfirm, onCancel, busy, cancelRef }: {
 }) {
   return (
     <div className="confirm-box" role="group" aria-labelledby="delete-q">
-      <p id="delete-q">Erase every file, row, finding and decision of yours from this browser? This cannot be undone.</p>
+      <p id="delete-q">Erase every file, row, finding and decision of yours, and your remembered column choices, from this browser? The demo is separate and stays. This cannot be undone.</p>
       <div className="row-actions">
         <button type="button" className="btn btn-danger" onClick={onConfirm} disabled={busy}>Yes, delete my data</button>
         <button ref={cancelRef} type="button" className="btn btn-secondary" onClick={onCancel} disabled={busy}>Cancel</button>
@@ -209,7 +229,7 @@ export interface MinePageProps {
 
 const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
   "too large": "That file is over 10 MB.", "too many rows": "That file has more than 20,000 rows. Split it into smaller files and import them one at a time.",
-  "not a CSV": "That file could not be read as a UTF-8 CSV export.", "no header": "That file has no header row.",
+  "not a CSV": "That file could not be read. Save it as “CSV UTF-8 (Comma delimited)” and choose it again.", "no header": "That file has no header row.",
   "missing required column": "Choose a column for each required field.", "ambiguous date order": "Choose day first or month first.",
 };
 
@@ -243,6 +263,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
     try { out = await onDeleteOwn(); } catch { out = { ok: false, message: "Browser storage failed" }; }
     setDeleting(false);
     if (out.ok) {
+      forgetOwnMappings(typeof window === "undefined" ? undefined : window.localStorage);
       focusAfter.current = "heading";
       setLoaded(null); setDone(null); setProblem(null);
       setConfirming(false);
@@ -305,7 +326,8 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
         {problem ? <p className="notice notice-error" role="alert">{problem}</p> : null}
         {done ? (
           <div className="notice notice-ok" role="status">
-            <p>Added {plural(done.added, "new invoice")} ({done.alreadySeen} already in your data).</p>
+            <p>Added {plural(done.added, "new invoice")} ({done.alreadySeen} already in your data; any whose amounts changed were updated).</p>
+            <p className="hint">Rows are matched by vendor, invoice number, date, total and currency, so choosing a different date order reads the same rows as new.</p>
             <p><a href={summaryHref}>See your results</a> · <a href={queueHref}>Review the findings</a></p>
           </div>
         ) : null}
@@ -331,7 +353,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
         {ownBatch ? <p><a href={queueHref}>Review the {plural(ownBatch.findingCount, "finding")}</a></p> : null}
         {deleteError ? <p className="notice notice-error" role="alert">{deleteError}</p> : null}
         {files.length > 0 || ownBatch ? (confirming ? (
-          <DeleteConfirmation busy={deleting} cancelRef={cancelRef} onCancel={() => { focusAfter.current = "trigger"; setConfirming(false); }}
+          <DeleteConfirmation busy={deleting} cancelRef={cancelRef} onCancel={() => { focusAfter.current = "trigger"; setDeleteError(null); setConfirming(false); }}
             onConfirm={() => void onDelete()} />
         ) : (
           <button ref={triggerRef} type="button" className="btn btn-quiet" disabled={working}

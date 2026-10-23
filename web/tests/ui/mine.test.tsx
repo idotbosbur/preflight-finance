@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { AppShell, pageTitle } from "../../src/components/index.ts";
 import { CasePage, QueuePage } from "../../src/pages/index.ts";
-import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel } from "../../src/pages/MinePage.tsx";
+import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel, forgetOwnMappings, readPreview } from "../../src/pages/MinePage.tsx";
 import { OWN_BATCH_ID, RULE_NEAR_DUPLICATE } from "../../src/domain/contracts.ts";
 import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contracts.ts";
 import { guessMapping } from "../../src/domain/own/columns.ts";
@@ -215,4 +215,33 @@ test("mine page: feedback link only when a URL is set", () => {
   assert.ok(!render(<MinePage {...props} />).includes("Send feedback"));
   const html = renderToStaticMarkup(<MinePage {...props} feedbackUrl="https://example.test/f" />);
   assert.ok(html.includes('href="https://example.test/f"'));
+});
+
+test("I2: deleting own data forgets remembered column choices only", () => {
+  const data = new Map([["preflight.ownMapping:a|b", "{}"], ["preflight.ownMapping:c", "{}"], ["preflight.guide", "x"]]);
+  const storage = {
+    get length() { return data.size; },
+    key: (i: number) => [...data.keys()][i] ?? null,
+    removeItem: (k: string) => { data.delete(k); },
+  } as unknown as Storage;
+  forgetOwnMappings(storage);
+  assert.deepEqual([...data.keys()], ["preflight.guide"]);
+  forgetOwnMappings(undefined); // no storage: no throw
+  assert.match(render(<DeleteConfirmation onConfirm={noop} onCancel={noop} busy={false} />), /remembered column choices/);
+});
+
+test("M6/M7: non-UTF-8 says CSV UTF-8; a semicolon file says so", () => {
+  const latin1 = new Uint8Array([0x56, 0x65, 0x6e, 0x64, 0x6f, 0x72, 0x0a, 0xe9, 0x0a]);
+  assert.match(readPreview("x.csv", latin1) as string, /CSV UTF-8/);
+  const semi = new TextEncoder().encode("Vendor;Invoice;Total\nA;1;2\n");
+  assert.match(readPreview("x.csv", semi) as string, /semicolon/);
+});
+
+test("M10: preview scroll area is a focusable labelled region", () => {
+  const html = render(<PreviewTable headers={["Vendor"]} rows={[["A"]]} />);
+  assert.match(html, /<div[^>]*class="dup-scroll"[^>]*>/);
+  const div = html.match(/<div[^>]*class="dup-scroll"[^>]*>/)![0];
+  assert.match(div, /tabindex="0"/);
+  assert.match(div, /role="region"/);
+  assert.match(div, /aria-label="/);
 });

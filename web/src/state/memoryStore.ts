@@ -6,7 +6,7 @@ import { OWN_BATCH_ID } from "../domain/contracts.ts";
 import type { BatchImportOutcome, DecisionRequest, ReviewEvent, ReviewResult } from "../domain/contracts.ts";
 import { validateDecision, compareCases } from "./review.ts";
 import {
-  OWN_DELETED_MESSAGE, STALE_IMPORT_MESSAGE, buildCase, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords, planOwnMerge,
+  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords, planOwnMerge,
   summarize, toFindingView,
 } from "./store.ts";
 import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore, StoreChange } from "./store.ts";
@@ -88,19 +88,26 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
     },
     async resetAll() {
       const error = commit(() => {
+        // Demo reset keeps the own workspace, re-stamped with the new generation (R22).
+        const next = generation + 1;
+        const ownBatch = batches.get(OWN_BATCH_ID);
+        const ownFindings = findingsOf(OWN_BATCH_ID);
         batches = new Map();
         findings = new Map();
-        events = [];
-        generation += 1;
+        if (ownBatch) batches.set(OWN_BATCH_ID, { ...ownBatch, resetGeneration: next });
+        for (const f of ownFindings) findings.set(key(f.batchId, f.findingId), { ...f, resetGeneration: next });
+        events = events.filter((e) => e.batchId === OWN_BATCH_ID).map((e) => ({ ...e, resetGeneration: next }));
+        generation = next;
       });
       if (error) return { ok: false, message: error };
       return { ok: true, resetGeneration: generation };
     },
     async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration): Promise<OwnMergeOutcome> {
-      if (expectedResetGeneration !== generation) return { status: "storage_error", message: STALE_IMPORT_MESSAGE };
-      if (expectedOwnGeneration !== ownGeneration) return { status: "storage_error", message: OWN_DELETED_MESSAGE };
+      if (expectedResetGeneration !== generation) return { status: "storage_error", message: OWN_RESET_MESSAGE };
+      if (expectedOwnGeneration !== ownGeneration) return { status: "storage_error", message: ownStaleMessage(batches.get(OWN_BATCH_ID)) };
       const plan = planOwnMerge(batches.get(OWN_BATCH_ID), findingsOf(OWN_BATCH_ID), rows, newFindings, file, now, generation);
       const error = commit(() => {
+        ownGeneration += 1; // a stale import from another tab now refuses (R23)
         batches.set(OWN_BATCH_ID, plan.batch);
         for (const r of plan.put) findings.set(key(r.batchId, r.findingId), r);
         for (const r of plan.remove) findings.delete(key(r.batchId, r.findingId));

@@ -11,7 +11,7 @@ import type {
 } from "../domain/contracts.ts";
 import { compareCases, validateDecision } from "./review.ts";
 import {
-  OWN_DELETED_MESSAGE, STALE_IMPORT_MESSAGE, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
+  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
   planOwnMerge, summarize, toFindingView,
 } from "./store.ts";
 import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore } from "./store.ts";
@@ -203,11 +203,21 @@ function wrap(db: IDBDatabase): ReviewStore {
       try {
         const generation = await run<number>(["meta", "batches", "findings", "events"], "readwrite", (tx, set) => {
           const metaReq = tx.objectStore("meta").get(META_KEY);
-          metaReq.onsuccess = () => {
+          const ownBatchReq = tx.objectStore("batches").get(OWN_BATCH_ID);
+          const ownFindingsReq = tx.objectStore("findings").index("byBatch").getAll(OWN_BATCH_ID);
+          const eventsReq = tx.objectStore("events").getAll();
+          eventsReq.onsuccess = () => {
+            // Demo reset keeps the own workspace, re-stamped with the new generation (R22).
             const next = genOf(metaReq.result) + 1;
+            const ownBatch = ownBatchReq.result as BatchRecord | undefined;
             tx.objectStore("batches").clear();
             tx.objectStore("findings").clear();
             tx.objectStore("events").clear();
+            if (ownBatch) tx.objectStore("batches").put({ ...ownBatch, resetGeneration: next });
+            for (const f of ownFindingsReq.result as FindingRecord[]) tx.objectStore("findings").put({ ...f, resetGeneration: next });
+            for (const e of eventsReq.result as ReviewEvent[]) {
+              if (e.batchId === OWN_BATCH_ID) tx.objectStore("events").put({ ...e, resetGeneration: next });
+            }
             tx.objectStore("meta").put({ key: META_KEY, value: next });
             set(next);
           };
@@ -229,13 +239,16 @@ function wrap(db: IDBDatabase): ReviewStore {
           oldReq.onsuccess = () => {
             const generation = genOf(metaReq.result);
             if (expectedResetGeneration !== generation) {
-              set({ status: "storage_error", message: STALE_IMPORT_MESSAGE });
+              set({ status: "storage_error", message: OWN_RESET_MESSAGE });
               return;
             }
-            if (expectedOwnGeneration !== genOf(ownMetaReq.result)) {
-              set({ status: "storage_error", message: OWN_DELETED_MESSAGE });
+            const ownGeneration = genOf(ownMetaReq.result);
+            if (expectedOwnGeneration !== ownGeneration) {
+              set({ status: "storage_error", message: ownStaleMessage(batchReq.result as BatchRecord | undefined) });
               return;
             }
+            // A stale import from another tab now refuses (R23).
+            tx.objectStore("meta").put({ key: OWN_META_KEY, value: ownGeneration + 1 });
             const plan = planOwnMerge(batchReq.result as BatchRecord | undefined, oldReq.result as FindingRecord[],
               rows, newFindings, file, now, generation);
             tx.objectStore("batches").put(plan.batch);

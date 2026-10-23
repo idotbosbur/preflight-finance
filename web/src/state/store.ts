@@ -43,6 +43,15 @@ export interface ImportMeta {
 export const OWN_DELETED_MESSAGE =
   "Your data was deleted while this file was importing, so nothing was imported. Import the file again if you still want it.";
 
+export const OWN_CHANGED_MESSAGE =
+  "Your data changed in another tab, so nothing was imported. Import the file again.";
+
+/** Message for a stale own-generation: the own batch is gone (deleted) or was changed elsewhere. */
+export const ownStaleMessage = (ownBatch: BatchRecord | undefined): string => (ownBatch ? OWN_CHANGED_MESSAGE : OWN_DELETED_MESSAGE);
+
+export const OWN_RESET_MESSAGE =
+  "The demo was reset in this browser while your file was importing, so nothing was imported. Your data is unchanged; import the file again.";
+
 export const STALE_IMPORT_MESSAGE =
   "The demo data was reset while this import was running, so nothing was imported. Import the file again if you still want it.";
 
@@ -195,12 +204,16 @@ export function planOwnMerge(
   generation: number,
 ): OwnMergePlan {
   const invoices = [...(existing?.invoices ?? [])];
-  const seen = new Set(invoices.map((i) => i.recordId));
+  const at = new Map(invoices.map((inv, i) => [inv.recordId, i] as const));
+  const values = (i: SerializedInvoice) => JSON.stringify({ ...i, rowNumber: 0 });
   let added = 0;
   for (const r of rows) {
-    if (seen.has(r.recordId)) continue;
-    seen.add(r.recordId);
-    invoices.push(serializeInvoice(r));
+    const s = serializeInvoice(r);
+    const i = at.get(r.recordId);
+    // Known row with changed values (a corrected re-export): the new row replaces it (R21).
+    if (i !== undefined) { if (values(invoices[i]!) !== values(s)) invoices[i] = s; continue; }
+    at.set(r.recordId, invoices.length);
+    invoices.push(s);
     added += 1;
   }
   // Re-importing a known file keeps its original record (rowsAdded, importedAt).
@@ -216,8 +229,10 @@ export function planOwnMerge(
   const put: FindingRecord[] = [];
   for (const f of makeFindingRecords({ batchId: OWN_BATCH_ID, fileSha256: "", invoices: [], findings }, generation)) {
     const prior = old.get(f.findingId);
-    keep.push(prior ?? f);
-    if (!prior) put.push(f);
+    // Reproduced: keep the review state, refresh the evidence from the current rows.
+    const rec = prior ? { ...f, state: prior.state, sequence: prior.sequence, resetGeneration: prior.resetGeneration } : f;
+    keep.push(rec);
+    put.push(rec);
     old.delete(f.findingId);
   }
   const remove: FindingRecord[] = [];

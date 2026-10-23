@@ -2,7 +2,7 @@
  * Own-data import: parse tolerantly, give rows content IDs, rerun the rules over the stored workspace
  * plus the new rows, then ONE store merge. Async hashing happens here, outside any IndexedDB
  * transaction (idbStore forbids `await` inside one).
- * ponytail: two tabs importing at the same instant may compute findings over a partial set; the next import recomputes.
+ * Two tabs importing at once: every mergeOwn bumps the own generation, so the later one refuses (R23).
  */
 import type { Finding } from "../domain/contracts.ts";
 import type { ColumnMapping } from "../domain/own/columns.ts";
@@ -20,9 +20,9 @@ export type OwnParseError = Extract<OwnParseResult, { error: unknown }>;
 
 const encoder = new TextEncoder();
 
-/** "O-" + sha256(vendor|invoice|date|totalCents|occurrence)[:12]; occurrence counts identical content within one file. */
+/** "O-" + sha256(vendor|invoice|date|totalCents|currency|occurrence)[:12]; occurrence counts identical content within one file. */
 export async function contentRecordId(inv: OwnInvoice, occurrence: number): Promise<string> {
-  const text = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total, occurrence].join("|");
+  const text = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total, inv.currency, occurrence].join("|");
   return "O-" + (await sha256Hex(encoder.encode(text))).slice(0, 12);
 }
 
@@ -39,7 +39,7 @@ export async function importOwnFile(
   const seenInFile = new Map<string, number>();
   const rows: OwnInvoice[] = [];
   for (const inv of parsed.invoices) {
-    const content = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total].join("|");
+    const content = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total, inv.currency].join("|");
     const occurrence = seenInFile.get(content) ?? 0;
     seenInFile.set(content, occurrence + 1);
     const recordId = await contentRecordId(inv, occurrence);
@@ -47,7 +47,7 @@ export async function importOwnFile(
     raw[0] = recordId;
     rows.push({ ...inv, recordId, raw });
   }
-  // Capture the own generation BEFORE reading rows: a delete in between makes mergeOwn refuse.
+  // Capture the own generation BEFORE reading rows: a delete or another import in between makes mergeOwn refuse.
   let ownGeneration: number;
   const all = new Map<string, OwnInvoice>();
   try {
@@ -56,7 +56,8 @@ export async function importOwnFile(
   } catch {
     return { status: "storage_error", message: STORAGE_MESSAGE };
   }
-  for (const r of rows) if (!all.has(r.recordId)) all.set(r.recordId, r);
+  // A known recordId with new values (corrected re-export) replaces the stored row (R21).
+  for (const r of rows) all.set(r.recordId, r);
   const findings: Finding[] = [];
   for (const c of runOwnRules([...all.values()])) {
     findings.push({ ...c, findingId: await makeFindingId(c.ruleId, c.ruleVersion, c.memberIds) });
