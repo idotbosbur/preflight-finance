@@ -49,7 +49,8 @@ test("missing invoice number header", () => {
 
 test("guessMapping never uses a column twice", () => {
   const m = guessMapping(["Amount", "Total", "Vendor"]);
-  assert.equal(m.total, 0);
+  assert.equal(m.total, 1); // synonym priority beats column position
+  assert.equal(m.vendor, 2);
   assert.equal(new Set(Object.values(m)).size, Object.keys(m).length);
 });
 
@@ -60,8 +61,10 @@ test("limits", () => {
   assert.ok("error" in r && r.error === "too many rows");
   const big = buildOwnRows(new Uint8Array(10_485_761), M, opts);
   assert.ok("error" in big && big.error === "too large");
-  assert.ok("error" in buildOwnRows(new Uint8Array([0xff, 0xfe, 0x41]), M, opts));
-  assert.ok("error" in buildOwnRows(enc('a,"b\n'), M, opts));
+  const bad8 = buildOwnRows(new Uint8Array([0xff, 0xfe, 0x41]), M, opts);
+  assert.ok("error" in bad8 && bad8.error === "not a CSV");
+  const badq = buildOwnRows(enc('a,"b\n'), M, opts);
+  assert.ok("error" in badq && badq.error === "not a CSV");
   const h = buildOwnRows(enc(""), M, opts);
   assert.ok("error" in h && h.error === "no header");
 });
@@ -73,7 +76,7 @@ test("20,000 rows build time", () => {
   const t0 = performance.now();
   const r = buildOwnRows(bytes, { ...M, date: 3 }, { dateOrder: "MDY", fileLabel: "t" });
   const ms = performance.now() - t0;
-  console.log(`buildOwnRows 20,000 rows: ${ms.toFixed(1)} ms`);
+  assert.ok(ms < 2000, `took ${ms} ms`);
   assert.ok("invoices" in r && r.invoices.length === 20_000);
 });
 
@@ -92,8 +95,8 @@ test("skipped rows carry reasons", () => {
   ]);
 });
 
-test("components, dates and BOM", () => {
-  const csv = "﻿v,i,t,s,x,d\nA,1,110.00,100.00,10.00,2026-03-05\nB,2,50.00,,,\nC,3,5.00,5.00,,bad\n";
+test("components and dates", () => {
+  const csv = "v,i,t,s,x,d\nA,1,110.00,100.00,10.00,2026-03-05\nB,2,50.00,,,\nC,3,5.00,5.00,,bad\n";
   const m = { ...M, subtotal: 3, tax: 4, date: 5 };
   const r = buildOwnRows(enc(csv), m, opts);
   assert.ok("invoices" in r);
@@ -101,8 +104,12 @@ test("components, dates and BOM", () => {
   assert.deepEqual(r.invoices.map((i) => [i.hasComponents, i.subtotal, i.tax, i.invoiceDate]), [
     [true, 10000, 1000, "2026-03-05"],
     [false, 0, 0, ""],
+    [true, 500, 0, ""],
   ]);
-  assert.deepEqual(r.skipped, [{ row: 4, reason: "unreadable date" }]);
+  assert.deepEqual(r.skipped, []);
+  assert.equal(r.invoices[2]!.invoiceDate, "");
+  assert.deepEqual(r.warnings.map((w) => [w.row, w.field]), [[4, "date"]]);
+  assert.match(r.warnings[0]!.reason, /^unreadable date/);
 });
 
 test("date order: R1 ambiguity and explicit order", () => {
@@ -112,4 +119,33 @@ test("date order: R1 ambiguity and explicit order", () => {
   assert.ok("error" in amb && amb.error === "ambiguous date order");
   const dmy = buildOwnRows(enc(csv), m, { dateOrder: "DMY", fileLabel: "t" });
   assert.ok("invoices" in dmy && dmy.invoices[0]!.invoiceDate === "2026-04-03");
+});
+
+
+test("unrecognised date format imports every row with one warning", () => {
+  const csv = "v,i,t,d\nA,1,1.00,5-Mar-26\nB,2,2.00,6-Mar-26\n";
+  const r = buildOwnRows(enc(csv), { ...M, date: 3 }, opts);
+  assert.ok("invoices" in r);
+  assert.equal(r.invoices.length, 2);
+  assert.deepEqual(r.invoices.map((i) => i.invoiceDate), ["", ""]);
+  assert.equal(r.skipped.length, 0);
+  assert.equal(r.warnings.length, 1);
+  assert.equal(r.warnings[0]!.field, "date");
+});
+
+test("negative discount uses its absolute value; other negatives still skip", () => {
+  const csv = "v,i,t,s,x,d\nA,1,90.00,100.00,0,-10.00\nB,2,90.00,100.00,0,(10.00)\nC,3,90.00,100.00,0,10.00-\nD,4,90.00,-100.00,0,0\nE,5,-9.00,1.00,0,0\n";
+  const r = buildOwnRows(enc(csv), { ...M, subtotal: 3, tax: 4, discount: 5 }, opts);
+  assert.ok("invoices" in r);
+  assert.deepEqual(r.invoices.map((i) => i.discount), [1000, 1000, 1000]);
+  assert.deepEqual(r.skipped, [
+    { row: 5, reason: "subtotal: credit or negative amount" },
+    { row: 6, reason: "credit or negative amount" },
+  ]);
+});
+
+test("guessMapping prefers InvoiceNumber over Reference regardless of order", () => {
+  const m = guessMapping(["Reference", "ContactName", "InvoiceNumber", "Total"]);
+  assert.equal(m.invoiceNumber, 2);
+  assert.deepEqual(guessMapping(["Supplier Name", "Inv #", "Amount Due"]), { vendor: 0, invoiceNumber: 1, total: 2 });
 });
