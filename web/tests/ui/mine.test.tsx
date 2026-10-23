@@ -2,11 +2,12 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { AppShell, pageTitle } from "../../src/components/index.ts";
 import { CasePage, QueuePage } from "../../src/pages/index.ts";
-import { DateOrderQuestion, ImportSummary, MappingForm, MinePage, PreviewTable, continueLabel } from "../../src/pages/MinePage.tsx";
+import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel } from "../../src/pages/MinePage.tsx";
 import { OWN_BATCH_ID, RULE_NEAR_DUPLICATE } from "../../src/domain/contracts.ts";
 import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contracts.ts";
 import { guessMapping } from "../../src/domain/own/columns.ts";
-import { batch, caseView, finding, queueProps } from "./fixtures.ts";
+import { reviewerFor } from "../../src/state/draft.ts";
+import { XSS, batch, caseView, dupEvidence, finding, queueProps } from "./fixtures.ts";
 import { buttons, render } from "./helpers.ts";
 
 const noop = () => {};
@@ -54,7 +55,7 @@ test("summary lists skipped reasons and warnings; continue label", () => {
 test("mine page: privacy line, file picker, imported files and confirmed delete", () => {
   const html = render(
     <MinePage ownBatch={ownBatch} files={[{ fileSha256: "a", displayName: "march.csv", importedAt: "2026-10-23T10:00:00Z", rowsAdded: 12, rowsSkipped: 1 }]}
-      onImport={() => Promise.reject(new Error("unused"))} onDeleteOwn={noop} queueHref="#/queue/x" summaryHref="#/mine/summary" />,
+      onImport={() => Promise.reject(new Error("unused"))} onDeleteOwn={() => Promise.resolve({ ok: true })} queueHref="#/queue/x" summaryHref="#/mine/summary" />,
   );
   assert.ok(html.includes("Your file is read on this device. It is never uploaded."));
   assert.match(html, /type="file"/);
@@ -112,8 +113,71 @@ test("shell: own mode badge, title and nav", () => {
   const base = { guide: null, onGuideExit: noop, durability: "persistent" as const, announcement: "" };
   const html = render(<AppShell {...base} route={{ name: "mine" }} own><p /></AppShell>);
   assert.ok(html.includes(OWN_BADGE) && !/synthetic demo/i.test(html));
-  assert.match(html, /aria-current="page"[^>]*>Your data|>Your data<\/a>/);
-  assert.equal(pageTitle({ name: "mine" }, true), "Your data — Preflight (your data)");
+  assert.match(html, /aria-current="page"[^>]*>Your data/);
+  assert.equal(pageTitle({ name: "mine" }, true), "Your data — Preflight");
   assert.equal(pageTitle({ name: "mine" }), "Your data — Preflight (synthetic demo)");
   assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Synthetic demo"));
+});
+
+const enc = (t: string) => new TextEncoder().encode(t);
+const loadedOf = (csv: string) => {
+  const rows = csv.trim().split("\n").map((l) => l.split(","));
+  return { name: "x.csv", bytes: enc(csv), headers: rows[0]!, rows: rows.slice(1) };
+};
+const AMBIGUOUS = "Vendor,Invoice,Date,Total\nAcme,1,03/04/2025,10.00\nAcme,2,05/06/2025,11.00\n";
+
+test("an ambiguous file asks day/month and keeps asking after the answer", () => {
+  const l = loadedOf(AMBIGUOUS);
+  const props = { loaded: l, mapping: guessMapping(l.headers), working: false, onMapping: noop, onDateOrder: noop, onContinue: noop };
+  const asked = render(<MapStep {...props} dateOrder={null} />);
+  assert.ok(asked.includes("Day first") && asked.includes("Month first"));
+  assert.ok(!buttons(asked).some((b) => b.startsWith("Continue")), "no continue until answered");
+  const answered = render(<MapStep {...props} dateOrder="DMY" />);
+  assert.ok(answered.includes("Day first"), "question stays after the answer");
+  assert.match(answered, /checked=""/);
+  assert.ok(buttons(answered).includes("Continue with 2 readable rows"));
+  const clear = loadedOf("Vendor,Invoice,Date,Total\nAcme,1,2025-03-04,10.00\n");
+  assert.ok(!render(<MapStep {...props} loaded={clear} mapping={guessMapping(clear.headers)} dateOrder={null} />).includes("Day first"));
+});
+
+test("header-only file explains itself; too many rows suggests splitting", () => {
+  const l = loadedOf("Vendor,Invoice,Total\n");
+  const html = render(<MapStep loaded={l} mapping={guessMapping(l.headers)} dateOrder={null} working={false} onMapping={noop} onDateOrder={noop} onContinue={noop} />);
+  assert.ok(html.includes("No rows can be imported from this file"));
+});
+
+test("own cases start with an empty reviewer; demo keeps the default", () => {
+  assert.equal(reviewerFor(true, "Demo reviewer", "Demo reviewer"), "");
+  assert.equal(reviewerFor(true, "Sam", "Demo reviewer"), "Sam");
+  assert.equal(reviewerFor(false, "", "Demo reviewer"), "Demo reviewer");
+  assert.equal(reviewerFor(false, "Sam", "Demo reviewer"), "Sam");
+});
+
+test("delete confirmation has confirm and cancel; busy disables both", () => {
+  const html = render(<DeleteConfirmation onConfirm={noop} onCancel={noop} busy={false} />);
+  assert.deepEqual(buttons(html), ["Yes, delete my data", "Cancel"]);
+  assert.match(html, /role="group" aria-labelledby="delete-q"/);
+  assert.equal(render(<DeleteConfirmation onConfirm={noop} onCancel={noop} busy />).match(/disabled=""/g)?.length, 2);
+});
+
+test("user text is escaped in preview and file list", () => {
+  const html = render(<PreviewTable headers={[XSS]} rows={[[XSS]]} />);
+  assert.ok(!html.includes("<script>") && html.includes("&lt;script&gt;"));
+  const page = render(
+    <MinePage ownBatch={ownBatch} files={[{ fileSha256: "a", displayName: XSS, importedAt: "2026-10-23T10:00:00Z", rowsAdded: 1, rowsSkipped: 0 }]}
+      onImport={() => Promise.reject(new Error("unused"))} onDeleteOwn={() => Promise.resolve({ ok: true })} queueHref="#/q" summaryHref="#/s" />,
+  );
+  assert.ok(!page.includes("<script>") && page.includes("&lt;script&gt;"));
+  assert.match(page, /<time datetime="2026-10-23T10:00:00Z">/i);
+  assert.ok(page.includes("1 row added"));
+});
+
+test("singular counts and as-written titles on own pages", () => {
+  const one = { ...ownBatch, rowCount: 1, findingCount: 1, duplicateCount: 1, mismatchCount: 0, nearDuplicateCount: 0 };
+  const dup = { ...finding({ state: "open", ruleId: "DUPLICATE_CANDIDATE", memberIds: ["R-0005", "R-0032"], evidence: dupEvidence, findingId: "f0000000000dg012" }) };
+  const html = render(<QueuePage {...queueProps({ batch: one, batches: [one], findings: [dup] })} />);
+  assert.ok(html.includes("1 invoice checked") && html.includes("1 candidate finding ") && html.includes("1 possible duplicate group,"));
+  assert.ok(html.includes("v-acme · inv-7781") && !html.includes("V-ACME · INV-7781"), "own title shows the vendor as written");
+  const demoHtml = render(<QueuePage {...queueProps({ findings: [dup] })} />);
+  assert.ok(demoHtml.includes("V-ACME · INV-7781"));
 });

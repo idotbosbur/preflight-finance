@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { RefObject } from "react";
 import type { ChangeEvent } from "react";
 import type { BatchSummary } from "../domain/contracts.ts";
 import { OWN_MAX_BYTES } from "../domain/contracts.ts";
@@ -10,7 +11,7 @@ import type { OwnParseResult, OwnWarning, SkippedRow } from "../domain/own/rows.
 import type { DateOrder } from "../domain/own/values.ts";
 import type { OwnFileRecord, OwnMergeOutcome } from "../state/store.ts";
 import type { OwnParseError } from "../state/ownImporter.ts";
-import { OWN_BADGE } from "../components/labels.ts";
+import { OWN_BADGE, plural } from "../components/labels.ts";
 
 const FIELD_LABEL: Readonly<Record<OwnField, string>> = {
   vendor: "Vendor", invoiceNumber: "Invoice number", date: "Invoice date", total: "Total", subtotal: "Subtotal",
@@ -106,6 +107,7 @@ export function ImportSummary({ readable, skipped, warnings, totalsCheck, onCont
     <section className="panel" aria-labelledby="summary-heading">
       <h2 id="summary-heading" className="section-title">What we can read</h2>
       <p>{readable} readable rows{skipped.length > 0 ? `, ${skipped.length} skipped` : ""}.</p>
+      {readable === 0 ? <p className="hint">No rows can be imported from this file. Check that the columns above are right and that the file has data rows.</p> : null}
       <Notes title="Skipped rows" items={skipped.map((s) => ({ where: `Row ${s.row}`, text: s.reason }))} />
       <Notes title="Worth knowing" items={warnings.map((w) => ({ where: w.row === 0 ? "File" : `Row ${w.row}`, text: w.reason }))} />
       {!totalsCheck ? <p className="hint">No subtotal column is mapped, so the total-mismatch check is off for this file.</p> : null}
@@ -116,7 +118,7 @@ export function ImportSummary({ readable, skipped, warnings, totalsCheck, onCont
 
 // ---- file reading and remembered mapping ----
 
-interface Loaded { readonly name: string; readonly bytes: Uint8Array; readonly headers: string[]; readonly rows: string[][] }
+export interface Loaded { readonly name: string; readonly bytes: Uint8Array; readonly headers: string[]; readonly rows: string[][] }
 
 function readPreview(name: string, bytes: Uint8Array): Loaded | string {
   try {
@@ -129,6 +131,11 @@ function readPreview(name: string, bytes: Uint8Array): Loaded | string {
     return "This file could not be read as a UTF-8 CSV export.";
   }
 }
+
+const readableTime = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+};
 
 const signature = (headers: readonly string[]) => MAP_KEY + headers.map((h) => h.trim().toLowerCase()).join("|");
 
@@ -145,17 +152,61 @@ function rememberMapping(headers: readonly string[], mapping: ColumnMapping): vo
 
 // ---- page ----
 
+/** Mapping, preview, date question and summary for a loaded file. */
+export function MapStep({ loaded, mapping, dateOrder, working, onMapping, onDateOrder, onContinue }: {
+  readonly loaded: Loaded; readonly mapping: ColumnMapping; readonly dateOrder: DateOrder | null; readonly working: boolean;
+  readonly onMapping: (m: ColumnMapping) => void; readonly onDateOrder: (o: DateOrder) => void; readonly onContinue: () => void;
+}) {
+  // ponytail: synchronous dry run on the main thread (20k rows measured ~58 ms); move to a worker if it ever janks.
+  const dry: OwnParseResult = useMemo(
+    () => buildOwnRows(loaded.bytes, mapping, { dateOrder, fileLabel: loaded.name }),
+    [loaded, mapping, dateOrder],
+  );
+  const error = "error" in dry ? dry.error : null;
+  // Once answered, the dry run is no longer ambiguous; keep the question so the answer stays visible and changeable.
+  const askOrder = error === "ambiguous date order" || dateOrder !== null;
+  return (
+    <>
+      <section className="panel" aria-labelledby="map-heading">
+        <h2 id="map-heading" className="section-title">2. Confirm the columns</h2>
+        <MappingForm headers={loaded.headers} mapping={mapping} onChange={onMapping} />
+        <PreviewTable headers={loaded.headers} rows={loaded.rows} />
+        {askOrder ? <DateOrderQuestion value={dateOrder} onChange={onDateOrder} /> : null}
+        {error && error !== "ambiguous date order" ? <p className="notice" role="status">{PARSE_MESSAGE[error]}</p> : null}
+      </section>
+      {!("error" in dry) ? (
+        <ImportSummary readable={dry.invoices.length} skipped={dry.skipped} warnings={dry.warnings}
+          totalsCheck={dry.checksAvailable.totals} onContinue={onContinue} disabled={working || dry.invoices.length === 0} />
+      ) : null}
+    </>
+  );
+}
+
+export function DeleteConfirmation({ onConfirm, onCancel, busy, cancelRef }: {
+  readonly onConfirm: () => void; readonly onCancel: () => void; readonly busy: boolean; readonly cancelRef?: RefObject<HTMLButtonElement | null>;
+}) {
+  return (
+    <div className="confirm-box" role="group" aria-labelledby="delete-q">
+      <p id="delete-q">Erase every file, row, finding and decision of yours from this browser? This cannot be undone.</p>
+      <div className="row-actions">
+        <button type="button" className="btn btn-danger" onClick={onConfirm} disabled={busy}>Yes, delete my data</button>
+        <button ref={cancelRef} type="button" className="btn btn-secondary" onClick={onCancel} disabled={busy}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 export interface MinePageProps {
   readonly ownBatch: BatchSummary | null;
   readonly files: readonly OwnFileRecord[];
   readonly onImport: (bytes: Uint8Array, mapping: ColumnMapping, opts: { displayName: string; dateOrder: DateOrder | null }) => Promise<OwnMergeOutcome | OwnParseError>;
-  readonly onDeleteOwn: () => void;
+  readonly onDeleteOwn: () => Promise<{ ok: boolean; message?: string }>;
   readonly queueHref: string;
   readonly summaryHref: string;
 }
 
 const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
-  "too large": "That file is over 10 MB.", "too many rows": "That file has more than 20,000 rows.",
+  "too large": "That file is over 10 MB.", "too many rows": "That file has more than 20,000 rows. Split it into smaller files and import them one at a time.",
   "not a CSV": "That file could not be read as a UTF-8 CSV export.", "no header": "That file has no header row.",
   "missing required column": "Choose a column for each required field.", "ambiguous date order": "Choose day first or month first.",
 };
@@ -169,12 +220,35 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
   const [done, setDone] = useState<{ added: number; alreadySeen: number } | null>(null);
   const [confirming, setConfirming] = useState(false);
 
-  const dry: OwnParseResult | null = useMemo(
-    () => (loaded ? buildOwnRows(loaded.bytes, mapping, { dateOrder, fileLabel: loaded.name }) : null),
-    [loaded, mapping, dateOrder],
-  );
-  const ambiguous = !!dry && "error" in dry && dry.error === "ambiguous date order";
-  const ok = dry && !("error" in dry) ? dry : null;
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const focusAfter = useRef<"cancel" | "trigger" | "heading" | null>(null);
+  const cancelRef = useRef<HTMLButtonElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  useEffect(() => {
+    const t = focusAfter.current;
+    focusAfter.current = null;
+    if (t === "cancel") cancelRef.current?.focus();
+    else if (t === "trigger") triggerRef.current?.focus();
+    else if (t === "heading") headingRef.current?.focus();
+  }, [confirming, deleting, deleteError]);
+
+  async function onDelete() {
+    setDeleting(true);
+    setDeleteError(null);
+    let out: { ok: boolean; message?: string };
+    try { out = await onDeleteOwn(); } catch { out = { ok: false, message: "Browser storage failed" }; }
+    setDeleting(false);
+    if (out.ok) {
+      focusAfter.current = "heading";
+      setLoaded(null); setDone(null); setProblem(null);
+      setConfirming(false);
+    } else {
+      focusAfter.current = "cancel";
+      setDeleteError(`Your data was not deleted: ${out.message ?? "storage error"}. Nothing was changed.`);
+    }
+  }
 
   async function onFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -195,7 +269,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
   }
 
   async function onContinue() {
-    if (!loaded || !ok) return;
+    if (!loaded) return;
     setWorking(true);
     setProblem(null);
     try {
@@ -216,7 +290,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
     <div className="workspace">
       <header className="page-head">
         <p className="eyebrow">Your data</p>
-        <h1 className="page-title" tabIndex={-1}>Check your own invoices</h1>
+        <h1 ref={headingRef} className="page-title" tabIndex={-1}>Check your own invoices</h1>
         <p><span className="badge badge-synthetic">{OWN_BADGE}</span></p>
         <p className="lede">Choose a CSV export from your accounting tool. Findings are candidates for a person to review.</p>
       </header>
@@ -229,26 +303,15 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
         {problem ? <p className="notice notice-error" role="alert">{problem}</p> : null}
         {done ? (
           <div className="notice notice-ok" role="status">
-            <p>Added {done.added} new invoices ({done.alreadySeen} were already in your data).</p>
+            <p>Added {plural(done.added, "new invoice")} ({done.alreadySeen} already in your data).</p>
             <p><a href={summaryHref}>See your results</a> · <a href={queueHref}>Review the findings</a></p>
           </div>
         ) : null}
       </section>
 
       {loaded ? (
-        <>
-          <section className="panel" aria-labelledby="map-heading">
-            <h2 id="map-heading" className="section-title">2. Confirm the columns</h2>
-            <MappingForm headers={loaded.headers} mapping={mapping} onChange={(m) => { setMapping(m); setDateOrder(null); }} />
-            <PreviewTable headers={loaded.headers} rows={loaded.rows} />
-            {ambiguous ? <DateOrderQuestion value={dateOrder} onChange={setDateOrder} /> : null}
-            {dry && "error" in dry && !ambiguous ? <p className="notice" role="status">{PARSE_MESSAGE[dry.error]}</p> : null}
-          </section>
-          {ok ? (
-            <ImportSummary readable={ok.invoices.length} skipped={ok.skipped} warnings={ok.warnings}
-              totalsCheck={ok.checksAvailable.totals} onContinue={() => void onContinue()} disabled={working || ok.invoices.length === 0} />
-          ) : null}
-        </>
+        <MapStep loaded={loaded} mapping={mapping} dateOrder={dateOrder} working={working}
+          onMapping={(m) => { setMapping(m); setDateOrder(null); }} onDateOrder={setDateOrder} onContinue={() => void onContinue()} />
       ) : null}
 
       <section className="panel" aria-labelledby="files-heading">
@@ -258,22 +321,19 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
             {files.map((f) => (
               <li key={f.fileSha256} className="issue">
                 <span className="issue-where">{f.displayName}</span>{" "}
-                <span className="muted">{f.rowsAdded} rows added, {f.rowsSkipped} skipped · {f.importedAt}</span>
+                <span className="muted">{plural(f.rowsAdded, "row")} added, {f.rowsSkipped} skipped · <time dateTime={f.importedAt}>{readableTime(f.importedAt)}</time></span>
               </li>
             ))}
           </ul>
         )}
-        {ownBatch ? <p><a href={queueHref}>Review the {ownBatch.findingCount} findings</a></p> : null}
+        {ownBatch ? <p><a href={queueHref}>Review the {plural(ownBatch.findingCount, "finding")}</a></p> : null}
+        {deleteError ? <p className="notice notice-error" role="alert">{deleteError}</p> : null}
         {files.length > 0 || ownBatch ? (confirming ? (
-          <div className="confirm-box" role="group" aria-labelledby="delete-q">
-            <p id="delete-q">Erase every file, row, finding and decision of yours from this browser? This cannot be undone.</p>
-            <div className="row-actions">
-              <button type="button" className="btn btn-danger" onClick={() => { setConfirming(false); setLoaded(null); setDone(null); onDeleteOwn(); }}>Yes, delete my data</button>
-              <button type="button" className="btn btn-secondary" onClick={() => setConfirming(false)}>Cancel</button>
-            </div>
-          </div>
+          <DeleteConfirmation busy={deleting} cancelRef={cancelRef} onCancel={() => { focusAfter.current = "trigger"; setConfirming(false); }}
+            onConfirm={() => void onDelete()} />
         ) : (
-          <button type="button" className="btn btn-quiet" onClick={() => setConfirming(true)}>Delete my data</button>
+          <button ref={triggerRef} type="button" className="btn btn-quiet" disabled={working}
+            onClick={() => { focusAfter.current = "cancel"; setDeleteError(null); setConfirming(true); }}>Delete my data</button>
         )) : null}
       </section>
     </div>

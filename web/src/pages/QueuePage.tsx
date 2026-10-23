@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { QueueFilter, QueueProps } from "../ui-contracts.ts";
 import type { ReviewState, RuleId } from "../domain/contracts.ts";
+import { RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
-import { DEMO_BADGE, OWN_BADGE, RULE_LABEL, STATE_LABEL, caseTitle } from "../components/labels.ts";
+import { DEMO_BADGE, OWN_BADGE, RULE_LABEL, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
-const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, "NEAR_DUPLICATE"];
+const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, RULE_NEAR_DUPLICATE];
 /** Findings shown per page of the queue. */
 export const PAGE_SIZE = 50;
 
@@ -86,6 +87,7 @@ export function QueuePage(props: QueueProps) {
   const { batch, batches, findings, filter, onFilterChange, hrefForCase, hrefForBatch, demo, onLoadDemo } = props;
   const [shown, setShown] = useState(PAGE_SIZE);
   const own = batch?.source === "own";
+  useEffect(() => setShown(PAGE_SIZE), [batch?.batchId]);
 
   function setFilter(next: Partial<QueueFilter>) {
     setShown(PAGE_SIZE);
@@ -102,8 +104,8 @@ export function QueuePage(props: QueueProps) {
         </h1>
         {batch ? (
           <p className="lede">
-            {batch.rowCount} invoices checked · {batch.findingCount} candidate findings ({batch.duplicateCount} possible duplicate
-            groups, {batch.mismatchCount} total mismatches{own ? `, ${batch.nearDuplicateCount} lower-confidence` : ""}) · {batch.openCount} open, {batch.confirmedCount} confirmed,{" "}
+            {plural(batch.rowCount, "invoice")} checked · {plural(batch.findingCount, "candidate finding")} ({plural(batch.duplicateCount, "possible duplicate group")},{" "}
+            {plural(batch.mismatchCount, "total mismatch", "total mismatches")}{own ? `, ${batch.nearDuplicateCount} lower-confidence` : ""}) · {batch.openCount} open, {batch.confirmedCount} confirmed,{" "}
             {batch.dismissedCount} dismissed
           </p>
         ) : null}
@@ -180,7 +182,7 @@ export function QueuePage(props: QueueProps) {
                   <a className="case-row-link" href={hrefForCase(f.findingId)}>
                     <span className="case-row-kind">{RULE_LABEL[f.ruleId]}</span>
                     <span className="case-row-main">
-                      <span className="case-row-title">{caseTitle(f)}</span>
+                      <span className="case-row-title">{caseTitle(f, own)}</span>
                       <span className="case-row-meta">Records {f.memberIds.join(", ")}</span>
                     </span>
                     <StateBadge state={f.state} />

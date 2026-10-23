@@ -25,7 +25,7 @@ import { importBytes } from "./state/importer.ts";
 import { importOwnFile } from "./state/ownImporter.ts";
 import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
 import type { OwnFileRecord, ReviewStore } from "./state/store.ts";
-import { onCaseLoaded, onConflictShown, onSaved } from "./state/draft.ts";
+import { onCaseLoaded, onConflictShown, onSaved, reviewerFor } from "./state/draft.ts";
 import type { DraftBinding } from "./state/draft.ts";
 
 const DEMO_CSV = "./demo/main-120.csv";
@@ -217,7 +217,7 @@ export function App() {
     lastCaseKey.current = caseKey;
     if (isNewCase) {
       setSave({ kind: "idle" });
-      setForm((f) => ({ reviewer: f.reviewer || DEFAULT_REVIEWER, reason: "" }));
+      setForm((f) => ({ reviewer: reviewerFor(route.batchId === OWN_BATCH_ID, f.reviewer, DEFAULT_REVIEWER), reason: "" }));
     }
     store.getCase(route.batchId, route.findingId).then((c) => {
       if (cancelled) return;
@@ -373,11 +373,13 @@ export function App() {
     return outcome;
   }, [store, bump]);
 
-  const onDeleteOwn = useCallback(async () => {
-    if (!store) return;
-    const out = await store.deleteOwnData();
+  const onDeleteOwn = useCallback(async (): Promise<{ ok: boolean; message?: string }> => {
+    if (!store) return { ok: false, message: "Browser storage is still opening. Try again in a moment." };
+    let out: { ok: boolean; message?: string };
+    try { out = await store.deleteOwnData(); } catch { out = { ok: false, message: "Browser storage failed." }; }
     setAnnouncement(out.ok ? "Your data was deleted from this browser." : `Delete failed: ${out.message ?? "storage error"}`);
     bump();
+    return out;
   }, [store, bump]);
 
   const onResetDemo = useCallback(async () => {
@@ -467,7 +469,7 @@ export function App() {
       page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
         <MinePage
           ownBatch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} files={ownFiles}
-          onImport={onImportOwn} onDeleteOwn={() => void onDeleteOwn()}
+          onImport={onImportOwn} onDeleteOwn={onDeleteOwn}
           queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} summaryHref={formatRoute({ name: "mine-summary" })}
         />
       );

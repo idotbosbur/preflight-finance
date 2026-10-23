@@ -23,7 +23,10 @@ export const NAV_ITEMS: readonly NavItem[] = [
 ];
 
 /** The footer's single "what next" step, chosen for the page the visitor is on. */
-export function nextStep(route: Route): { readonly kicker: string; readonly label: string; readonly href: string } {
+export function nextStep(route: Route, own = false): { readonly kicker: string; readonly label: string; readonly href: string } {
+  if (own && (route.name === "queue" || route.name === "case")) {
+    return { kicker: "Next", label: "Add files or delete your data", href: "#/mine" };
+  }
   switch (route.name) {
     case "demo":
     case "queue":
@@ -61,9 +64,9 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   not_found: "Page not found",
 };
 
-/** document.title for a route: "<page name> — Preflight (synthetic demo)", or "(your data)" in own mode. */
+/** document.title for a route: "<page name> — Preflight (synthetic demo)", or no suffix in own mode. */
 export function pageTitle(route: Route, own = false): string {
-  return `${PAGE_NAME[route.name]} — Preflight (${own ? "your data" : "synthetic demo"})`;
+  return own ? `${PAGE_NAME[route.name]} — Preflight` : `${PAGE_NAME[route.name]} — Preflight (synthetic demo)`;
 }
 
 /** Move focus only on a real route change after the first render (never on initial load). */
@@ -261,7 +264,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             Preflight
           </a>
           <NavLinks route={route} own={own} className="nav-links" />
-          <span className="badge badge-synthetic" title={own ? OWN_LABEL : SYNTHETIC_LABEL}>
+          <span className={own ? "badge badge-synthetic badge-own" : "badge badge-synthetic"} title={own ? OWN_LABEL : SYNTHETIC_LABEL}>
             {own ? OWN_BADGE : DEMO_BADGE}
           </span>
           <button
@@ -306,10 +309,10 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
           </footer>
         ) : (
           <footer className="footer footer-compact">
-            <a className="footer-next" href={nextStep(route).href}>
-              <span className="footer-next-kicker">{nextStep(route).kicker}</span>
+            <a className="footer-next" href={nextStep(route, own).href}>
+              <span className="footer-next-kicker">{nextStep(route, own).kicker}</span>
               <span className="footer-next-line">
-                {nextStep(route).label}
+                {nextStep(route, own).label}
                 <span className="footer-next-arrow" aria-hidden="true">→</span>
               </span>
             </a>

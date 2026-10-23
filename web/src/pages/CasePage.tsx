@@ -98,7 +98,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
           <span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span>
         </div>
         <h1 id="case-heading" className="page-title case-title" tabIndex={-1}>
-          {caseTitle(finding)}
+          {caseTitle(finding, own)}
         </h1>
         <p className="muted">
           Batch {batch.displayName} · finding <code>{finding.findingId}</code>
