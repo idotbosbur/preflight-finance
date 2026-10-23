@@ -2,3 +2,8 @@
 *.csv -text
 *.woff2 binary
 *.sqlite binary
+# The benchmark fingerprints these files byte for byte (manifest, captured expectations): keep them exact.
+fixtures/** -text
+web/tests/fixtures/** -text
+web/public/demo/** -text
+web/public/results/** -text
