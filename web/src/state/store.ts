@@ -10,11 +10,13 @@ import {
   SCHEMA_VERSION,
   WEB_CONTRACTS_VERSION,
   RULE_DUPLICATE,
-  RULE_MISMATCH, RULE_NEAR_DUPLICATE,
+  OWN_BATCH_ID, RULE_MISMATCH, RULE_NEAR_DUPLICATE,
   assertSafeCents,
 } from "../domain/contracts.ts";
+import type { OwnInvoice } from "../domain/own/rows.ts";
 import type {
   BatchImportOutcome,
+  Finding,
   BatchSource,
   BatchSummary,
   CaseView,
@@ -41,6 +43,19 @@ export interface ImportMeta {
 export const STALE_IMPORT_MESSAGE =
   "The demo data was reset while this import was running, so nothing was imported. Import the file again if you still want it.";
 
+/** One imported file in the own-data workspace (rows live in the single own batch). */
+export interface OwnFileRecord {
+  readonly fileSha256: string;
+  readonly displayName: string;
+  readonly importedAt: string;
+  readonly rowsAdded: number;
+  readonly rowsSkipped: number;
+}
+
+export type OwnMergeOutcome =
+  | { readonly status: "merged"; readonly added: number; readonly alreadySeen: number; readonly batch: BatchSummary }
+  | { readonly status: "storage_error"; readonly message: string };
+
 export type StoreChange = { readonly type: "changed" | "reset" };
 
 export interface ReviewStore {
@@ -55,6 +70,16 @@ export interface ReviewStore {
   /** Clears every batch/decision this visitor stored in this browser and bumps the reset generation. */
   resetAll(): Promise<{ ok: true; resetGeneration: number } | { ok: false; message: string }>;
   getResetGeneration(): Promise<number>;
+  /**
+   * Own-data workspace: unions `rows` into the single OWN_BATCH_ID batch by recordId and replaces its
+   * findings with `findings` (computed by the caller over the whole workspace), keeping decided ones.
+   */
+  mergeOwn(rows: readonly Invoice[], findings: readonly Finding[], file: OwnFileRecord, now: string, expectedResetGeneration: number): Promise<OwnMergeOutcome>;
+  /** Stored own-workspace rows (empty when none), so the caller can rerun the rules over the union. */
+  listOwnRows(): Promise<OwnInvoice[]>;
+  listOwnFiles(): Promise<OwnFileRecord[]>;
+  /** Removes only the own batch, its findings and their events; the demo batch stays. */
+  deleteOwnData(): Promise<{ ok: boolean; message?: string }>;
   /** Changes made by OTHER tabs (BroadcastChannel). Returns an unsubscribe function. */
   subscribe(listener: (change: StoreChange) => void): () => void;
   close(): void;
@@ -75,6 +100,8 @@ export interface SerializedInvoice {
   readonly shipping: string;
   readonly discount: string;
   readonly total: string;
+  /** Own-data rows only: whether the subtotal column was present (totals check applies). */
+  readonly hasComponents?: boolean;
 }
 
 export interface BatchRecord {
@@ -89,6 +116,8 @@ export interface BatchRecord {
   readonly rowCount: number;
   readonly resetGeneration: number;
   readonly invoices: readonly SerializedInvoice[];
+  /** Own batch only. */
+  readonly files?: readonly OwnFileRecord[];
 }
 
 export interface FindingRecord {
@@ -121,6 +150,7 @@ export function serializeInvoice(inv: Invoice): SerializedInvoice {
     invoiceNorm: inv.invoiceNorm, invoiceDate: inv.invoiceDate, currency: inv.currency,
     subtotal: centsToString(inv.subtotal), tax: centsToString(inv.tax), shipping: centsToString(inv.shipping),
     discount: centsToString(inv.discount), total: centsToString(inv.total),
+    ...("hasComponents" in inv ? { hasComponents: (inv as OwnInvoice).hasComponents } : {}),
   };
 }
 
@@ -131,6 +161,61 @@ export function deserializeInvoice(s: SerializedInvoice): Invoice {
     subtotal: centsFromString(s.subtotal), tax: centsFromString(s.tax), shipping: centsFromString(s.shipping),
     discount: centsFromString(s.discount), total: centsFromString(s.total),
   };
+}
+
+export function deserializeOwnInvoice(s: SerializedInvoice): OwnInvoice {
+  return { ...deserializeInvoice(s), hasComponents: s.hasComponents ?? false };
+}
+
+export interface OwnMergePlan {
+  readonly batch: BatchRecord;
+  readonly put: readonly FindingRecord[];
+  readonly remove: readonly FindingRecord[];
+  readonly summary: BatchSummary;
+  readonly added: number;
+  readonly alreadySeen: number;
+}
+
+/**
+ * Pure merge step shared by both adapters. Rows union by recordId. Reproduced findings keep their
+ * state/sequence; new ones start open; stored findings no longer reproduced survive only if decided.
+ */
+export function planOwnMerge(
+  existing: BatchRecord | undefined,
+  oldFindings: readonly FindingRecord[],
+  rows: readonly Invoice[],
+  findings: readonly Finding[],
+  file: OwnFileRecord,
+  now: string,
+  generation: number,
+): OwnMergePlan {
+  const invoices = [...(existing?.invoices ?? [])];
+  const seen = new Set(invoices.map((i) => i.recordId));
+  let added = 0;
+  for (const r of rows) {
+    if (seen.has(r.recordId)) continue;
+    seen.add(r.recordId);
+    invoices.push(serializeInvoice(r));
+    added += 1;
+  }
+  const files = [...(existing?.files ?? []).filter((f) => f.fileSha256 !== file.fileSha256), { ...file, rowsAdded: added }];
+  const batch: BatchRecord = {
+    schemaVersion: SCHEMA_VERSION, contractsVersion: WEB_CONTRACTS_VERSION, batchId: OWN_BATCH_ID, fileSha256: "",
+    displayName: "Your data", source: "own", ruleset: "invoice-v1", importedAt: now, rowCount: invoices.length,
+    resetGeneration: generation, invoices, files,
+  };
+  const old = new Map(oldFindings.map((f) => [f.findingId, f] as const));
+  const keep: FindingRecord[] = [];
+  const put: FindingRecord[] = [];
+  for (const f of makeFindingRecords({ batchId: OWN_BATCH_ID, fileSha256: "", invoices: [], findings }, generation)) {
+    const prior = old.get(f.findingId);
+    keep.push(prior ?? f);
+    if (!prior) put.push(f);
+    old.delete(f.findingId);
+  }
+  const remove: FindingRecord[] = [];
+  for (const f of old.values()) (f.sequence > 0 ? keep : remove).push(f);
+  return { batch, put, remove, summary: summarize(batch, keep), added, alreadySeen: rows.length - added };
 }
 
 export function makeBatchRecord(batch: PreparedBatch, meta: ImportMeta, resetGeneration: number): BatchRecord {

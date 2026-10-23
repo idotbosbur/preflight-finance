@@ -5,15 +5,16 @@
  * - success is reported only on transaction `complete`; `error`/`abort` -> storage_error;
  * - `versionchange` closes this connection so another tab's upgrade/reset is never stuck.
  */
+import { OWN_BATCH_ID } from "../domain/contracts.ts";
 import type {
   BatchImportOutcome, DecisionRequest, PreparedBatch, ReviewEvent, ReviewResult,
 } from "../domain/contracts.ts";
 import { compareCases, validateDecision } from "./review.ts";
 import {
-  STALE_IMPORT_MESSAGE, buildCase, createChannel, decide, makeBatchRecord, makeFindingRecords, summarize,
-  toFindingView,
+  STALE_IMPORT_MESSAGE, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
+  planOwnMerge, summarize, toFindingView,
 } from "./store.ts";
-import type { BatchRecord, FindingRecord, ImportMeta, ReviewStore } from "./store.ts";
+import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore } from "./store.ts";
 
 export const DB_NAME = "preflight-demo";
 export const DB_VERSION = 1;
@@ -83,6 +84,11 @@ function wrap(db: IDBDatabase): ReviewStore {
       }
     });
   }
+
+  const readOwnBatch = () => run<BatchRecord | undefined>(["batches"], "readonly", (tx, set) => {
+    const r = tx.objectStore("batches").get(OWN_BATCH_ID);
+    r.onsuccess = () => set(r.result as BatchRecord | undefined);
+  });
 
   const genOf = (row: unknown): number => (row as { value?: number } | undefined)?.value ?? 0;
 
@@ -209,6 +215,64 @@ function wrap(db: IDBDatabase): ReviewStore {
         return { ok: true as const, resetGeneration: generation };
       } catch (err) {
         return { ok: false as const, message: friendly(err) };
+      }
+    },
+
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration): Promise<OwnMergeOutcome> {
+      try {
+        const outcome = await run<OwnMergeOutcome>(["meta", "batches", "findings"], "readwrite", (tx, set) => {
+          const metaReq = tx.objectStore("meta").get(META_KEY);
+          const batchReq = tx.objectStore("batches").get(OWN_BATCH_ID);
+          const oldReq = tx.objectStore("findings").index("byBatch").getAll(OWN_BATCH_ID);
+          oldReq.onsuccess = () => {
+            const generation = genOf(metaReq.result);
+            if (expectedResetGeneration !== generation) {
+              set({ status: "storage_error", message: STALE_IMPORT_MESSAGE });
+              return;
+            }
+            const plan = planOwnMerge(batchReq.result as BatchRecord | undefined, oldReq.result as FindingRecord[],
+              rows, newFindings, file, now, generation);
+            tx.objectStore("batches").put(plan.batch);
+            const fs = tx.objectStore("findings");
+            for (const r of plan.put) fs.put(r);
+            for (const r of plan.remove) fs.delete([r.batchId, r.findingId]);
+            set({ status: "merged", added: plan.added, alreadySeen: plan.alreadySeen, batch: plan.summary });
+          };
+        });
+        if (outcome.status === "merged") channel.post({ type: "changed" });
+        return outcome;
+      } catch (err) {
+        return { status: "storage_error", message: friendly(err) };
+      }
+    },
+
+    async listOwnRows() {
+      return ((await readOwnBatch())?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+
+    async listOwnFiles() {
+      return [...((await readOwnBatch())?.files ?? [])];
+    },
+
+    async deleteOwnData() {
+      try {
+        await run<true>(["batches", "findings", "events"], "readwrite", (tx, set) => {
+          tx.objectStore("batches").delete(OWN_BATCH_ID);
+          const keys = tx.objectStore("findings").index("byBatch").getAllKeys(OWN_BATCH_ID);
+          keys.onsuccess = () => {
+            const evIndex = tx.objectStore("events").index("byFinding");
+            for (const k of keys.result) {
+              tx.objectStore("findings").delete(k);
+              const evKeys = evIndex.getAllKeys(k);
+              evKeys.onsuccess = () => { for (const ek of evKeys.result) tx.objectStore("events").delete(ek); };
+            }
+            set(true);
+          };
+        });
+        channel.post({ type: "changed" });
+        return { ok: true };
+      } catch (err) {
+        return { ok: false, message: friendly(err) };
       }
     },
 

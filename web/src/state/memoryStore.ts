@@ -2,12 +2,14 @@
  * In-memory adapter: used when browser storage is unavailable ("this tab only") and in tests.
  * `faults` lets tests simulate a failing commit (quota/blocked/aborted) without faking success.
  */
+import { OWN_BATCH_ID } from "../domain/contracts.ts";
 import type { BatchImportOutcome, DecisionRequest, ReviewEvent, ReviewResult } from "../domain/contracts.ts";
 import { validateDecision, compareCases } from "./review.ts";
 import {
-  STALE_IMPORT_MESSAGE, buildCase, decide, makeBatchRecord, makeFindingRecords, summarize, toFindingView,
+  STALE_IMPORT_MESSAGE, buildCase, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords, planOwnMerge,
+  summarize, toFindingView,
 } from "./store.ts";
-import type { BatchRecord, FindingRecord, ImportMeta, ReviewStore, StoreChange } from "./store.ts";
+import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore, StoreChange } from "./store.ts";
 import type { PreparedBatch } from "../domain/contracts.ts";
 
 export interface MemoryFaults {
@@ -92,6 +94,31 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
       });
       if (error) return { ok: false, message: error };
       return { ok: true, resetGeneration: generation };
+    },
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration): Promise<OwnMergeOutcome> {
+      if (expectedResetGeneration !== generation) return { status: "storage_error", message: STALE_IMPORT_MESSAGE };
+      const plan = planOwnMerge(batches.get(OWN_BATCH_ID), findingsOf(OWN_BATCH_ID), rows, newFindings, file, now, generation);
+      const error = commit(() => {
+        batches.set(OWN_BATCH_ID, plan.batch);
+        for (const r of plan.put) findings.set(key(r.batchId, r.findingId), r);
+        for (const r of plan.remove) findings.delete(key(r.batchId, r.findingId));
+      });
+      if (error) return { status: "storage_error", message: error };
+      return { status: "merged", added: plan.added, alreadySeen: plan.alreadySeen, batch: plan.summary };
+    },
+    async listOwnRows() {
+      return (batches.get(OWN_BATCH_ID)?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+    async listOwnFiles() {
+      return [...(batches.get(OWN_BATCH_ID)?.files ?? [])];
+    },
+    async deleteOwnData() {
+      const error = commit(() => {
+        batches.delete(OWN_BATCH_ID);
+        for (const f of findingsOf(OWN_BATCH_ID)) findings.delete(key(f.batchId, f.findingId));
+        events = events.filter((e) => e.batchId !== OWN_BATCH_ID);
+      });
+      return error ? { ok: false, message: error } : { ok: true };
     },
     async getResetGeneration() {
       return generation;
