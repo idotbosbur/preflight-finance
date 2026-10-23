@@ -4,7 +4,7 @@
  * financial figures itself.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { BatchSummary, CaseView, Durability, FindingView, ReviewAction } from "./domain/contracts.ts";
+import type { BatchSummary, CaseView, Durability, FindingView, Invoice, ReviewAction } from "./domain/contracts.ts";
 import type { ColumnMapping } from "./domain/own/columns.ts";
 import type { DateOrder } from "./domain/own/values.ts";
 import { MODULES, OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
@@ -17,7 +17,7 @@ import type {
 import { AppShell } from "./components/index.ts";
 import { Intro, shouldPlayIntro } from "./components/Intro.tsx";
 import {
-  CasePage, HowPage, MinePage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
+  CasePage, HowPage, MinePage, MineSummaryPage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
 } from "./pages/index.ts";
 import { formatRoute, parseRoute } from "./state/router.ts";
 import { openBestStore } from "./state/openStore.ts";
@@ -203,6 +203,24 @@ export function App() {
     }, onReadError);
     return () => { cancelled = true; };
   }, [store, queueBatchId, version, onReadError]);
+
+  // Summary inputs (rows + latest decision reasons) are loaded here so the page stays storage-free.
+  const [ownFindings, setOwnFindings] = useState<FindingView[]>([]);
+  const [ownRows, setOwnRows] = useState<Invoice[]>([]);
+  const [ownReasons, setOwnReasons] = useState<ReadonlyMap<string, string>>(new Map());
+  useEffect(() => {
+    if (!store || route.name !== "mine-summary") return;
+    let cancelled = false;
+    (async () => {
+      const [f, r] = await Promise.all([store.listFindings(OWN_BATCH_ID), store.listOwnRows()]);
+      const decided = f.filter((x) => x.state !== "open");
+      const cases = await Promise.all(decided.map((x) => store.getCase(OWN_BATCH_ID, x.findingId)));
+      const reasons = new Map<string, string>();
+      cases.forEach((c, i) => { const last = c?.history[c.history.length - 1]; if (last) reasons.set(decided[i]!.findingId, last.reason); });
+      if (!cancelled) { setOwnFindings(f); setOwnRows(r); setOwnReasons(reasons); }
+    })().catch(onReadError);
+    return () => { cancelled = true; };
+  }, [store, route.name, version, onReadError]);
 
   const caseKey = route.name === "case" ? `${route.batchId}/${route.findingId}` : null;
   const lastCaseKey = useRef<string | null>(null);
@@ -475,7 +493,10 @@ export function App() {
       );
       break;
     case "mine-summary":
-      page = <p className="app-loading">Your-data summary is coming soon.</p>;
+      page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
+        <MineSummaryPage batch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} findings={ownFindings} files={ownFiles}
+          rows={ownRows} reasons={ownReasons} mineHref={formatRoute({ name: "mine" })} />
+      );
       break;
     case "results":
       page = <ResultsPage benchmark={benchmark} benchmarkError={benchmarkError} visitor={demoLoaded ? batches.find((b) => b.batchId === demo!.batchId) ?? null : null} />;

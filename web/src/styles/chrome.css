@@ -1720,3 +1720,17 @@ h3 {
 @media (max-width: 640px) {
   .topnav .badge-own { display: none; }
 }
+
+/* Pilot summary */
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)); gap: 0.75rem; margin: 1rem 0; }
+.summary-stat { border: 1px solid #8886; border-radius: 8px; padding: 0.75rem; }
+.summary-stat dt { font-size: 0.9rem; }
+.summary-stat dd { margin: 0.25rem 0 0; font-size: 1.4rem; font-weight: 600; overflow-wrap: anywhere; }
+.summary-table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+.summary-table th, .summary-table td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid #8886; overflow-wrap: anywhere; }
+
+@media print {
+  .topbar, .footer, .skip-link, .banner, .no-print, canvas { display: none !important; }
+  body, .shell, .shell-body, .main { background: #fff !important; color: #000 !important; }
+  .main *, .summary-stat { color: #000 !important; border-color: #000 !important; }
+}

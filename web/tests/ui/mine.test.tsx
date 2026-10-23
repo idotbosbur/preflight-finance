@@ -181,3 +181,22 @@ test("singular counts and as-written titles on own pages", () => {
   const demoHtml = render(<QueuePage {...queueProps({ findings: [dup] })} />);
   assert.ok(demoHtml.includes("V-ACME · INV-7781"));
 });
+
+test("summary page: counts only by default, details only when ticked, own badge", async () => {
+  const { MineSummaryPage } = await import("../../src/pages/MineSummaryPage.tsx");
+  const dup = finding({ state: "confirmed", ruleId: "DUPLICATE_CANDIDATE", memberIds: ["R-0005"], evidence: dupEvidence, findingId: "d1" });
+  const row = { recordId: "R-0005", rowNumber: 1, raw: ["R-0005", "Zed Secret Co", "SECRET-1", "2026-03-02", "USD", "", "", "", "", "1"], vendorNorm: "Z", invoiceNorm: "S",
+    invoiceDate: "2026-03-02", currency: "USD", subtotal: 0, tax: 0, shipping: 0, discount: 0, total: 100 };
+  const files = [{ fileSha256: "a", displayName: "private-name.csv", importedAt: "t", rowsAdded: 1, rowsSkipped: 0 }];
+  const props = { batch: ownBatch, findings: [dup], files, rows: [row], reasons: new Map([["d1", "Rounding note"]]), mineHref: "#/mine" };
+  const off = render(<MineSummaryPage {...props} />);
+  assert.ok(off.includes(OWN_BADGE) && !/synthetic demo/i.test(off));
+  assert.match(off, /<input[^>]*type="checkbox"/);
+  assert.ok(!/checked=""/.test(off));
+  for (const bad of ["Zed", "SECRET", "Rounding", "private-name"]) assert.ok(!off.includes(bad), bad);
+  assert.deepEqual(buttons(off), ["Print", "Download (.csv)"]);
+  const on = render(<MineSummaryPage {...props} initialDetails />);
+  assert.ok(on.includes("Zed Secret Co") && on.includes("SECRET-1") && on.includes("Rounding note"));
+  const empty = render(<MineSummaryPage {...props} batch={null} findings={[]} files={[]} rows={[]} />);
+  assert.ok(empty.includes('href="#/mine"'));
+});
