@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { OTHER_OPTION, sendFeedback } from "../state/feedback.ts";
 import type { FeedbackAnswers } from "../state/feedback.ts";
 
@@ -13,15 +13,17 @@ export const FEEDBACK_NOTE = "Answers are sent to the site owner's Google Form. 
 
 type Status = "idle" | "sending" | "sent" | "failed";
 
-function Radios({ name, options, value, onChange }: { name: string; options: readonly string[]; value: string | undefined; onChange: (v: string) => void }) {
+function Radios({ name, options, value, onChange, children }: { name: string; options: readonly string[]; value: string | undefined; onChange: (v: string) => void; children?: ReactNode }) {
   return (
-    <>
+    <div className="fb-options">
       {options.map((o) => (
-        <label key={o} className="radio">
-          <input type="radio" name={name} value={o} checked={value === o} onChange={() => onChange(o)} /> {o}
+        <label key={o} className="fb-opt">
+          <input type="radio" name={name} value={o} checked={value === o} onChange={() => onChange(o)} />
+          <span>{o}</span>
         </label>
       ))}
-    </>
+      {children}
+    </div>
   );
 }
 
@@ -29,6 +31,7 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
   const [a, setA] = useState<FeedbackAnswers>({});
   const [status, setStatus] = useState<Status>("idle");
   const set = (patch: FeedbackAnswers) => setA((p) => ({ ...p, ...patch }));
+  const answered = [a.role, a.software, a.tried, a.missed, a.ease, a.confusion?.trim(), a.wish?.trim(), a.email?.trim()].filter(Boolean).length;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,11 +43,15 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
   if (status === "sent") {
     return (
       <div className="workspace feedback">
-        <header className="page-head">
+        <header className="page-head fb-done">
+          <svg className="fb-check" viewBox="0 0 56 56" aria-hidden="true">
+            <circle cx="28" cy="28" r="26" />
+            <path d="M17 29l7 7 15-15" />
+          </svg>
           <p className="eyebrow">Feedback</p>
           <h1 className="page-title" tabIndex={-1}>Thank you</h1>
           <p className="lede" role="status">Thanks — your answers were sent.</p>
-          <p><a href={demoHref}>Back to the demo</a></p>
+          <p><a className="btn btn-quiet" href={demoHref}>Back to the demo</a></p>
         </header>
       </div>
     );
@@ -59,6 +66,10 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
       </header>
 
       <form className="feedback-form" onSubmit={(e) => void onSubmit(e)}>
+        <div className="fb-progress" aria-hidden="true">
+          <div className="fb-progress-bar"><span style={{ transform: `scaleX(${answered / 8})` }} /></div>
+          <span>{answered} of 8 answered</span>
+        </div>
         <fieldset className="fb-q">
           <legend className="field-label">What best describes you? <span className="hint-inline">(required)</span></legend>
           <Radios name="role" options={ROLES} value={a.role} onChange={(role) => set({ role })} />
@@ -66,10 +77,12 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
 
         <fieldset className="fb-q">
           <legend className="field-label">Which accounting software do you use?</legend>
-          <Radios name="software" options={SOFTWARE} value={a.software} onChange={(software) => set({ software })} />
-          <label className="radio">
-            <input type="radio" name="software" value={OTHER_OPTION} checked={a.software === OTHER_OPTION} onChange={() => set({ software: OTHER_OPTION })} /> Other
-          </label>
+          <Radios name="software" options={SOFTWARE} value={a.software} onChange={(software) => set({ software })}>
+            <label className="fb-opt">
+              <input type="radio" name="software" value={OTHER_OPTION} checked={a.software === OTHER_OPTION} onChange={() => set({ software: OTHER_OPTION })} />
+              <span>Other</span>
+            </label>
+          </Radios>
           <label className="field-label fb-sub" htmlFor="fb-software-other">Other software</label>
           <input id="fb-software-other" className="text-input" type="text" maxLength={200} value={a.softwareOther ?? ""}
             onChange={(e) => set({ software: OTHER_OPTION, softwareOther: e.target.value })} />
@@ -119,11 +132,12 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
         </div>
 
         {status === "failed" ? <p className="fb-error" role="alert">Couldn't send. Check your connection and try again.</p> : null}
-        <p>
-          <button type="submit" className="btn btn-primary" disabled={status === "sending" || !a.role}>
-            {status === "sending" ? "Sending…" : "Send"}
+        <div className="fb-actions">
+          <button type="submit" className="btn btn-primary btn-large fb-send" disabled={status === "sending" || !a.role}>
+            {status === "sending" ? <><span className="fb-spinner" aria-hidden="true" />Sending…</> : <>Send<span className="fb-arrow" aria-hidden="true">→</span></>}
           </button>
-        </p>
+          {!a.role ? <span className="hint">Answer the first question to send.</span> : null}
+        </div>
         <p className="hint">{FEEDBACK_NOTE}</p>
       </form>
     </div>
