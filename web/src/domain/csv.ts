@@ -269,7 +269,7 @@ function isLeapYear(y: number): boolean {
 }
 
 /** `datetime.date.fromisoformat` acceptance for a string already matching DATE_PATTERN. */
-function isRealDate(text: string): boolean {
+export function isRealDate(text: string): boolean {
   const year = Number.parseInt(text.slice(0, 4), 10);
   const month = Number.parseInt(text.slice(5, 7), 10);
   const day = Number.parseInt(text.slice(8, 10), 10);
