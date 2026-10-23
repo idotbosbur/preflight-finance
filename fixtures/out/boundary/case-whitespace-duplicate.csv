@@ -1,0 +1,3 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+C-0001,v-5201,inv-77,2026-07-01,USD,300.00,0.00,5.00,0.00,305.00
+C-0002," V-5201 ","	INV-77 ",2026-07-01,USD,300.00,0.00,5.00,0.00,305.00

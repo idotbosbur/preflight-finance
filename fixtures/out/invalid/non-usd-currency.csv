@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+X-0003,V-2003,INV-90003,2026-04-15,EUR,222.22,13.33,0.00,0.00,235.55

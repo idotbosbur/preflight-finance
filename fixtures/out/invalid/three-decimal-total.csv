@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+X-0004,V-2004,INV-90004,2026-04-15,USD,233.33,13.99,0.00,0.00,123.456

@@ -1,0 +1,79 @@
+{
+  "fixtureVersion": "invoice-fixtures-v1",
+  "fixtureSeed": 20261021,
+  "datasetSha256": "c7bb7b84c452f308aa3530a8986e65ddd07266bb3463a15c8741e2f433b3428b",
+  "manifestSha256": "1ced051872486e9dd61c2f36e07f5ecdb6de1a9c089a6b94454590c1e07dc1c4",
+  "runs": [
+    {
+      "source": "browser-port",
+      "runAt": "2026-10-23T18:30:33Z",
+      "command": "node tests/evaluation/benchmark.ts",
+      "checksPassed": 233,
+      "checksTotal": 233,
+      "duplicate": {
+        "groupsExpected": 12,
+        "groupsFlagged": 12,
+        "groupsExact": 12,
+        "genuineGroups": 10,
+        "legitimateReuseGroups": 2,
+        "pairTP": 10,
+        "pairFP": 2,
+        "pairFN": 0,
+        "pairTN": 7128,
+        "pairTotal": 7140
+      },
+      "hardNegatives": {
+        "pairs": 14,
+        "falseAlerts": 2
+      },
+      "mismatch": {
+        "tp": 20,
+        "fp": 0,
+        "fn": 0,
+        "tn": 100,
+        "exactDeltas": 20
+      },
+      "findings": 32,
+      "affectedRows": 40
+    },
+    {
+      "source": "python-reference",
+      "runAt": "2026-10-23T18:30:33Z",
+      "command": "python -m tests.evaluation.evaluate",
+      "checksPassed": 263,
+      "checksTotal": 263,
+      "duplicate": {
+        "groupsExpected": 12,
+        "groupsFlagged": 12,
+        "groupsExact": 12,
+        "genuineGroups": 10,
+        "legitimateReuseGroups": 2,
+        "pairTP": 10,
+        "pairFP": 2,
+        "pairFN": 0,
+        "pairTN": 7128,
+        "pairTotal": 7140
+      },
+      "hardNegatives": {
+        "pairs": 14,
+        "falseAlerts": 2
+      },
+      "mismatch": {
+        "tp": 20,
+        "fp": 0,
+        "fn": 0,
+        "tn": 100,
+        "exactDeltas": 20
+      },
+      "findings": 32,
+      "affectedRows": 40,
+      "referenceTests": 110
+    }
+  ],
+  "limitations": [
+    "Duplicate detection is within one batch only: a duplicate split across two uploaded files is not detected (known limitation, asserted by the split-batch fixtures).",
+    "Synthetic, self-constructed benchmark: invented figures generated and labelled by the same project team; it says nothing about real-world accuracy, fraud detection or money saved.",
+    "The exact-key duplicate rule cannot tell legitimate invoice-number reuse from a genuine duplicate: the 2 legitimate reuse groups are flagged by design and need a human to dismiss them.",
+    "Review history is stored only in this browser (IndexedDB), unauthenticated and per device: it is not an audit trail, is not shared, and can be cleared by the visitor."
+  ]
+}

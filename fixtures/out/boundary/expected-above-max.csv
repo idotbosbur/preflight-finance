@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+M-0001,V-5002,INV-70002,2026-06-02,USD,999999999.99,999999999.99,0.00,0.00,999999999.99

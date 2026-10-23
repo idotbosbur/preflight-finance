@@ -1,0 +1,2070 @@
+{
+  "checks": [
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "invoices": 120,
+        "issues": [],
+        "ok": true
+      },
+      "id": "fixtures/out/main-120.csv: accepted, 120 invoices, no issues",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/main-120.csv: parsed invoices match labels (row, normalized key, date, cents)",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/main-120.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": [
+        "invoice-v1"
+      ],
+      "id": "fixtures/out/main-120.csv: every finding rule_version == invoice-v1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: member_ids sorted tuples",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/main-120.csv: finding_id == contracts.make_finding_id",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: findings sorted by (rule_id, member_ids)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": [],
+        "repeated": []
+      },
+      "id": "fixtures/out/main-120.csv: duplicate groups exact (12 expected)",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/main-120.csv: duplicate evidence key/members match labels",
+      "passed": true
+    },
+    {
+      "detail": {
+        "measured": [
+          10,
+          2,
+          0,
+          7128
+        ],
+        "planned": [
+          10,
+          2,
+          0,
+          7128
+        ]
+      },
+      "id": "fixtures/out/main-120.csv: semantic pair counts equal planned targets",
+      "passed": true
+    },
+    {
+      "detail": {
+        "alerted": [
+          "DG-11",
+          "DG-12"
+        ]
+      },
+      "id": "fixtures/out/main-120.csv: hard-negative false alerts == planned 2/14, none among the 12 near-duplicates",
+      "passed": true
+    },
+    {
+      "detail": {
+        "measured": [
+          20,
+          0,
+          0,
+          100
+        ],
+        "multi_member": []
+      },
+      "id": "fixtures/out/main-120.csv: mismatch confusion equals planned TP20/FP0/FN0/TN100",
+      "passed": true
+    },
+    {
+      "detail": {},
+      "id": "fixtures/out/main-120.csv: mismatch deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/main-120.csv: mismatch evidence components/expected/declared match labels",
+      "passed": true
+    },
+    {
+      "detail": {
+        "distinct_affected_rows": 40,
+        "duplicate_findings": 12,
+        "findings": 32,
+        "mismatch_findings": 20
+      },
+      "id": "fixtures/out/main-120.csv: 32 findings over 40 distinct rows",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/main-120.csv: reversed row order gives identical rule/member sets",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "c864c692d34353a500b539b36aa635868f74ff398200b7ca528d62d549ae0d6d"
+      },
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 2
+      },
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: invoice count == 2",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/case-whitespace-duplicate.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/expected-above-max.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/expected-above-max.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "89b26ae9b9be20bb61d71d916bae07e53e11958a2a1cc41c4840aa63638a5fec"
+      },
+      "id": "fixtures/out/boundary/expected-above-max.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/expected-above-max.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/boundary/expected-above-max.csv: invoice count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/expected-above-max.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/expected-above-max.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/expected-above-max.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/expected-above-max.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/max-amount.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/max-amount.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "dc186790a7b58d640e0e5faf80417d9c0e8efc6be91b725832234c95ba803dd9"
+      },
+      "id": "fixtures/out/boundary/max-amount.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/max-amount.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/boundary/max-amount.csv: invoice count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/max-amount.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/max-amount.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/max-amount.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/max-amount.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "8427e93162fadaea4798dd45e9a16be7c33292b6f63332227a74e2a69cb62bbc"
+      },
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 3
+      },
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: invoice count == 3",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/small-bom-crlf.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-lf.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-lf.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "7aa05f9ddcfaee9c4f1d9dec1cd524ec4b2e7773b6b4f04794247909791fc704"
+      },
+      "id": "fixtures/out/boundary/small-lf.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/small-lf.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 3
+      },
+      "id": "fixtures/out/boundary/small-lf.csv: invoice count == 3",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/small-lf.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/small-lf.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/small-lf.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/small-lf.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-a.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-a.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "c6076dc877e61c72ab2e220513ce98505ce2aac61b85cfaf7a5e2fe645164055"
+      },
+      "id": "fixtures/out/boundary/split-batch-a.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/split-batch-a.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/boundary/split-batch-a.csv: invoice count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-a.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-batch-a.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-batch-a.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/split-batch-a.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-b.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-b.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "e0dc8f5677fae19a83c9b3e272c0b80b8ec05e9ee68ec467a38301b7438fd37d"
+      },
+      "id": "fixtures/out/boundary/split-batch-b.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/split-batch-b.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/boundary/split-batch-b.csv: invoice count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-batch-b.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-batch-b.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-batch-b.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/split-batch-b.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-combined-control.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-combined-control.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "f8c1673a5a22fdcc0d9c50259bd3dfb3fff66a47cbd13de31f9e676a90be7416"
+      },
+      "id": "fixtures/out/boundary/split-combined-control.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/split-combined-control.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 2
+      },
+      "id": "fixtures/out/boundary/split-combined-control.csv: invoice count == 2",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/split-combined-control.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-combined-control.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/split-combined-control.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/split-combined-control.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/triple-group.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/triple-group.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "174307398d948e7fdee53b06aaa16b01166ac20d8eb253b4cd14728a52e077d8"
+      },
+      "id": "fixtures/out/boundary/triple-group.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": {
+        "issues": []
+      },
+      "id": "fixtures/out/boundary/triple-group.csv: accepted (ok=True, no issues)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 4
+      },
+      "id": "fixtures/out/boundary/triple-group.csv: invoice count == 4",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/boundary/triple-group.csv: run_all did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/triple-group.csv: duplicate groups exact membership",
+      "passed": true
+    },
+    {
+      "detail": {
+        "delta_diff": {},
+        "extra": [],
+        "missing": []
+      },
+      "id": "fixtures/out/boundary/triple-group.csv: mismatch findings + deltas exact",
+      "passed": true
+    },
+    {
+      "detail": [],
+      "id": "fixtures/out/boundary/triple-group.csv: no unknown rule ids",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/blank-total.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/blank-total.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "6819e5fcbb4a679c2b67e8ca74e8d126e3944885282d0158216bb952d0c9eee6"
+      },
+      "id": "fixtures/out/invalid/blank-total.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/blank-total.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/blank-total.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_REQUIRED",
+            "field": "total",
+            "message": "total is required",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/blank-total.csv: issues match exactly (AMOUNT_REQUIRED)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/blank-total.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "b65fa76aea7fef1ecd38ba13aa54d2e3f3a219bea60c33fac5f766e28dd3de89"
+      },
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "subtotal",
+            "message": "subtotal must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: issues match exactly (AMOUNT_FORMAT)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/formatted-subtotal.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/impossible-date.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/impossible-date.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "9916ce23a790bf68e93a722b5b5b338399c0283613c920ec09850dc93bbcb26e"
+      },
+      "id": "fixtures/out/invalid/impossible-date.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/impossible-date.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/impossible-date.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "DATE_INVALID",
+            "field": "invoice_date",
+            "message": "2026-02-30 is not a real calendar date",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/impossible-date.csv: issues match exactly (DATE_INVALID)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/impossible-date.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "ee7212acaa4a5ab2115a888eab4ab96006ee1c93c6ce43f7080ced91c108a28c"
+      },
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "FIELD_REQUIRED",
+            "field": "invoice_number",
+            "message": "invoice_number is required",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: issues match exactly (FIELD_REQUIRED)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/missing-invoice-number.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "c6931884adb496e79e51b35288815df148e0b65dcc12ef5b56a39d007899e4d1"
+      },
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "FIELD_REQUIRED",
+            "field": "vendor_id",
+            "message": "vendor_id is required",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: issues match exactly (FIELD_REQUIRED)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/missing-vendor-id.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/negative-tax.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/negative-tax.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "57bcf090d12fd441d46ac8ba0cecbf82a9fd38419561731d47f3f963ac5ee4a0"
+      },
+      "id": "fixtures/out/invalid/negative-tax.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/negative-tax.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/negative-tax.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "tax",
+            "message": "tax must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/negative-tax.csv: issues match exactly (AMOUNT_FORMAT)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/negative-tax.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/non-usd-currency.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/non-usd-currency.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "db5ab03a93a377e78c6f70b86a24b41097cf14250b1c48a63cac4cc65c05c49d"
+      },
+      "id": "fixtures/out/invalid/non-usd-currency.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/non-usd-currency.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/non-usd-currency.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "CURRENCY_UNSUPPORTED",
+            "field": "currency",
+            "message": "Only USD is supported in Stage 1",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/non-usd-currency.csv: issues match exactly (CURRENCY_UNSUPPORTED)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/non-usd-currency.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/three-decimal-total.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/three-decimal-total.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "99395010bfdae055f913fca54a046b998f38877f6204b71dea04eaa4d457b8be"
+      },
+      "id": "fixtures/out/invalid/three-decimal-total.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/invalid/three-decimal-total.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/invalid/three-decimal-total.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "total",
+            "message": "total must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/invalid/three-decimal-total.csv: issues match exactly (AMOUNT_FORMAT)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/invalid/three-decimal-total.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/mixed-128.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/mixed-128.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "199d16552b3da441f308c91ac5dead57ace7603ddcceae11e233c2e7bfd334a8"
+      },
+      "id": "fixtures/out/mixed-128.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/mixed-128.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/mixed-128.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "FIELD_REQUIRED",
+            "field": "vendor_id",
+            "message": "vendor_id is required",
+            "row": 121
+          },
+          {
+            "code": "FIELD_REQUIRED",
+            "field": "invoice_number",
+            "message": "invoice_number is required",
+            "row": 122
+          },
+          {
+            "code": "CURRENCY_UNSUPPORTED",
+            "field": "currency",
+            "message": "Only USD is supported in Stage 1",
+            "row": 123
+          },
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "total",
+            "message": "total must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 124
+          },
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "subtotal",
+            "message": "subtotal must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 125
+          },
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "tax",
+            "message": "tax must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 126
+          },
+          {
+            "code": "DATE_INVALID",
+            "field": "invoice_date",
+            "message": "2026-02-30 is not a real calendar date",
+            "row": 127
+          },
+          {
+            "code": "AMOUNT_REQUIRED",
+            "field": "total",
+            "message": "total is required",
+            "row": 128
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/mixed-128.csv: issues match exactly (FIELD_REQUIRED, FIELD_REQUIRED, CURRENCY_UNSUPPORTED, AMOUNT_FORMAT, AMOUNT_FORMAT, AMOUNT_FORMAT, DATE_INVALID, AMOUNT_REQUIRED)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 8
+      },
+      "id": "fixtures/out/mixed-128.csv: issue_count == 8",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "3af96b9cd542e4691aa81921002c2ee261febde91921f9470176a25daa6aa6f3"
+      },
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "DISCOUNT_EXCEEDS_CHARGES",
+            "field": "discount",
+            "message": "discount must not exceed subtotal + tax + shipping",
+            "row": 2
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: issues match exactly (DISCOUNT_EXCEEDS_CHARGES)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/discount-exceeds-charges.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/duplicate-record-id.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/duplicate-record-id.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "2a23865c3410ce02f8da7f2793aef747d5e764ff58e378cd9530d061b9ce01bd"
+      },
+      "id": "fixtures/out/reject/duplicate-record-id.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/duplicate-record-id.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/duplicate-record-id.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "DUPLICATE_RECORD_ID",
+            "field": "record_id",
+            "message": "record_id 'S-0002' already used on row 2",
+            "row": 3
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/duplicate-record-id.csv: issues match exactly (DUPLICATE_RECORD_ID)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/duplicate-record-id.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/empty-file.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/empty-file.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "id": "fixtures/out/reject/empty-file.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/empty-file.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/empty-file.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "EMPTY_FILE",
+            "field": null,
+            "message": "The file is empty",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/empty-file.csv: issues match exactly (EMPTY_FILE)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/empty-file.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/file-too-large.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/file-too-large.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "1f1241b96c86538a99d5b22934f38f31bcf6e60f0ccc1507ebebcb91706d8c08"
+      },
+      "id": "fixtures/out/reject/file-too-large.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/file-too-large.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/file-too-large.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "FILE_TOO_LARGE",
+            "field": null,
+            "message": "The file exceeds 1048576 bytes (1 MiB)",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/file-too-large.csv: issues match exactly (FILE_TOO_LARGE)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/file-too-large.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-duplicate-column.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-duplicate-column.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "82401bcff00b9823c8a4505f66589768f3321e8da79e37193294ef2107b843cc"
+      },
+      "id": "fixtures/out/reject/header-duplicate-column.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-duplicate-column.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/header-duplicate-column.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "message": "Header must be exactly: record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total (duplicate column 'subtotal'; missing tax)",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/header-duplicate-column.csv: issues match exactly (HEADER_MISMATCH)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/header-duplicate-column.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-extra-column.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-extra-column.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "5ed2634fbe421ab38c23ff2a56559369fd56b7bd10627bcb0dd88d5f373ae657"
+      },
+      "id": "fixtures/out/reject/header-extra-column.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-extra-column.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/header-extra-column.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "message": "Header must be exactly: record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total (unexpected 'notes')",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/header-extra-column.csv: issues match exactly (HEADER_MISMATCH)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/header-extra-column.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-missing-column.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-missing-column.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "a2e98758de5ced4084a8619c252e3c0fb53a1348ca5a47a99b787609646f90d4"
+      },
+      "id": "fixtures/out/reject/header-missing-column.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-missing-column.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/header-missing-column.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "message": "Header must be exactly: record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total (missing shipping)",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/header-missing-column.csv: issues match exactly (HEADER_MISMATCH)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/header-missing-column.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-only.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-only.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "02db2022d4f9e98c14e6f6f281307c743775d1fee2c918f366508fe9c6ea2fac"
+      },
+      "id": "fixtures/out/reject/header-only.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/header-only.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/header-only.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "NO_DATA_ROWS",
+            "field": null,
+            "message": "The file has a header but no invoice rows",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/header-only.csv: issues match exactly (NO_DATA_ROWS)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/header-only.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/invalid-utf8.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/invalid-utf8.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "8eeb35bd69d9d92e697ea63f2fe9ca1498f2395574c0748cf87bcda5c8058b6e"
+      },
+      "id": "fixtures/out/reject/invalid-utf8.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/invalid-utf8.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/invalid-utf8.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "ENCODING",
+            "field": null,
+            "message": "The file is not valid UTF-8 (byte offset 172)",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/invalid-utf8.csv: issues match exactly (ENCODING)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/invalid-utf8.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/malformed-quote.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/malformed-quote.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "32d36205db5153c40b0f9a364e0cd782b65a96bd73229b37715bbcf20c0d4583"
+      },
+      "id": "fixtures/out/reject/malformed-quote.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/malformed-quote.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/malformed-quote.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "MALFORMED_CSV",
+            "field": null,
+            "message": "CSV could not be parsed: ',' expected after '\"'",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/malformed-quote.csv: issues match exactly (MALFORMED_CSV)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/malformed-quote.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/negative-zero-amount.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/negative-zero-amount.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "569b3b452b78f2b5514c0521495051485ca1752d08a3460204ff9d309a4d576a"
+      },
+      "id": "fixtures/out/reject/negative-zero-amount.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/negative-zero-amount.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/negative-zero-amount.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "discount",
+            "message": "discount must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 1
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/negative-zero-amount.csv: issues match exactly (AMOUNT_FORMAT)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/negative-zero-amount.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/plus-sign-amount.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/plus-sign-amount.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "41de3e24dcb9fa2e1ad80702317d091da3d870c706083dd9d3275984b6e88615"
+      },
+      "id": "fixtures/out/reject/plus-sign-amount.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/plus-sign-amount.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/plus-sign-amount.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "AMOUNT_FORMAT",
+            "field": "shipping",
+            "message": "shipping must be a nonnegative amount like 1234.56 (two decimals, no sign, symbol, separator or spaces; max 999999999.99)",
+            "row": 2
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/plus-sign-amount.csv: issues match exactly (AMOUNT_FORMAT)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/plus-sign-amount.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/row-extra-cell.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/row-extra-cell.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "8f2438a1064e231bc85ba72fe18eead78d4f2f672b53bb47ad0da1d17a478e4e"
+      },
+      "id": "fixtures/out/reject/row-extra-cell.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/row-extra-cell.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/row-extra-cell.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "ROW_SHAPE",
+            "field": null,
+            "message": "Row has 11 cells; expected 10",
+            "row": 2
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/row-extra-cell.csv: issues match exactly (ROW_SHAPE)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/row-extra-cell.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/too-many-rows.csv: fixture hash matches manifest",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/too-many-rows.csv: validate_bytes did not raise",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": "77ab6b3122768d5b6fdb1a3d4feb0723e6b25bb0819b6c092fbc6c08fc11aaff"
+      },
+      "id": "fixtures/out/reject/too-many-rows.csv: result sha256 is SHA-256 of original bytes",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "fixtures/out/reject/too-many-rows.csv: rejected (ok=False)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 0
+      },
+      "id": "fixtures/out/reject/too-many-rows.csv: zero invoices returned",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": [
+          {
+            "code": "TOO_MANY_ROWS",
+            "field": null,
+            "message": "1001 rows; at most 1000 allowed per batch",
+            "row": null
+          }
+        ],
+        "missing": [],
+        "unexpected": []
+      },
+      "id": "fixtures/out/reject/too-many-rows.csv: issues match exactly (TOO_MANY_ROWS)",
+      "passed": true
+    },
+    {
+      "detail": {
+        "got": 1
+      },
+      "id": "fixtures/out/reject/too-many-rows.csv: issue_count == 1",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "boundary: BOM+CRLF copy parses identically to LF copy",
+      "passed": true
+    },
+    {
+      "detail": "",
+      "id": "boundary: BOM+CRLF copy has a different batch hash",
+      "passed": true
+    }
+  ],
+  "checks_passed": 263,
+  "checks_total": 263,
+  "command": "python -m tests.evaluation.evaluate",
+  "exit_code": 0,
+  "failures": [],
+  "fixture_hashes": {
+    "fixtures/out/boundary/case-whitespace-duplicate.csv": "c864c692d34353a500b539b36aa635868f74ff398200b7ca528d62d549ae0d6d",
+    "fixtures/out/boundary/expected-above-max.csv": "89b26ae9b9be20bb61d71d916bae07e53e11958a2a1cc41c4840aa63638a5fec",
+    "fixtures/out/boundary/max-amount.csv": "dc186790a7b58d640e0e5faf80417d9c0e8efc6be91b725832234c95ba803dd9",
+    "fixtures/out/boundary/small-bom-crlf.csv": "8427e93162fadaea4798dd45e9a16be7c33292b6f63332227a74e2a69cb62bbc",
+    "fixtures/out/boundary/small-lf.csv": "7aa05f9ddcfaee9c4f1d9dec1cd524ec4b2e7773b6b4f04794247909791fc704",
+    "fixtures/out/boundary/split-batch-a.csv": "c6076dc877e61c72ab2e220513ce98505ce2aac61b85cfaf7a5e2fe645164055",
+    "fixtures/out/boundary/split-batch-b.csv": "e0dc8f5677fae19a83c9b3e272c0b80b8ec05e9ee68ec467a38301b7438fd37d",
+    "fixtures/out/boundary/split-combined-control.csv": "f8c1673a5a22fdcc0d9c50259bd3dfb3fff66a47cbd13de31f9e676a90be7416",
+    "fixtures/out/boundary/triple-group.csv": "174307398d948e7fdee53b06aaa16b01166ac20d8eb253b4cd14728a52e077d8",
+    "fixtures/out/invalid/blank-total.csv": "6819e5fcbb4a679c2b67e8ca74e8d126e3944885282d0158216bb952d0c9eee6",
+    "fixtures/out/invalid/formatted-subtotal.csv": "b65fa76aea7fef1ecd38ba13aa54d2e3f3a219bea60c33fac5f766e28dd3de89",
+    "fixtures/out/invalid/impossible-date.csv": "9916ce23a790bf68e93a722b5b5b338399c0283613c920ec09850dc93bbcb26e",
+    "fixtures/out/invalid/missing-invoice-number.csv": "ee7212acaa4a5ab2115a888eab4ab96006ee1c93c6ce43f7080ced91c108a28c",
+    "fixtures/out/invalid/missing-vendor-id.csv": "c6931884adb496e79e51b35288815df148e0b65dcc12ef5b56a39d007899e4d1",
+    "fixtures/out/invalid/negative-tax.csv": "57bcf090d12fd441d46ac8ba0cecbf82a9fd38419561731d47f3f963ac5ee4a0",
+    "fixtures/out/invalid/non-usd-currency.csv": "db5ab03a93a377e78c6f70b86a24b41097cf14250b1c48a63cac4cc65c05c49d",
+    "fixtures/out/invalid/three-decimal-total.csv": "99395010bfdae055f913fca54a046b998f38877f6204b71dea04eaa4d457b8be",
+    "fixtures/out/main-120.csv": "c7bb7b84c452f308aa3530a8986e65ddd07266bb3463a15c8741e2f433b3428b",
+    "fixtures/out/mixed-128.csv": "199d16552b3da441f308c91ac5dead57ace7603ddcceae11e233c2e7bfd334a8",
+    "fixtures/out/reject/discount-exceeds-charges.csv": "3af96b9cd542e4691aa81921002c2ee261febde91921f9470176a25daa6aa6f3",
+    "fixtures/out/reject/duplicate-record-id.csv": "2a23865c3410ce02f8da7f2793aef747d5e764ff58e378cd9530d061b9ce01bd",
+    "fixtures/out/reject/empty-file.csv": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "fixtures/out/reject/file-too-large.csv": "1f1241b96c86538a99d5b22934f38f31bcf6e60f0ccc1507ebebcb91706d8c08",
+    "fixtures/out/reject/header-duplicate-column.csv": "82401bcff00b9823c8a4505f66589768f3321e8da79e37193294ef2107b843cc",
+    "fixtures/out/reject/header-extra-column.csv": "5ed2634fbe421ab38c23ff2a56559369fd56b7bd10627bcb0dd88d5f373ae657",
+    "fixtures/out/reject/header-missing-column.csv": "a2e98758de5ced4084a8619c252e3c0fb53a1348ca5a47a99b787609646f90d4",
+    "fixtures/out/reject/header-only.csv": "02db2022d4f9e98c14e6f6f281307c743775d1fee2c918f366508fe9c6ea2fac",
+    "fixtures/out/reject/invalid-utf8.csv": "8eeb35bd69d9d92e697ea63f2fe9ca1498f2395574c0748cf87bcda5c8058b6e",
+    "fixtures/out/reject/malformed-quote.csv": "32d36205db5153c40b0f9a364e0cd782b65a96bd73229b37715bbcf20c0d4583",
+    "fixtures/out/reject/negative-zero-amount.csv": "569b3b452b78f2b5514c0521495051485ca1752d08a3460204ff9d309a4d576a",
+    "fixtures/out/reject/plus-sign-amount.csv": "41de3e24dcb9fa2e1ad80702317d091da3d870c706083dd9d3275984b6e88615",
+    "fixtures/out/reject/row-extra-cell.csv": "8f2438a1064e231bc85ba72fe18eead78d4f2f672b53bb47ad0da1d17a478e4e",
+    "fixtures/out/reject/too-many-rows.csv": "77ab6b3122768d5b6fdb1a3d4feb0723e6b25bb0819b6c092fbc6c08fc11aaff"
+  },
+  "fixture_seed": 20261021,
+  "fixture_version": "invoice-fixtures-v1",
+  "label": "synthetic benchmark; planned targets shown separately from measured values",
+  "manifest": {
+    "path": "fixtures/manifest/invoice-fixtures-v1.json",
+    "sha256": "1ced051872486e9dd61c2f36e07f5ecdb6de1a9c089a6b94454590c1e07dc1c4"
+  },
+  "measured": {
+    "counts": {
+      "distinct_affected_rows": 40,
+      "duplicate_findings": 12,
+      "findings": 32,
+      "mismatch_findings": 20
+    },
+    "duplicate_conformance": {
+      "exact_matches": 12,
+      "expected_groups": 12,
+      "extra_or_partial": 0,
+      "missing": 0,
+      "reported_groups": 12,
+      "unit": "expected normalized-key groups, exact membership"
+    },
+    "hard_negatives": {
+      "alerted_pair_ids": [
+        "DG-11",
+        "DG-12"
+      ],
+      "false_alert_rate": 0.14285714285714285,
+      "false_alerts": 2,
+      "near_duplicate_false_alerts": [],
+      "pairs": 14,
+      "unit": "14 designated negative pairs (12 near-duplicates + 2 legitimate same-key reuse)"
+    },
+    "mismatch": {
+      "FN": 0,
+      "FP": 0,
+      "TN": 100,
+      "TP": 20,
+      "exact_delta_matches": 20,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "unit": "120 valid records"
+    },
+    "semantic_pairs": {
+      "FN": 0,
+      "FP": 2,
+      "TN": 7128,
+      "TP": 10,
+      "fpr": 0.00028050490883590464,
+      "pairs": 7140,
+      "precision": 0.8333333333333334,
+      "recall": 1.0,
+      "unit": "unordered pairs among 120 valid records; positive = same hidden obligation; predicted = both in one DUPLICATE_CANDIDATE group"
+    }
+  },
+  "planned_targets": {
+    "designated_negative_pairs": 14,
+    "distinct_affected_rows": 40,
+    "duplicate_groups": 12,
+    "hard_negative_false_alerts": 2,
+    "mismatch_FN": 0,
+    "mismatch_FP": 0,
+    "mismatch_TN": 100,
+    "mismatch_TP": 20,
+    "mismatch_findings": 20,
+    "pair_FN": 0,
+    "pair_FP": 2,
+    "pair_TN": 7128,
+    "pair_TP": 10,
+    "pair_unit": "unordered pairs of the 120 valid records",
+    "pairs_total": 7140,
+    "total_findings": 32
+  },
+  "python": "3.12.10",
+  "python_implementation": "CPython",
+  "ruleset": "invoice-v1",
+  "run_utc": "2026-10-23T18:30:33Z",
+  "source_tree": {
+    "excluded": "__pycache__ directories",
+    "sha256": {
+      "src/preflight/__init__.py": "3b246c95c8d0cc24afc449c6696b1d7c83076b5cc95f6fa75356b79caeb26b48",
+      "src/preflight/app.py": "7ceb28c25a1e48f23ad2c5010936f8b63b886fc2dc47868184310333912c2b10",
+      "src/preflight/contracts.py": "bc4eb73e515731de0cca91df28875800bb3808ad734f6870e822bb9fd301c560",
+      "src/preflight/imports.py": "ea4fa3ec6a03e9dab4c23c5b2cf9c580e5f85aade9f0cbfb1bb148f393a14da1",
+      "src/preflight/money.py": "c8b44fc3176e7e8544fb2c68860c47fd142b006ee43dd2bfb48bb0ef15b429e8",
+      "src/preflight/review.py": "f34ba4408702e5b08ae07f5a5b38dd20d898d833642c9b09dc236697ca975f5b",
+      "src/preflight/routes.py": "914d5b811938cec017f98e463a468b9f4af3e8fa0bcd9032212d3b0855566523",
+      "src/preflight/rules/__init__.py": "189ba0493f0c30d807761f10a165917d641b093f45c6d084decff3b9f9463f3e",
+      "src/preflight/rules/duplicates.py": "e78980ab8954a12a418266164be1ac5e8de62f2b007d9ac2583167bf5e21c01a",
+      "src/preflight/rules/totals.py": "a3e3603ada986bf8eb7b0dcee1fab970248262e3ea2edeeb110022d2eb347d98",
+      "src/preflight/schema.sql": "fdaf21c32c334edb3b8b6c7c9454126bc69006fa80986959e6318c0bc57c5009",
+      "src/preflight/static/style.css": "b94fbc2f5508073fec37efc8941c547ba6f2625f1425b418b114f9548a118028",
+      "src/preflight/static/upload.js": "9f32559b7417ef929bae1ca0c3367e0b9ca4a402457e593189511330234b27ec",
+      "src/preflight/storage.py": "3cbebf2fe7a6c8f207f2387ac92323a61c3fe0be128592efdb0c04f5f2f449ea",
+      "src/preflight/views/__init__.py": "9b94b24a00b33e7f2325fe893b98e60437f245c0c99f2375fb51bd1f7e0e018f",
+      "src/preflight/views/batch.py": "0dc7de367820a5fe53d9b9db9b9bd0ca203e7d58d306c5a81fc98e451129bfb3",
+      "src/preflight/views/command_center.py": "f23e48e1ec125ba340f2c2d95d7c487c5071c15b43a1dfce7b570354e59712af",
+      "src/preflight/views/finding.py": "0d1751bbe5edee97914587a84c8b41beadd3b5564162958b698fa3a711760958",
+      "src/preflight/views/layout.py": "f9b2fefa11400d9031f76affc6195be0d38bf3171dba8b4b2477722a1a5d8e37",
+      "src/preflight/views/report.py": "1218bc736c945897b30039f666275e7676e0a6d39d64bf15dcbf83ccfe2f256c",
+      "src/preflight/views/text.py": "e1cf190ba07f6c4d8e2bfda0bdbe7d5a1347b30e708e6ace7b2678fe452ffc5c"
+    },
+    "status": "unversioned (no git)"
+  },
+  "sqlite": "3.49.1",
+  "status": "PASS",
+  "synthetic": "SYNTHETIC DATA - invented figures, not real financial records",
+  "system_under_test": {
+    "preflight.contracts": "available",
+    "preflight.imports": "available",
+    "preflight.rules": "available"
+  },
+  "unmatched_finding_identities": {
+    "duplicate_groups_extra_or_partial": [],
+    "duplicate_groups_missing": [],
+    "mismatch_delta_differs": {},
+    "mismatch_extra": [],
+    "mismatch_missing": []
+  }
+}

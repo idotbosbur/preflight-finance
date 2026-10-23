@@ -1,0 +1,26 @@
+# --- Private working files: kept locally, never published ---
+/CLAUDE-*.md
+/HANDOFF.md
+/FOLLOW-CLAUDE.md
+/.claude/
+/data/
+/tools/
+/web/.impeccable/
+
+# Docs are private by default; only the public design docs are allowlisted.
+/docs/*
+!/docs/architecture-proposal.md
+!/docs/evaluation-plan.md
+!/docs/enterprise-roadmap.md
+!/docs/stage1-implementation-plan.md
+
+# Only the latest benchmark report is published.
+/reports/eval-*
+
+# --- Build output and dependencies ---
+web/node_modules/
+web/dist/
+web/.test-build/
+__pycache__/
+*.pyc
+*.sqlite

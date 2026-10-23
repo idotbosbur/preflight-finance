@@ -1,0 +1,503 @@
+/**
+ * Integration (lead-owned): wires the visitor store, router, guide and importer to the
+ * presentational pages. Pages never compute money or touch storage; this file never renders
+ * financial figures itself.
+ */
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { BatchSummary, CaseView, Durability, FindingView, ReviewAction } from "./domain/contracts.ts";
+import { MODULES, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
+import { parseInvoiceCsv } from "./domain/csv.ts";
+import { runInvoiceRules } from "./domain/rules.ts";
+import { makeBatchId, makeFindingId, sha256Hex } from "./domain/ids.ts";
+import type {
+  BenchmarkFile, DecisionForm, DemoStatus, GuideView, ImportUiState, QueueFilter, Route, SaveStatus, StoryData,
+} from "./ui-contracts.ts";
+import { AppShell } from "./components/index.ts";
+import { Intro, shouldPlayIntro } from "./components/Intro.tsx";
+import {
+  CasePage, HowPage, NotFoundPage, OverviewPage, QueuePage, ResultsPage, RoadmapPage,
+} from "./pages/index.ts";
+import { formatRoute, parseRoute } from "./state/router.ts";
+import { openBestStore } from "./state/openStore.ts";
+import { importBytes, readFileBytes } from "./state/importer.ts";
+import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
+import type { ReviewStore } from "./state/store.ts";
+import { onCaseLoaded, onConflictShown, onSaved } from "./state/draft.ts";
+import type { DraftBinding } from "./state/draft.ts";
+
+const DEMO_CSV = "./demo/main-120.csv";
+const BENCHMARK_JSON = "./results/benchmark.json";
+const DEMO_NAME = "Synthetic demo batch — 120 invoices";
+const GUIDE_KEY = "preflight.guideActive";
+const DEFAULT_REVIEWER = "Demo reviewer";
+
+const nowIso = () => new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+
+function readGuideFlag(): boolean {
+  try { return window.localStorage.getItem(GUIDE_KEY) === "1"; } catch { return false; }
+}
+function writeGuideFlag(active: boolean): void {
+  try { window.localStorage.setItem(GUIDE_KEY, active ? "1" : "0"); } catch { /* per-visitor convenience only */ }
+}
+
+function navigate(route: Route, replace = false): void {
+  const href = formatRoute(route);
+  if (replace) window.location.replace(href);
+  else window.location.hash = href;
+}
+
+interface DemoInfo {
+  readonly bytes: Uint8Array;
+  readonly batchId: string;
+  readonly mismatchId: string;
+  readonly reuseId: string;
+  readonly story: StoryData | null;
+}
+
+async function loadDemoInfo(): Promise<DemoInfo> {
+  const res = await fetch(DEMO_CSV, { cache: "no-cache" });
+  if (!res.ok) throw new Error(`Demo data could not be loaded (HTTP ${res.status}).`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const batchId = await makeBatchId(await sha256Hex(bytes));
+  const mismatchId = await makeFindingId(DEMO_TARGETS.mismatch.ruleId, "invoice-v1", DEMO_TARGETS.mismatch.memberIds);
+  const reuseId = await makeFindingId(DEMO_TARGETS.reuse.ruleId, "invoice-v1", DEMO_TARGETS.reuse.memberIds);
+  // Landing story: real findings computed in memory (not stored).
+  let story: StoryData | null = null;
+  const parsed = parseInvoiceCsv(bytes);
+  if (parsed.ok) {
+    const findings = runInvoiceRules(parsed.invoices);
+    const mismatch = findings.find((f) => f.ruleId === RULE_MISMATCH && compareTuples(f.memberIds, DEMO_TARGETS.mismatch.memberIds) === 0);
+    const reuse = findings.find((f) => f.ruleId === RULE_DUPLICATE && compareTuples(f.memberIds, DEMO_TARGETS.reuse.memberIds) === 0);
+    const inv = parsed.invoices.find((i) => i.recordId === "R-0009");
+    if (mismatch?.evidence.kind === RULE_MISMATCH && reuse?.evidence.kind === RULE_DUPLICATE && inv) {
+      story = {
+        mismatch: mismatch.evidence, mismatchVendor: inv.vendorNorm, mismatchInvoice: inv.invoiceNorm,
+        reuse: reuse.evidence, invoiceCount: parsed.invoices.length, findingCount: findings.length,
+      };
+    }
+  }
+  return { bytes, batchId, mismatchId, reuseId, story };
+}
+
+type LoadDemoResult = { readonly ok: true; readonly batchId: string } | { readonly ok: false; readonly message: string };
+
+const READ_ERROR = "Browser storage changed or failed (for example, another tab upgraded or reset it). Reload the page to continue; nothing was changed by this view.";
+
+/** Stable Previous/Next order that does not jump when a decision changes a case's state. */
+function stableOrder(findings: readonly FindingView[]): FindingView[] {
+  return [...findings].sort((a, b) => (a.ruleId !== b.ruleId ? (a.ruleId < b.ruleId ? -1 : 1) : compareTuples(a.memberIds, b.memberIds)));
+}
+
+function messageForOutcome(name: string, outcome: Awaited<ReturnType<typeof importBytes>>, demoBatchId: string | null): string {
+  switch (outcome.status) {
+    case "created":
+      return `Imported ${name}: ${outcome.batch.rowCount} invoices, ${outcome.batch.findingCount} findings to review.`;
+    case "existing":
+      return outcome.batch.batchId === demoBatchId
+        ? `${name} is the demo batch. It is already loaded; your earlier decisions are kept.`
+        : `${name} was imported before (same file bytes). Opening it with your earlier decisions kept.`;
+    case "rejected":
+      return `${name} was rejected: ${outcome.issueCount} issue(s). Nothing was imported.`;
+    case "storage_error":
+      return `${name} could not be saved: ${outcome.message}`;
+  }
+}
+
+export function App() {
+  const [route, setRoute] = useState<Route>(() => parseRoute(window.location.hash));
+  // Brand intro: only when a visit starts on the landing page.
+  const [intro, setIntro] = useState(() => route.name === "overview" && shouldPlayIntro());
+  const endIntro = useCallback(() => setIntro(false), []);
+  const [store, setStore] = useState<ReviewStore | null>(null);
+  const [durability, setDurability] = useState<Durability>("persistent");
+  const [storeError, setStoreError] = useState<string | null>(null);
+  const [version, setVersion] = useState(0); // bump to reload data
+  const bump = useCallback(() => setVersion((v) => v + 1), []);
+  const [announcement, setAnnouncement] = useState("");
+
+  const [demo, setDemo] = useState<DemoInfo | null>(null);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [batches, setBatches] = useState<BatchSummary[]>([]);
+  const [benchmark, setBenchmark] = useState<BenchmarkFile | null>(null);
+  const [benchmarkError, setBenchmarkError] = useState<string | null>(null);
+
+  const [filter, setFilter] = useState<QueueFilter>({ state: "all", rule: "all" });
+  const [queueFindings, setQueueFindings] = useState<FindingView[]>([]);
+  const [caseView, setCaseView] = useState<CaseView | null | "missing">(null);
+  const [caseOrder, setCaseOrder] = useState<FindingView[]>([]);
+  const [form, setForm] = useState<DecisionForm>({ reviewer: DEFAULT_REVIEWER, reason: "" });
+  const [save, setSave] = useState<SaveStatus>({ kind: "idle" });
+  const [importState, setImportState] = useState<ImportUiState>({ kind: "idle" });
+  const [readError, setReadError] = useState<string | null>(null);
+  const onReadError = useCallback(() => setReadError(READ_ERROR), []);
+  const [demoFailure, setDemoFailure] = useState<string | null>(null);
+  const demoInFlight = useRef<Promise<LoadDemoResult> | null>(null);
+  const demoRouteHandled = useRef(false);
+  // Draft bound to the case version it was started on (see state/draft.ts).
+  const draftRef = useRef<DraftBinding | null>(null);
+  const reasonRef = useRef("");
+  reasonRef.current = form.reason;
+
+  const [guideActive, setGuideActive] = useState<boolean>(readGuideFlag);
+  const [visitedResults, setVisitedResults] = useState(false);
+  const [guideCases, setGuideCases] = useState<{ mismatch: CaseView | null; reuse: CaseView | null }>({ mismatch: null, reuse: null });
+
+  // ---- boot: store, demo info, benchmark ----
+  useEffect(() => {
+    let cancelled = false;
+    openBestStore().then(({ store: s, fallbackReason }) => {
+      if (cancelled) { s.close(); return; }
+      setStore(s);
+      setDurability(s.durability);
+      if (fallbackReason) setStoreError(fallbackReason);
+    });
+    loadDemoInfo().then((d) => !cancelled && setDemo(d), (e: unknown) => !cancelled && setDemoError(e instanceof Error ? e.message : "Demo data unavailable."));
+    fetch(BENCHMARK_JSON, { cache: "no-cache" })
+      .then((r) => (r.ok ? (r.json() as Promise<BenchmarkFile>) : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((b) => !cancelled && setBenchmark(b), (e: unknown) => !cancelled && setBenchmarkError(`Benchmark results unavailable (${e instanceof Error ? e.message : "error"}).`));
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => () => store?.close(), [store]);
+
+  // ---- routing ----
+  useEffect(() => {
+    // "#main-content" is the skip-link target, not a route: keep the current page.
+    const onHash = () => {
+      if (window.location.hash === "#main-content") return;
+      setRoute(parseRoute(window.location.hash));
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // ---- other tabs ----
+  useEffect(() => {
+    if (!store) return;
+    return store.subscribe((change) => {
+      setAnnouncement(change.type === "reset"
+        ? "Demo data was reset in another tab."
+        : "Data changed in another tab; showing the latest state.");
+      bump();
+    });
+  }, [store, bump]);
+
+  // ---- data loading ----
+  useEffect(() => {
+    if (!store) return;
+    let cancelled = false;
+    store.listBatches().then((b) => !cancelled && setBatches(b), onReadError);
+    return () => { cancelled = true; };
+  }, [store, version, onReadError]);
+
+  const demoLoaded = !!demo && batches.some((b) => b.batchId === demo.batchId);
+  const demoStatus: DemoStatus = demoError || demoFailure ? { kind: "error", message: (demoError ?? demoFailure)! }
+    : demoLoaded ? { kind: "ready", batchId: demo!.batchId }
+    : demoLoading || !demo || !store ? { kind: "loading" }
+    : { kind: "not_loaded" };
+
+  const queueBatchId = route.name === "queue"
+    ? route.batchId ?? (demoLoaded ? demo!.batchId : batches[0]?.batchId ?? null)
+    : route.name === "case" ? route.batchId : null;
+  const queueBatch = batches.find((b) => b.batchId === queueBatchId) ?? null;
+
+  useEffect(() => {
+    if (!store || !queueBatchId) { setQueueFindings([]); return; }
+    let cancelled = false;
+    store.listFindings(queueBatchId).then((f) => {
+      if (cancelled) return;
+      setQueueFindings(f);
+      setCaseOrder(stableOrder(f));
+    }, onReadError);
+    return () => { cancelled = true; };
+  }, [store, queueBatchId, version, onReadError]);
+
+  const caseKey = route.name === "case" ? `${route.batchId}/${route.findingId}` : null;
+  const lastCaseKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!store || route.name !== "case") {
+      setCaseView(null);
+      if (route.name !== "case") lastCaseKey.current = null; // revisiting a case starts fresh
+      return;
+    }
+    let cancelled = false;
+    const isNewCase = lastCaseKey.current !== caseKey;
+    lastCaseKey.current = caseKey;
+    if (isNewCase) {
+      setSave({ kind: "idle" });
+      setForm((f) => ({ reviewer: f.reviewer || DEFAULT_REVIEWER, reason: "" }));
+    }
+    store.getCase(route.batchId, route.findingId).then((c) => {
+      if (cancelled) return;
+      if (c) {
+        const prev = draftRef.current;
+        const next = onCaseLoaded(prev, c.finding, isNewCase, reasonRef.current.trim() !== "");
+        draftRef.current = next;
+        if (next.stale && !prev?.stale) {
+          setSave({ kind: "conflict", message: "This case changed in another tab. Review the update below before deciding." });
+        }
+      }
+      // When the case is missing (e.g. another tab reset), KEEP the draft binding: if the case
+      // reappears under a new reset generation, onCaseLoaded marks a typed draft stale.
+      setCaseView(c ?? "missing");
+    }, onReadError);
+    return () => { cancelled = true; };
+  }, [store, caseKey, version]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // guide facts
+  useEffect(() => {
+    if (!store || !demo || !demoLoaded) { setGuideCases({ mismatch: null, reuse: null }); return; }
+    let cancelled = false;
+    Promise.all([store.getCase(demo.batchId, demo.mismatchId), store.getCase(demo.batchId, demo.reuseId)])
+      .then(([mismatch, reuse]) => !cancelled && setGuideCases({ mismatch, reuse }), onReadError);
+    return () => { cancelled = true; };
+  }, [store, demo, demoLoaded, version, onReadError]);
+
+  useEffect(() => {
+    if (route.name === "results" && guideActive) setVisitedResults(true);
+  }, [route, guideActive]);
+
+  const guide: GuideView | null = useMemo(() => {
+    if (!guideActive) return null;
+    return deriveGuide({
+      active: true, demoLoaded, mismatch: guideCases.mismatch, reuse: guideCases.reuse,
+      mismatchHref: demo ? formatRoute({ name: "case", batchId: demo.batchId, findingId: demo.mismatchId }) : null,
+      reuseHref: demo ? formatRoute({ name: "case", batchId: demo.batchId, findingId: demo.reuseId }) : null,
+      visitedResults,
+    });
+  }, [guideActive, demoLoaded, guideCases, demo, visitedResults]);
+
+  // ---- actions ----
+  /**
+   * Loads the demo batch once. Concurrent callers share one in-flight import. Staleness is
+   * decided only by the outcome: the import transaction itself rejects a reset that committed
+   * after the import started.
+   */
+  const loadDemo = useCallback((): Promise<LoadDemoResult> => {
+    if (!store || !demo) return Promise.resolve({ ok: false, message: demoError ?? "The demo is still starting. Try again in a moment." });
+    if (batches.some((b) => b.batchId === demo.batchId)) return Promise.resolve({ ok: true, batchId: demo.batchId });
+    if (demoInFlight.current) return demoInFlight.current;
+    const run = (async (): Promise<LoadDemoResult> => {
+      setDemoLoading(true);
+      try {
+        const expectedResetGeneration = await store.getResetGeneration();
+        const outcome = await importBytes(store, demo.bytes, { displayName: DEMO_NAME, source: "demo", now: nowIso(), expectedResetGeneration });
+        if (outcome.status === "created" || outcome.status === "existing") {
+          setDemoFailure(null);
+          setAnnouncement(outcome.status === "created"
+            ? `Loaded the synthetic demo batch: ${outcome.batch.rowCount} invoices, ${outcome.batch.findingCount} findings to review.`
+            : "The demo batch is already loaded; your earlier decisions are kept.");
+          return { ok: true, batchId: outcome.batch.batchId };
+        }
+        const message = outcome.status === "storage_error" ? outcome.message : "The demo file failed validation, so nothing was loaded.";
+        setDemoFailure(message);
+        return { ok: false, message };
+      } catch {
+        setDemoFailure(READ_ERROR);
+        return { ok: false, message: READ_ERROR };
+      } finally {
+        setDemoLoading(false);
+        demoInFlight.current = null;
+        bump();
+      }
+    })();
+    demoInFlight.current = run;
+    return run;
+  }, [store, demo, demoError, batches, bump]);
+
+  // "#/demo" starts (or resumes) the guide without erasing anything, then shows the queue.
+  // Handled once per visit to the route (StrictMode/dep changes must not re-run the import).
+  const runDemoRoute = useCallback(() => {
+    demoRouteHandled.current = true;
+    setGuideActive(true);
+    writeGuideFlag(true);
+    setDemoFailure(null);
+    void loadDemo().then((r) => { if (r.ok) navigate({ name: "queue", batchId: r.batchId }, true); });
+  }, [loadDemo]);
+  useEffect(() => {
+    if (route.name !== "demo") { demoRouteHandled.current = false; return; }
+    if (!store || !demo || demoRouteHandled.current) return;
+    runDemoRoute();
+  }, [route, store, demo, runDemoRoute]);
+
+  const startGuide = useCallback(() => navigate({ name: "demo" }), []);
+  const explore = useCallback(() => {
+    void loadDemo().then((r) => { if (r.ok) navigate({ name: "queue", batchId: r.batchId }); });
+  }, [loadDemo]);
+  const exitGuide = useCallback(() => { setGuideActive(false); writeGuideFlag(false); }, []);
+
+  const onAction = useCallback(async (action: ReviewAction) => {
+    if (!store || !caseView || caseView === "missing") return;
+    const f = caseView.finding;
+    // Submit with the token of the version the draft was started on, never a silently refreshed one.
+    const expected = draftRef.current?.token ?? { resetGeneration: f.resetGeneration, sequence: f.sequence };
+    setSave({ kind: "saving", action });
+    const result = await store.saveDecision({
+      batchId: f.batchId, findingId: f.findingId, action, reason: form.reason, reviewer: form.reviewer, expected,
+    }, nowIso());
+    if (result.status === "saved") draftRef.current = onSaved(result.finding);
+    else if (result.status === "conflict" || result.status === "invalid_transition") {
+      draftRef.current = onConflictShown(result.latest, draftRef.current);
+    }
+    switch (result.status) {
+      case "saved": {
+        const label = result.event.nextState === "open" ? "Reopened" : result.event.nextState === "confirmed" ? "Confirmed" : "Dismissed";
+        const where = durability === "memory" ? "in this tab only (browser storage unavailable)" : "in this browser";
+        setSave({ kind: "saved", message: `${label} — saved ${where}. Added to the history below.` });
+        setForm((prev) => ({ ...prev, reason: "" }));
+        setAnnouncement(`${label}. Decision saved.`);
+        // Keep the reviewer oriented on this case (the queue re-orders behind it).
+        requestAnimationFrame(() => document.getElementById("case-heading")?.focus());
+        break;
+      }
+      case "invalid":
+        setSave({ kind: "invalid", errors: result.errors });
+        break;
+      case "conflict":
+        setSave({ kind: "conflict", message: result.cause === "reset"
+          ? "The demo data was reset after this page loaded, so nothing was saved. Reload the case."
+          : "Another tab changed this case first, so nothing was saved. The latest state is shown." });
+        break;
+      case "invalid_transition":
+        setSave({ kind: "conflict", message: "That action no longer applies to this case's current state, so nothing was saved." });
+        break;
+      case "not_found":
+        setSave({ kind: "error", message: "This case no longer exists in this browser (the demo data may have been reset). Nothing was saved." });
+        break;
+      case "storage_error":
+        setSave({ kind: "error", message: `Not saved: ${result.message}` });
+        break;
+    }
+    bump();
+  }, [store, caseView, form, durability, bump]);
+
+  const onImportFile = useCallback(async (file: File) => {
+    if (!store) return;
+    setImportState({ kind: "working", fileName: file.name });
+    try {
+      // Captured BEFORE reading/hashing; the import transaction rejects it if a reset committed since.
+      const expectedResetGeneration = await store.getResetGeneration();
+      const bytes = await readFileBytes(file);
+      if (!(bytes instanceof Uint8Array)) {
+        setImportState({ kind: "error", fileName: file.name, message: `The file is ${bytes.size} bytes; the limit is 1,048,576 bytes (1 MiB). Nothing was read or imported.` });
+        return;
+      }
+      // Staleness is decided by the outcome only (the transaction compares reset generations).
+      const outcome = await importBytes(store, bytes, { displayName: file.name, source: "upload", now: nowIso(), expectedResetGeneration });
+      setImportState({ kind: "done", fileName: file.name, outcome });
+      setAnnouncement(messageForOutcome(file.name, outcome, demo?.batchId ?? null));
+      bump();
+    } catch {
+      setImportState({ kind: "error", fileName: file.name, message: "The browser could not read this file. Nothing was imported." });
+    }
+  }, [store, demo, bump]);
+
+  const onResetDemo = useCallback(async () => {
+    if (!store) return;
+    const out = await store.resetAll();
+    if (out.ok) {
+      draftRef.current = null;
+      setAnnouncement("This browser's demo data and decisions were reset.");
+      setImportState({ kind: "idle" });
+      setVisitedResults(false);
+      navigate({ name: "queue", batchId: null });
+    } else {
+      setAnnouncement(`Reset failed: ${out.message}`);
+    }
+    bump();
+  }, [store, bump]);
+
+  // ---- render ----
+  const filtered = queueFindings.filter((f) =>
+    (filter.state === "all" || f.state === filter.state) && (filter.rule === "all" || f.ruleId === filter.rule));
+
+  let page: React.ReactNode;
+  const booting = !store;
+  if (readError) {
+    page = (
+      <div className="app-loading" role="alert">
+        <p>{readError}</p>
+        <button type="button" className="btn btn-secondary" onClick={() => window.location.reload()}>Reload the page</button>
+      </div>
+    );
+  } else switch (route.name) {
+    case "overview":
+      page = <OverviewPage story={demo?.story ?? null} demo={demoStatus} onStartGuide={startGuide} onExplore={explore} />;
+      break;
+    case "demo":
+      page = demoError || demoFailure ? (
+        <div className="app-loading" role="alert">
+          <p>{demoError ?? demoFailure}</p>
+          {demoFailure && !demoError ? (
+            <button type="button" className="btn btn-secondary" onClick={runDemoRoute}>Try loading the demo again</button>
+          ) : null}
+        </div>
+      ) : <p className="app-loading" role="status">Loading the synthetic demo batch…</p>;
+      break;
+    case "queue":
+      page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
+        <QueuePage
+          batch={queueBatch} batches={batches} findings={filtered} filter={filter} onFilterChange={setFilter}
+          hrefForCase={(id) => formatRoute({ name: "case", batchId: queueBatchId ?? "", findingId: id })}
+          hrefForBatch={(id) => formatRoute({ name: "queue", batchId: id })}
+          demo={demoStatus} onLoadDemo={explore} importState={importState} onImportFile={onImportFile}
+          sampleCsvHref={DEMO_CSV} onResetDemo={onResetDemo}
+        />
+      );
+      break;
+    case "case": {
+      if (booting || caseView === null) {
+        page = <p className="app-loading" role="status">Loading case…</p>;
+      } else if (caseView === "missing") {
+        const isDemo = !!demo && route.batchId === demo.batchId && !demoLoaded;
+        page = (
+          <NotFoundPage
+            message={isDemo ? "This link points to the synthetic demo, which isn't loaded in this browser yet." : "This case isn't stored in this browser. Decisions and imports live only on the device where they were made."}
+            homeHref="#/"
+            onLoadDemo={isDemo ? () => void loadDemo().then(() => bump()) : null}
+          />
+        );
+      } else {
+        const i = caseOrder.findIndex((f) => f.findingId === caseView.finding.findingId);
+        const href = (f: FindingView | undefined) => (f ? formatRoute({ name: "case", batchId: f.batchId, findingId: f.findingId }) : null);
+        const step = guide?.steps[guide.currentIndex];
+        const here = formatRoute(route);
+        page = (
+          <CasePage
+            view={caseView} form={form} onFormChange={setForm} onAction={(a) => void onAction(a)} save={save}
+            durability={durability}
+            guideHint={step && step.href === here ? step.instruction : null}
+            queueHref={formatRoute({ name: "queue", batchId: caseView.batch.batchId })}
+            prevHref={i > 0 ? href(caseOrder[i - 1]) : null}
+            nextHref={i >= 0 ? href(caseOrder[i + 1]) : null}
+            suggestedReasons={SUGGESTED_REASONS[caseView.finding.ruleId] ?? []}
+          />
+        );
+      }
+      break;
+    }
+    case "results":
+      page = <ResultsPage benchmark={benchmark} benchmarkError={benchmarkError} visitor={demoLoaded ? batches.find((b) => b.batchId === demo!.batchId) ?? null : null} />;
+      break;
+    case "how":
+      page = <HowPage />;
+      break;
+    case "roadmap":
+      page = <RoadmapPage modules={MODULES} />;
+      break;
+    case "not_found":
+      page = <NotFoundPage message="There is no page at this address." homeHref="#/" onLoadDemo={null} />;
+      break;
+  }
+
+  return (
+    <>
+    {intro ? <Intro onDone={endIntro} /> : null}
+    <AppShell route={route} guide={guide} onGuideExit={exitGuide} durability={durability}
+      announcement={storeError && durability === "memory" ? `${announcement} ${storeError}`.trim() : announcement}>
+      {page}
+    </AppShell>
+    </>
+  );
+}

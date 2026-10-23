@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+P-0001,V-5401,INV-73001,2026-08-01,USD,880.00,52.80,0.00,0.00,932.80

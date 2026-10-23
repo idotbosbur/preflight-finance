@@ -1,0 +1,4 @@
+# Fixture CSVs are hashed byte for byte by the benchmark: never convert their line endings.
+*.csv -text
+*.woff2 binary
+*.sqlite binary

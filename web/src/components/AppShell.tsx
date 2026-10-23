@@ -1,0 +1,319 @@
+import { ChromeMark } from "../art/ChromeMark.tsx";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, RefObject } from "react";
+import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
+import type { Durability } from "../domain/contracts.ts";
+import { SYNTHETIC_LABEL } from "../domain/contracts.ts";
+
+interface NavItem {
+  readonly href: string;
+  readonly label: string;
+  readonly match: readonly Route["name"][];
+}
+
+export const NAV_ITEMS: readonly NavItem[] = [
+  { href: "#/demo", label: "Demo", match: ["demo", "queue", "case"] },
+  { href: "#/results", label: "Results", match: ["results"] },
+  { href: "#/how", label: "How it works", match: ["how"] },
+  { href: "#/roadmap", label: "Roadmap", match: ["roadmap"] },
+];
+
+/** The footer's single "what next" step, chosen for the page the visitor is on. */
+export function nextStep(route: Route): { readonly kicker: string; readonly label: string; readonly href: string } {
+  switch (route.name) {
+    case "demo":
+    case "queue":
+    case "case":
+      return { kicker: "Next", label: "See how the checks scored", href: "#/results" };
+    case "results":
+      return { kicker: "Next", label: "Try it yourself", href: "#/demo" };
+    default:
+      return { kicker: "See it work", label: "Try the synthetic demo", href: "#/demo" };
+  }
+}
+
+export const MEMORY_BANNER =
+  "Not saved — browser storage unavailable; decisions in this tab will be lost on reload";
+
+export const ATTRIBUTION =
+  "Concept and product decisions: the project owner. Code and tests: written by Claude. Coordination and browser QA: Codex.";
+
+const MAIN_ID = "main-content";
+const MENU_ID = "mobile-menu";
+
+const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
+  overview: "Overview",
+  demo: "Guided demo",
+  queue: "Review queue",
+  case: "Investigation",
+  results: "Results",
+  how: "How it works",
+  roadmap: "Roadmap",
+  not_found: "Page not found",
+};
+
+/** document.title for a route: "<page name> — Preflight (synthetic demo)". */
+export function pageTitle(route: Route): string {
+  return `${PAGE_NAME[route.name]} — Preflight (synthetic demo)`;
+}
+
+/** Move focus only on a real route change after the first render (never on initial load). */
+export function shouldFocusOnRouteChange(previousKey: string | null, nextKey: string): boolean {
+  return previousKey !== null && previousKey !== nextKey;
+}
+
+interface FocusableLike {
+  focus(): void;
+  hasAttribute(name: string): boolean;
+  setAttribute(name: string, value: string): void;
+}
+interface MainLike extends FocusableLike {
+  querySelector(selectors: string): FocusableLike | null;
+}
+
+/** The destination page's first h1 inside main (made programmatically focusable), else main itself. */
+export function routeFocusTarget(main: MainLike): FocusableLike {
+  const heading = main.querySelector("h1");
+  const target = heading ?? main;
+  if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+  return target;
+}
+
+export function guideCompleteCopy(durability: Durability): string {
+  return durability === "memory"
+    ? "Guide complete. Browser storage is unavailable, so your decisions are kept only in this tab and will be lost on reload."
+    : "Guide complete. Your decisions stay in this browser until you reset the demo data.";
+}
+
+function focusMain(event: ReactMouseEvent<HTMLAnchorElement>) {
+  // Hash routing owns location.hash, so the skip link moves focus without changing the URL.
+  event.preventDefault();
+  const main = document.getElementById(MAIN_ID);
+  main?.focus();
+}
+
+function NavLinks({ route, onNavigate, className }: { readonly route: Route; readonly onNavigate?: (href: string) => void; readonly className: string }) {
+  return (
+    <ul className={className}>
+      {NAV_ITEMS.map((item) => {
+        const current = item.match.includes(route.name);
+        return (
+          <li key={item.href}>
+            <a href={item.href} aria-current={current ? "page" : undefined} className={current ? "nav-link is-current" : "nav-link"} onClick={onNavigate ? () => onNavigate(item.href) : undefined}>
+              {item.label}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+const STATUS_WORD = { done: "Done", current: "Current step", upcoming: "Upcoming" } as const;
+
+export function GuideBar({ guide, onExit, durability }: { readonly guide: GuideView; readonly onExit: () => void; readonly durability: Durability }) {
+  const total = guide.steps.length;
+  const position = guide.complete ? total : Math.min(guide.currentIndex + 1, total);
+  return (
+    <section className="guide" aria-labelledby="guide-heading">
+      <div className="guide-head">
+        <h2 id="guide-heading" className="guide-title">
+          Guided demo{" "}
+          <span className="muted">
+            {guide.complete ? "— complete" : `— step ${position} of ${total}`}
+          </span>
+        </h2>
+        <button type="button" className="btn btn-quiet" onClick={onExit}>
+          Exit guide
+        </button>
+      </div>
+      <ol className="guide-steps">
+        {guide.steps.map((step) => (
+          <li key={step.id} className={`guide-step is-${step.status}`} aria-current={step.status === "current" ? "step" : undefined}>
+            <span className="guide-status">{STATUS_WORD[step.status]}</span>
+            <span className="guide-step-title">
+              {step.href && step.status !== "upcoming" ? <a href={step.href}>{step.title}</a> : step.title}
+            </span>
+            {step.status === "current" ? <span className="guide-instruction">{step.instruction}</span> : null}
+            {step.note ? <span className="guide-note">{step.note}</span> : null}
+          </li>
+        ))}
+      </ol>
+      {guide.complete ? <p className="guide-done">{guideCompleteCopy(durability)}</p> : null}
+    </section>
+  );
+}
+
+interface MobileMenuProps {
+  readonly route: Route;
+  /** restoreFocus=false when the close is caused by navigation (the route-focus effect wins). */
+  readonly onClose: (restoreFocus: boolean) => void;
+  readonly triggerRef: RefObject<HTMLButtonElement | null>;
+  readonly restoreRef: RefObject<boolean>;
+}
+
+/** A link to the current hash causes no route change, so the menu must restore focus itself. */
+function isCurrentHash(href: string): boolean {
+  const hash = window.location.hash || "#/";
+  return hash === href;
+}
+
+function MobileMenu({ route, onClose, triggerRef, restoreRef }: MobileMenuProps) {
+  const panelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const first = panelRef.current?.querySelector<HTMLElement>("a, button");
+    first?.focus();
+    const trigger = triggerRef.current;
+    return () => {
+      // Restore focus to the Menu button after the background is no longer inert,
+      // unless the menu closed because of navigation (then the page heading gets focus).
+      if (restoreRef.current) requestAnimationFrame(() => trigger?.focus());
+    };
+  }, [triggerRef, restoreRef]);
+
+  function onKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose(true);
+      return;
+    }
+    if (event.key !== "Tab" || !panelRef.current) return;
+    const focusables = Array.from(panelRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
+    if (focusables.length === 0) return;
+    const first = focusables[0]!;
+    const last = focusables[focusables.length - 1]!;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  return (
+    <div className="menu-overlay">
+      <div className="menu-scrim" aria-hidden="true" onClick={() => onClose(true)} />
+      <div id={MENU_ID} ref={panelRef} className="menu-panel" role="dialog" aria-modal="true" aria-label="Site menu" onKeyDown={onKeyDown}>
+        <div className="menu-panel-head">
+          <span className="badge badge-synthetic">Synthetic demo</span>
+          <button type="button" className="btn btn-quiet" onClick={() => onClose(true)}>
+            Close menu
+          </button>
+        </div>
+        <a href="#/" className="menu-home" onClick={() => onClose(isCurrentHash("#/"))}>Preflight overview</a>
+        <NavLinks route={route} onNavigate={(href) => onClose(isCurrentHash(href))} className="menu-links" />
+      </div>
+    </div>
+  );
+}
+
+export function AppShell({ route, guide, onGuideExit, durability, announcement, children }: AppShellProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const restoreRef = useRef(true);
+  const prevRouteKey = useRef<string | null>(null);
+
+  function closeMenu(restoreFocus: boolean) {
+    restoreRef.current = restoreFocus;
+    setMenuOpen(false);
+  }
+
+  // On every route change: close the menu without restoring its focus, update the title and,
+  // except on the initial load, move focus to the destination page's main heading.
+  const routeKey = JSON.stringify(route);
+  useEffect(() => {
+    restoreRef.current = false;
+    setMenuOpen(false);
+    document.title = pageTitle(route);
+    const move = shouldFocusOnRouteChange(prevRouteKey.current, routeKey);
+    prevRouteKey.current = routeKey;
+    if (!move) return;
+    // rAF: runs after the menu's own (queued-earlier) rAF restore, so heading focus wins.
+    const id = requestAnimationFrame(() => {
+      const main = document.getElementById(MAIN_ID);
+      if (main) routeFocusTarget(main).focus();
+    });
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- routeKey captures route
+  }, [routeKey]);
+
+  return (
+    <div className="shell">
+      <a className="skip-link" href={`#${MAIN_ID}`} onClick={focusMain} inert={menuOpen}>
+        Skip to main content
+      </a>
+      <header className="topbar" inert={menuOpen}>
+        <nav className="topnav" aria-label="Main">
+          <a href="#/" className="brand" aria-current={route.name === "overview" ? "page" : undefined}>
+            <ChromeMark className="brand-mark" />
+            Preflight
+          </a>
+          <NavLinks route={route} className="nav-links" />
+          <span className="badge badge-synthetic" title={SYNTHETIC_LABEL}>
+            Synthetic demo
+          </span>
+          <button
+            ref={triggerRef}
+            type="button"
+            className="btn btn-quiet menu-trigger"
+            aria-expanded={menuOpen}
+            aria-controls={MENU_ID}
+            onClick={() => {
+              restoreRef.current = true;
+              setMenuOpen(true);
+            }}
+          >
+            Menu
+          </button>
+        </nav>
+      </header>
+      {menuOpen ? <MobileMenu route={route} onClose={closeMenu} triggerRef={triggerRef} restoreRef={restoreRef} /> : null}
+      <div className="shell-body" inert={menuOpen}>
+        {durability === "memory" ? (
+          <p className="banner banner-warn" role="alert">
+            {MEMORY_BANNER}
+          </p>
+        ) : null}
+        {guide?.active ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
+        <main id={MAIN_ID} tabIndex={-1} className="main">
+          {children}
+        </main>
+        {route.name === "overview" ? (
+          <footer className="footer footer-hero">
+            <div className="footer-top">
+              <div className="footer-meta">
+                <p className="footer-label">{SYNTHETIC_LABEL}</p>
+                <p className="footer-attrib">{ATTRIBUTION}</p>
+              </div>
+            </div>
+            <p className="footer-wordmark" aria-hidden="true">
+              <span>Pre</span>
+              <ChromeMark className="footer-mark" />
+              <span>flight</span>
+            </p>
+          </footer>
+        ) : (
+          <footer className="footer footer-compact">
+            <a className="footer-next" href={nextStep(route).href}>
+              <span className="footer-next-kicker">{nextStep(route).kicker}</span>
+              <span className="footer-next-line">
+                {nextStep(route).label}
+                <span className="footer-next-arrow" aria-hidden="true">→</span>
+              </span>
+            </a>
+            <div className="footer-fine">
+              <ChromeMark className="footer-brand-mark" />
+              <p className="footer-label">{SYNTHETIC_LABEL}</p>
+              <p className="footer-credit">Concept: project owner · Code: Claude · QA: Codex</p>
+            </div>
+          </footer>
+        )}
+      </div>
+      <div className="sr-only" aria-live="polite" role="status">
+        {announcement}
+      </div>
+    </div>
+  );
+}

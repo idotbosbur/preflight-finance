@@ -1,0 +1,30 @@
+{
+  "name": "preflight-portfolio-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Preflight Finance P1 — functional synthetic invoice-review prototype (static browser app).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --strictPort",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test:domain": "node --test \"tests/{domain,state,evaluation}/**/*.test.ts\"",
+    "test:ui": "vite build --ssr tests/ui/entry.tsx --outDir .test-build --emptyOutDir && node --test .test-build/entry.js",
+    "test": "npm run typecheck && npm run test:domain && npm run test:ui"
+  },
+  "dependencies": {
+    "react": "19.2.9",
+    "react-dom": "19.2.9"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "fake-indexeddb": "6.2.6",
+    "typescript": "6.0.3",
+    "vite": "7.3.7"
+  }
+}

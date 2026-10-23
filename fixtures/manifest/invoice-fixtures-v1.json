@@ -1,0 +1,4136 @@
+{
+  "arithmetic": "integer cents; expected = subtotal + tax + shipping - discount; delta = declared - expected",
+  "files": {
+    "fixtures/out/boundary/case-whitespace-duplicate.csv": {
+      "bytes": 232,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [
+          [
+            "C-0001",
+            "C-0002"
+          ]
+        ],
+        "invoice_count": 2,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "case and outer ASCII whitespace differ; one group"
+      },
+      "kind": "boundary",
+      "sha256": "c864c692d34353a500b539b36aa635868f74ff398200b7ca528d62d549ae0d6d"
+    },
+    "fixtures/out/boundary/expected-above-max.csv": {
+      "bytes": 182,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 1,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [
+          {
+            "delta": "-999999999.99",
+            "record_id": "M-0001"
+          }
+        ],
+        "note": "expected total above 999999999.99 is still valid; mismatch reported (\u00a78)"
+      },
+      "kind": "boundary",
+      "sha256": "89b26ae9b9be20bb61d71d916bae07e53e11958a2a1cc41c4840aa63638a5fec"
+    },
+    "fixtures/out/boundary/max-amount.csv": {
+      "bytes": 174,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 1,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "subtotal and total 999999999.99; valid, no finding"
+      },
+      "kind": "boundary",
+      "sha256": "dc186790a7b58d640e0e5faf80417d9c0e8efc6be91b725832234c95ba803dd9"
+    },
+    "fixtures/out/boundary/small-bom-crlf.csv": {
+      "bytes": 305,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 3,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "UTF-8 BOM + CRLF copy of small-lf.csv: same invoices, different file hash"
+      },
+      "kind": "boundary",
+      "sha256": "8427e93162fadaea4798dd45e9a16be7c33292b6f63332227a74e2a69cb62bbc"
+    },
+    "fixtures/out/boundary/small-lf.csv": {
+      "bytes": 298,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 3,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "LF reference copy"
+      },
+      "kind": "boundary",
+      "sha256": "7aa05f9ddcfaee9c4f1d9dec1cd524ec4b2e7773b6b4f04794247909791fc704"
+    },
+    "fixtures/out/boundary/split-batch-a.csv": {
+      "bytes": 163,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 1,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "KNOWN LIMITATION: duplicate split across batches is not detected (batch-scoped rule)"
+      },
+      "kind": "boundary",
+      "sha256": "c6076dc877e61c72ab2e220513ce98505ce2aac61b85cfaf7a5e2fe645164055"
+    },
+    "fixtures/out/boundary/split-batch-b.csv": {
+      "bytes": 163,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [],
+        "invoice_count": 1,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "KNOWN LIMITATION: duplicate split across batches is not detected (batch-scoped rule)"
+      },
+      "kind": "boundary",
+      "sha256": "e0dc8f5677fae19a83c9b3e272c0b80b8ec05e9ee68ec467a38301b7438fd37d"
+    },
+    "fixtures/out/boundary/split-combined-control.csv": {
+      "bytes": 232,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [
+          [
+            "P-0001",
+            "P-0002"
+          ]
+        ],
+        "invoice_count": 2,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "control: same two rows in one batch form one group"
+      },
+      "kind": "boundary",
+      "sha256": "f8c1673a5a22fdcc0d9c50259bd3dfb3fff66a47cbd13de31f9e676a90be7416"
+    },
+    "fixtures/out/boundary/triple-group.csv": {
+      "bytes": 370,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [
+          [
+            "G-0001",
+            "G-0002",
+            "G-0003"
+          ]
+        ],
+        "invoice_count": 4,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [],
+        "note": "one group of 3; G-0004 distinct number"
+      },
+      "kind": "boundary",
+      "sha256": "174307398d948e7fdee53b06aaa16b01166ac20d8eb253b4cd14728a52e077d8"
+    },
+    "fixtures/out/invalid/blank-total.csv": {
+      "bytes": 157,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_REQUIRED",
+            "field": "total",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: total=''"
+      },
+      "kind": "invalid",
+      "sha256": "6819e5fcbb4a679c2b67e8ca74e8d126e3944885282d0158216bb952d0c9eee6"
+    },
+    "fixtures/out/invalid/formatted-subtotal.csv": {
+      "bytes": 168,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "subtotal",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: subtotal='$1,234.56'"
+      },
+      "kind": "invalid",
+      "sha256": "b65fa76aea7fef1ecd38ba13aa54d2e3f3a219bea60c33fac5f766e28dd3de89"
+    },
+    "fixtures/out/invalid/impossible-date.csv": {
+      "bytes": 163,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "DATE_INVALID",
+            "field": "invoice_date",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: invoice_date='2026-02-30'"
+      },
+      "kind": "invalid",
+      "sha256": "9916ce23a790bf68e93a722b5b5b338399c0283613c920ec09850dc93bbcb26e"
+    },
+    "fixtures/out/invalid/missing-invoice-number.csv": {
+      "bytes": 154,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "FIELD_REQUIRED",
+            "field": "invoice_number",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: invoice_number=''"
+      },
+      "kind": "invalid",
+      "sha256": "ee7212acaa4a5ab2115a888eab4ab96006ee1c93c6ce43f7080ced91c108a28c"
+    },
+    "fixtures/out/invalid/missing-vendor-id.csv": {
+      "bytes": 157,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "FIELD_REQUIRED",
+            "field": "vendor_id",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: vendor_id=''"
+      },
+      "kind": "invalid",
+      "sha256": "c6931884adb496e79e51b35288815df148e0b65dcc12ef5b56a39d007899e4d1"
+    },
+    "fixtures/out/invalid/negative-tax.csv": {
+      "bytes": 163,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "tax",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: tax='-5.00'"
+      },
+      "kind": "invalid",
+      "sha256": "57bcf090d12fd441d46ac8ba0cecbf82a9fd38419561731d47f3f963ac5ee4a0"
+    },
+    "fixtures/out/invalid/non-usd-currency.csv": {
+      "bytes": 163,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "CURRENCY_UNSUPPORTED",
+            "field": "currency",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: currency='EUR'"
+      },
+      "kind": "invalid",
+      "sha256": "db5ab03a93a377e78c6f70b86a24b41097cf14250b1c48a63cac4cc65c05c49d"
+    },
+    "fixtures/out/invalid/three-decimal-total.csv": {
+      "bytes": 164,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "total",
+            "row": 1
+          }
+        ],
+        "note": "one-row invalid: total='123.456'"
+      },
+      "kind": "invalid",
+      "sha256": "99395010bfdae055f913fca54a046b998f38877f6204b71dea04eaa4d457b8be"
+    },
+    "fixtures/out/main-120.csv": {
+      "bytes": 8910,
+      "expected": {
+        "accepted": true,
+        "duplicate_groups": [
+          [
+            "R-0005",
+            "R-0032"
+          ],
+          [
+            "R-0040",
+            "R-0117"
+          ],
+          [
+            "R-0041",
+            "R-0082"
+          ],
+          [
+            "R-0043",
+            "R-0070"
+          ],
+          [
+            "R-0047",
+            "R-0116"
+          ],
+          [
+            "R-0058",
+            "R-0092"
+          ],
+          [
+            "R-0061",
+            "R-0093"
+          ],
+          [
+            "R-0049",
+            "R-0078"
+          ],
+          [
+            "R-0079",
+            "R-0083"
+          ],
+          [
+            "R-0035",
+            "R-0080"
+          ],
+          [
+            "R-0094",
+            "R-0112"
+          ],
+          [
+            "R-0096",
+            "R-0113"
+          ]
+        ],
+        "invoice_count": 120,
+        "issue_count": 0,
+        "issues": [],
+        "mismatches": [
+          {
+            "delta": "-0.01",
+            "record_id": "R-0009"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0022"
+          },
+          {
+            "delta": "-0.01",
+            "record_id": "R-0024"
+          },
+          {
+            "delta": "-0.01",
+            "record_id": "R-0027"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0035"
+          },
+          {
+            "delta": "-0.01",
+            "record_id": "R-0054"
+          },
+          {
+            "delta": "+4070.96",
+            "record_id": "R-0066"
+          },
+          {
+            "delta": "-48.46",
+            "record_id": "R-0071"
+          },
+          {
+            "delta": "+2402.06",
+            "record_id": "R-0072"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0073"
+          },
+          {
+            "delta": "+241.16",
+            "record_id": "R-0077"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0080"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0084"
+          },
+          {
+            "delta": "-55.51",
+            "record_id": "R-0086"
+          },
+          {
+            "delta": "-64.33",
+            "record_id": "R-0088"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0096"
+          },
+          {
+            "delta": "+3030.86",
+            "record_id": "R-0105"
+          },
+          {
+            "delta": "-60.60",
+            "record_id": "R-0107"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0113"
+          },
+          {
+            "delta": "+0.01",
+            "record_id": "R-0118"
+          }
+        ],
+        "note": "120 valid rows; full labels under manifest.main"
+      },
+      "kind": "main",
+      "sha256": "c7bb7b84c452f308aa3530a8986e65ddd07266bb3463a15c8741e2f433b3428b"
+    },
+    "fixtures/out/mixed-128.csv": {
+      "bytes": 9447,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 8,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "FIELD_REQUIRED",
+            "field": "vendor_id",
+            "row": 121
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "FIELD_REQUIRED",
+            "field": "invoice_number",
+            "row": 122
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "CURRENCY_UNSUPPORTED",
+            "field": "currency",
+            "row": 123
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "total",
+            "row": 124
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "subtotal",
+            "row": 125
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "tax",
+            "row": 126
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "DATE_INVALID",
+            "field": "invoice_date",
+            "row": 127
+          },
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_REQUIRED",
+            "field": "total",
+            "row": 128
+          }
+        ],
+        "note": "atomic policy: 120 valid + 8 invalid rows; all 8 reported, zero accepted"
+      },
+      "kind": "mixed",
+      "sha256": "199d16552b3da441f308c91ac5dead57ace7603ddcceae11e233c2e7bfd334a8"
+    },
+    "fixtures/out/reject/discount-exceeds-charges.csv": {
+      "bytes": 296,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "DISCOUNT_EXCEEDS_CHARGES",
+            "field": "discount",
+            "row": 2
+          }
+        ],
+        "note": "discount 10.01 > charges 10.00"
+      },
+      "kind": "reject",
+      "sha256": "3af96b9cd542e4691aa81921002c2ee261febde91921f9470176a25daa6aa6f3"
+    },
+    "fixtures/out/reject/duplicate-record-id.csv": {
+      "bytes": 298,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "DUPLICATE_RECORD_ID",
+            "field": "record_id",
+            "row": 3
+          }
+        ],
+        "note": "rows 2 and 3 share S-0002; reported at the repeat"
+      },
+      "kind": "reject",
+      "sha256": "2a23865c3410ce02f8da7f2793aef747d5e764ff58e378cd9530d061b9ce01bd"
+    },
+    "fixtures/out/reject/empty-file.csv": {
+      "bytes": 0,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "EMPTY_FILE",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "0 bytes"
+      },
+      "kind": "reject",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fixtures/out/reject/file-too-large.csv": {
+      "bytes": 1135525,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "FILE_TOO_LARGE",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "1135525 bytes > 1048576, 1000 rows padded with quoted outer whitespace"
+      },
+      "kind": "reject",
+      "sha256": "1f1241b96c86538a99d5b22934f38f31bcf6e60f0ccc1507ebebcb91706d8c08"
+    },
+    "fixtures/out/reject/header-duplicate-column.csv": {
+      "bytes": 303,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "subtotal header repeated in place of tax"
+      },
+      "kind": "reject",
+      "sha256": "82401bcff00b9823c8a4505f66589768f3321e8da79e37193294ef2107b843cc"
+    },
+    "fixtures/out/reject/header-extra-column.csv": {
+      "bytes": 316,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "extra notes column"
+      },
+      "kind": "reject",
+      "sha256": "5ed2634fbe421ab38c23ff2a56559369fd56b7bd10627bcb0dd88d5f373ae657"
+    },
+    "fixtures/out/reject/header-missing-column.csv": {
+      "bytes": 274,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "HEADER_MISMATCH",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "shipping column missing"
+      },
+      "kind": "reject",
+      "sha256": "a2e98758de5ced4084a8619c252e3c0fb53a1348ca5a47a99b787609646f90d4"
+    },
+    "fixtures/out/reject/header-only.csv": {
+      "bytes": 94,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "NO_DATA_ROWS",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "header line only"
+      },
+      "kind": "reject",
+      "sha256": "02db2022d4f9e98c14e6f6f281307c743775d1fee2c918f366508fe9c6ea2fac"
+    },
+    "fixtures/out/reject/invalid-utf8.csv": {
+      "bytes": 298,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "ENCODING",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "byte 0xFF in vendor_id"
+      },
+      "kind": "reject",
+      "sha256": "8eeb35bd69d9d92e697ea63f2fe9ca1498f2395574c0748cf87bcda5c8058b6e"
+    },
+    "fixtures/out/reject/malformed-quote.csv": {
+      "bytes": 301,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "MALFORMED_CSV",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "characters after closing quote: \"INV-30002\"x"
+      },
+      "kind": "reject",
+      "sha256": "32d36205db5153c40b0f9a364e0cd782b65a96bd73229b37715bbcf20c0d4583"
+    },
+    "fixtures/out/reject/negative-zero-amount.csv": {
+      "bytes": 299,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "discount",
+            "row": 1
+          }
+        ],
+        "note": "signed zero -0.00"
+      },
+      "kind": "reject",
+      "sha256": "569b3b452b78f2b5514c0521495051485ca1752d08a3460204ff9d309a4d576a"
+    },
+    "fixtures/out/reject/plus-sign-amount.csv": {
+      "bytes": 299,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row",
+              "field"
+            ],
+            "code": "AMOUNT_FORMAT",
+            "field": "shipping",
+            "row": 2
+          }
+        ],
+        "note": "explicit plus sign +1.00"
+      },
+      "kind": "reject",
+      "sha256": "41de3e24dcb9fa2e1ad80702317d091da3d870c706083dd9d3275984b6e88615"
+    },
+    "fixtures/out/reject/row-extra-cell.csv": {
+      "bytes": 304,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code",
+              "row"
+            ],
+            "code": "ROW_SHAPE",
+            "field": null,
+            "row": 2
+          }
+        ],
+        "note": "row 2 has 11 cells"
+      },
+      "kind": "reject",
+      "sha256": "8f2438a1064e231bc85ba72fe18eead78d4f2f672b53bb47ad0da1d17a478e4e"
+    },
+    "fixtures/out/reject/too-many-rows.csv": {
+      "bytes": 73600,
+      "expected": {
+        "accepted": false,
+        "invoice_count": 0,
+        "issue_count": 1,
+        "issues": [
+          {
+            "check": [
+              "code"
+            ],
+            "code": "TOO_MANY_ROWS",
+            "field": null,
+            "row": null
+          }
+        ],
+        "note": "1,001 data rows, under 1 MiB"
+      },
+      "kind": "reject",
+      "sha256": "77ab6b3122768d5b6fdb1a3d4feb0723e6b25bb0819b6c092fbc6c08fc11aaff"
+    }
+  },
+  "generator": "fixtures/generator/make_fixtures.py",
+  "issue_check_semantics": "each expected issue lists the attributes compared in 'check'; codes always compared; issue sets must match exactly (no missing, no extra)",
+  "label": "synthetic benchmark; planned targets shown separately from measured values",
+  "main": {
+    "category_counts": {
+      "clean": 80,
+      "duplicate_genuine": 20,
+      "legitimate_reuse": 4,
+      "mismatch": 16
+    },
+    "designated_negative_pairs": [
+      {
+        "members": [
+          "R-0074",
+          "R-0091"
+        ],
+        "pair_id": "HN-A1",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0013",
+          "R-0052"
+        ],
+        "pair_id": "HN-A2",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0108",
+          "R-0110"
+        ],
+        "pair_id": "HN-A3",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0033",
+          "R-0100"
+        ],
+        "pair_id": "HN-A4",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0095",
+          "R-0103"
+        ],
+        "pair_id": "HN-B1",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0099",
+          "R-0115"
+        ],
+        "pair_id": "HN-B2",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0030",
+          "R-0059"
+        ],
+        "pair_id": "HN-B3",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0056",
+          "R-0109"
+        ],
+        "pair_id": "HN-B4",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0025",
+          "R-0029"
+        ],
+        "pair_id": "HN-C1",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0026",
+          "R-0104"
+        ],
+        "pair_id": "HN-C2",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0053",
+          "R-0055"
+        ],
+        "pair_id": "HN-C3",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0090",
+          "R-0098"
+        ],
+        "pair_id": "HN-C4",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0058",
+          "R-0092"
+        ],
+        "pair_id": "DG-11",
+        "type": "legitimate_same_key_reuse"
+      },
+      {
+        "members": [
+          "R-0005",
+          "R-0032"
+        ],
+        "pair_id": "DG-12",
+        "type": "legitimate_same_key_reuse"
+      }
+    ],
+    "duplicate_groups": [
+      {
+        "genuine": true,
+        "group_id": "DG-01",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40073",
+          "vendor": "V-1006"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0043",
+          "R-0070"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-02",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40074",
+          "vendor": "V-1006"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0079",
+          "R-0083"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-03",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40075",
+          "vendor": "V-1012"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0061",
+          "R-0093"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-04",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40076",
+          "vendor": "V-1021"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0040",
+          "R-0117"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-05",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40077",
+          "vendor": "V-1015"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0041",
+          "R-0082"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-06",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40078",
+          "vendor": "V-1023"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0049",
+          "R-0078"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-07",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40079",
+          "vendor": "V-1034"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0047",
+          "R-0116"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-08",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40080",
+          "vendor": "V-1017"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0094",
+          "R-0112"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-09",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40081",
+          "vendor": "V-1002"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0096",
+          "R-0113"
+        ]
+      },
+      {
+        "genuine": true,
+        "group_id": "DG-10",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-40082",
+          "vendor": "V-1014"
+        },
+        "kind": "genuine_repeated_obligation",
+        "members": [
+          "R-0035",
+          "R-0080"
+        ]
+      },
+      {
+        "genuine": false,
+        "group_id": "DG-11",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-6001",
+          "vendor": "V-1036"
+        },
+        "kind": "legitimate_same_key_reuse",
+        "members": [
+          "R-0058",
+          "R-0092"
+        ]
+      },
+      {
+        "genuine": false,
+        "group_id": "DG-12",
+        "key": {
+          "currency": "USD",
+          "invoice": "INV-6002",
+          "vendor": "V-1037"
+        },
+        "kind": "legitimate_same_key_reuse",
+        "members": [
+          "R-0005",
+          "R-0032"
+        ]
+      }
+    ],
+    "file": "fixtures/out/main-120.csv",
+    "hard_negative_pairs": [
+      {
+        "members": [
+          "R-0074",
+          "R-0091"
+        ],
+        "pair_id": "HN-A1",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0013",
+          "R-0052"
+        ],
+        "pair_id": "HN-A2",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0108",
+          "R-0110"
+        ],
+        "pair_id": "HN-A3",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0033",
+          "R-0100"
+        ],
+        "pair_id": "HN-A4",
+        "type": "same_number_different_vendor"
+      },
+      {
+        "members": [
+          "R-0095",
+          "R-0103"
+        ],
+        "pair_id": "HN-B1",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0099",
+          "R-0115"
+        ],
+        "pair_id": "HN-B2",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0030",
+          "R-0059"
+        ],
+        "pair_id": "HN-B3",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0056",
+          "R-0109"
+        ],
+        "pair_id": "HN-B4",
+        "type": "same_vendor_date_amount_different_number"
+      },
+      {
+        "members": [
+          "R-0025",
+          "R-0029"
+        ],
+        "pair_id": "HN-C1",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0026",
+          "R-0104"
+        ],
+        "pair_id": "HN-C2",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0053",
+          "R-0055"
+        ],
+        "pair_id": "HN-C3",
+        "type": "punctuation_or_leading_zero"
+      },
+      {
+        "members": [
+          "R-0090",
+          "R-0098"
+        ],
+        "pair_id": "HN-C4",
+        "type": "punctuation_or_leading_zero"
+      }
+    ],
+    "mismatches": [
+      {
+        "delta": "-0.01",
+        "record_id": "R-0009"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0022"
+      },
+      {
+        "delta": "-0.01",
+        "record_id": "R-0024"
+      },
+      {
+        "delta": "-0.01",
+        "record_id": "R-0027"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0035"
+      },
+      {
+        "delta": "-0.01",
+        "record_id": "R-0054"
+      },
+      {
+        "delta": "+4070.96",
+        "record_id": "R-0066"
+      },
+      {
+        "delta": "-48.46",
+        "record_id": "R-0071"
+      },
+      {
+        "delta": "+2402.06",
+        "record_id": "R-0072"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0073"
+      },
+      {
+        "delta": "+241.16",
+        "record_id": "R-0077"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0080"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0084"
+      },
+      {
+        "delta": "-55.51",
+        "record_id": "R-0086"
+      },
+      {
+        "delta": "-64.33",
+        "record_id": "R-0088"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0096"
+      },
+      {
+        "delta": "+3030.86",
+        "record_id": "R-0105"
+      },
+      {
+        "delta": "-60.60",
+        "record_id": "R-0107"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0113"
+      },
+      {
+        "delta": "+0.01",
+        "record_id": "R-0118"
+      }
+    ],
+    "planned_targets": {
+      "designated_negative_pairs": 14,
+      "distinct_affected_rows": 40,
+      "duplicate_groups": 12,
+      "hard_negative_false_alerts": 2,
+      "mismatch_FN": 0,
+      "mismatch_FP": 0,
+      "mismatch_TN": 100,
+      "mismatch_TP": 20,
+      "mismatch_findings": 20,
+      "pair_FN": 0,
+      "pair_FP": 2,
+      "pair_TN": 7128,
+      "pair_TP": 10,
+      "pair_unit": "unordered pairs of the 120 valid records",
+      "pairs_total": 7140,
+      "total_findings": 32
+    },
+    "rows": [
+      {
+        "category": "clean",
+        "declared_total": "8216.46",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "8216.46",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40028",
+          "vendor": "V-1033"
+        },
+        "invoice_date": "2026-07-27",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0052",
+        "raw_invoice_number": "INV-40028",
+        "raw_vendor_id": "V-1033",
+        "record_id": "R-0001",
+        "row_number": 1,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "7751.38",
+        "tax": "465.08"
+      },
+      {
+        "category": "clean",
+        "declared_total": "3498.98",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "3498.98",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40047",
+          "vendor": "V-1040"
+        },
+        "invoice_date": "2026-09-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0071",
+        "raw_invoice_number": "INV-40047",
+        "raw_vendor_id": "V-1040",
+        "record_id": "R-0002",
+        "row_number": 2,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "3498.98",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "2243.75",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "2243.75",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40015",
+          "vendor": "V-1031"
+        },
+        "invoice_date": "2026-04-01",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0039",
+        "raw_invoice_number": "INV-40015",
+        "raw_vendor_id": "V-1031",
+        "record_id": "R-0003",
+        "row_number": 3,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "2072.75",
+        "tax": "171.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "8027.00",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "8027.00",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40053",
+          "vendor": "V-1032"
+        },
+        "invoice_date": "2026-02-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0077",
+        "raw_invoice_number": "INV-40053",
+        "raw_vendor_id": "V-1032",
+        "record_id": "R-0004",
+        "row_number": 4,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "7572.65",
+        "tax": "454.35"
+      },
+      {
+        "category": "legitimate_reuse",
+        "declared_total": "6350.44",
+        "discount": "215.79",
+        "expected_delta": "0.00",
+        "expected_total": "6350.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-6002",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2026-06-30",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0110",
+        "raw_invoice_number": "INV-6002",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0005",
+        "row_number": 5,
+        "shipping": "0.00",
+        "subcategory": "same_key_different_period",
+        "subtotal": "6566.23",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "4720.99",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "4720.99",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40009",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2026-02-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0033",
+        "raw_invoice_number": "INV-40009",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0006",
+        "row_number": 6,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "4361.20",
+        "tax": "359.79"
+      },
+      {
+        "category": "clean",
+        "declared_total": "0.00",
+        "discount": "55.00",
+        "expected_delta": "0.00",
+        "expected_total": "0.00",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40003",
+          "vendor": "V-1018"
+        },
+        "invoice_date": "2026-05-29",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0027",
+        "raw_invoice_number": "INV-40003",
+        "raw_vendor_id": "V-1018",
+        "record_id": "R-0007",
+        "row_number": 7,
+        "shipping": "2.00",
+        "subcategory": "discount_equals_charges",
+        "subtotal": "50.00",
+        "tax": "3.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "2691.84",
+        "discount": "3.46",
+        "expected_delta": "0.00",
+        "expected_total": "2691.84",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40013",
+          "vendor": "V-1040"
+        },
+        "invoice_date": "2026-07-14",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0037",
+        "raw_invoice_number": "INV-40013",
+        "raw_vendor_id": "V-1040",
+        "record_id": "R-0008",
+        "row_number": 8,
+        "shipping": "15.34",
+        "subcategory": "control",
+        "subtotal": "2679.96",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "7668.65",
+        "discount": "470.36",
+        "expected_delta": "-0.01",
+        "expected_total": "7668.66",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40061",
+          "vendor": "V-1029"
+        },
+        "invoice_date": "2026-09-04",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0085",
+        "raw_invoice_number": "INV-40061",
+        "raw_vendor_id": "V-1029",
+        "record_id": "R-0009",
+        "row_number": 9,
+        "shipping": "0.00",
+        "subcategory": "one_cent_low",
+        "subtotal": "7518.73",
+        "tax": "620.29"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24700.88",
+        "discount": "110.28",
+        "expected_delta": "0.00",
+        "expected_total": "24700.88",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40033",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-01-02",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0057",
+        "raw_invoice_number": "INV-40033",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0010",
+        "row_number": 10,
+        "shipping": "15.23",
+        "subcategory": "control",
+        "subtotal": "22906.18",
+        "tax": "1889.75"
+      },
+      {
+        "category": "clean",
+        "declared_total": "3543.18",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "3543.18",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40042",
+          "vendor": "V-1007"
+        },
+        "invoice_date": "2026-03-29",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0066",
+        "raw_invoice_number": "INV-40042",
+        "raw_vendor_id": "V-1007",
+        "record_id": "R-0011",
+        "row_number": 11,
+        "shipping": "68.99",
+        "subcategory": "control",
+        "subtotal": "3209.42",
+        "tax": "264.77"
+      },
+      {
+        "category": "clean",
+        "declared_total": "23296.58",
+        "discount": "1676.59",
+        "expected_delta": "0.00",
+        "expected_total": "23296.58",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40018",
+          "vendor": "V-1008"
+        },
+        "invoice_date": "2026-03-19",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0042",
+        "raw_invoice_number": "INV-40018",
+        "raw_vendor_id": "V-1008",
+        "record_id": "R-0012",
+        "row_number": 12,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "23559.60",
+        "tax": "1413.57"
+      },
+      {
+        "category": "clean",
+        "declared_total": "10045.11",
+        "discount": "855.67",
+        "expected_delta": "0.00",
+        "expected_total": "10045.11",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7002",
+          "vendor": "V-1038"
+        },
+        "invoice_date": "2026-06-07",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0004",
+        "raw_invoice_number": "INV-7002",
+        "raw_vendor_id": "V-1038",
+        "record_id": "R-0013",
+        "row_number": 13,
+        "shipping": "17.49",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "10883.29",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "6455.58",
+        "discount": "418.44",
+        "expected_delta": "0.00",
+        "expected_total": "6455.58",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40039",
+          "vendor": "V-1038"
+        },
+        "invoice_date": "2026-04-19",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0063",
+        "raw_invoice_number": "INV-40039",
+        "raw_vendor_id": "V-1038",
+        "record_id": "R-0014",
+        "row_number": 14,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "6350.14",
+        "tax": "523.88"
+      },
+      {
+        "category": "clean",
+        "declared_total": "19756.46",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "19756.46",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40017",
+          "vendor": "V-1015"
+        },
+        "invoice_date": "2026-03-19",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0041",
+        "raw_invoice_number": "INV-40017",
+        "raw_vendor_id": "V-1015",
+        "record_id": "R-0015",
+        "row_number": 15,
+        "shipping": "56.08",
+        "subcategory": "control",
+        "subtotal": "18585.27",
+        "tax": "1115.11"
+      },
+      {
+        "category": "clean",
+        "declared_total": "17247.97",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "17247.97",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40031",
+          "vendor": "V-1029"
+        },
+        "invoice_date": "2026-01-10",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0055",
+        "raw_invoice_number": "INV-40031",
+        "raw_vendor_id": "V-1029",
+        "record_id": "R-0016",
+        "row_number": 16,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "16271.67",
+        "tax": "976.30"
+      },
+      {
+        "category": "clean",
+        "declared_total": "1674.73",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1674.73",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40011",
+          "vendor": "V-1022"
+        },
+        "invoice_date": "2026-02-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0035",
+        "raw_invoice_number": "INV-40011",
+        "raw_vendor_id": "V-1022",
+        "record_id": "R-0017",
+        "row_number": 17,
+        "shipping": "50.23",
+        "subcategory": "control",
+        "subtotal": "1532.55",
+        "tax": "91.95"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24115.58",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24115.58",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40030",
+          "vendor": "V-1038"
+        },
+        "invoice_date": "2026-01-30",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0054",
+        "raw_invoice_number": "INV-40030",
+        "raw_vendor_id": "V-1038",
+        "record_id": "R-0018",
+        "row_number": 18,
+        "shipping": "30.94",
+        "subcategory": "control",
+        "subtotal": "22721.36",
+        "tax": "1363.28"
+      },
+      {
+        "category": "clean",
+        "declared_total": "7657.49",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "7657.49",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40016",
+          "vendor": "V-1016"
+        },
+        "invoice_date": "2026-01-09",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0040",
+        "raw_invoice_number": "INV-40016",
+        "raw_vendor_id": "V-1016",
+        "record_id": "R-0019",
+        "row_number": 19,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "7073.90",
+        "tax": "583.59"
+      },
+      {
+        "category": "clean",
+        "declared_total": "9890.39",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "9890.39",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40022",
+          "vendor": "V-1019"
+        },
+        "invoice_date": "2026-02-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0046",
+        "raw_invoice_number": "INV-40022",
+        "raw_vendor_id": "V-1019",
+        "record_id": "R-0020",
+        "row_number": 20,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "9136.62",
+        "tax": "753.77"
+      },
+      {
+        "category": "clean",
+        "declared_total": "8835.56",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "8835.56",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40054",
+          "vendor": "V-1039"
+        },
+        "invoice_date": "2026-01-23",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0078",
+        "raw_invoice_number": "INV-40054",
+        "raw_vendor_id": "V-1039",
+        "record_id": "R-0021",
+        "row_number": 21,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "8835.56",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "8900.70",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "8900.69",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40059",
+          "vendor": "V-1002"
+        },
+        "invoice_date": "2026-09-25",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0083",
+        "raw_invoice_number": "INV-40059",
+        "raw_vendor_id": "V-1002",
+        "record_id": "R-0022",
+        "row_number": 22,
+        "shipping": "40.86",
+        "subcategory": "one_cent_high",
+        "subtotal": "8859.83",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "4067.86",
+        "discount": "44.73",
+        "expected_delta": "0.00",
+        "expected_total": "4067.86",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40056",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-02-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0080",
+        "raw_invoice_number": "INV-40056",
+        "raw_vendor_id": "V-1006",
+        "record_id": "R-0023",
+        "row_number": 23,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "4112.59",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "2786.78",
+        "discount": "88.86",
+        "expected_delta": "-0.01",
+        "expected_total": "2786.79",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40062",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-09-27",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0086",
+        "raw_invoice_number": "INV-40062",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0024",
+        "row_number": 24,
+        "shipping": "64.46",
+        "subcategory": "one_cent_low",
+        "subtotal": "2652.07",
+        "tax": "159.12"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24631.20",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24631.20",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV01",
+          "vendor": "V-1031"
+        },
+        "invoice_date": "2026-01-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0018",
+        "raw_invoice_number": "INV01",
+        "raw_vendor_id": "V-1031",
+        "record_id": "R-0025",
+        "row_number": 25,
+        "shipping": "19.84",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "23218.27",
+        "tax": "1393.09"
+      },
+      {
+        "category": "clean",
+        "declared_total": "22926.84",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "22926.84",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-1",
+          "vendor": "V-1032"
+        },
+        "invoice_date": "2026-03-09",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0019",
+        "raw_invoice_number": "INV-1",
+        "raw_vendor_id": "V-1032",
+        "record_id": "R-0026",
+        "row_number": 26,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "21629.10",
+        "tax": "1297.74"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "4402.05",
+        "discount": "0.00",
+        "expected_delta": "-0.01",
+        "expected_total": "4402.06",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40064",
+          "vendor": "V-1012"
+        },
+        "invoice_date": "2026-06-30",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0088",
+        "raw_invoice_number": "INV-40064",
+        "raw_vendor_id": "V-1012",
+        "record_id": "R-0027",
+        "row_number": 27,
+        "shipping": "31.08",
+        "subcategory": "one_cent_low",
+        "subtotal": "4370.98",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12913.35",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12913.35",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40012",
+          "vendor": "V-1013"
+        },
+        "invoice_date": "2026-09-12",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0036",
+        "raw_invoice_number": "INV-40012",
+        "raw_vendor_id": "V-1013",
+        "record_id": "R-0028",
+        "row_number": 28,
+        "shipping": "5.71",
+        "subcategory": "control",
+        "subtotal": "11923.92",
+        "tax": "983.72"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24631.20",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24631.20",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-01",
+          "vendor": "V-1031"
+        },
+        "invoice_date": "2026-01-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0017",
+        "raw_invoice_number": "INV-01",
+        "raw_vendor_id": "V-1031",
+        "record_id": "R-0029",
+        "row_number": 29,
+        "shipping": "19.84",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "23218.27",
+        "tax": "1393.09"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12103.15",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12103.15",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7105",
+          "vendor": "V-1003"
+        },
+        "invoice_date": "2026-09-27",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0013",
+        "raw_invoice_number": "INV-7105",
+        "raw_vendor_id": "V-1003",
+        "record_id": "R-0030",
+        "row_number": 30,
+        "shipping": "47.36",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "11373.39",
+        "tax": "682.40"
+      },
+      {
+        "category": "clean",
+        "declared_total": "0.00",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "0.00",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40001",
+          "vendor": "V-1004"
+        },
+        "invoice_date": "2026-03-21",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0025",
+        "raw_invoice_number": "INV-40001",
+        "raw_vendor_id": "V-1004",
+        "record_id": "R-0031",
+        "row_number": 31,
+        "shipping": "0.00",
+        "subcategory": "zero_all_fields",
+        "subtotal": "0.00",
+        "tax": "0.00"
+      },
+      {
+        "category": "legitimate_reuse",
+        "declared_total": "1835.96",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1835.96",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-6002",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2025-06-30",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0109",
+        "raw_invoice_number": "INV-6002",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0032",
+        "row_number": 32,
+        "shipping": "14.17",
+        "subcategory": "same_key_different_period",
+        "subtotal": "1718.67",
+        "tax": "103.12"
+      },
+      {
+        "category": "clean",
+        "declared_total": "16682.19",
+        "discount": "412.12",
+        "expected_delta": "0.00",
+        "expected_total": "16682.19",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7004",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-02-18",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0008",
+        "raw_invoice_number": "INV-7004",
+        "raw_vendor_id": "V-1006",
+        "record_id": "R-0033",
+        "row_number": 33,
+        "shipping": "58.58",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "16071.45",
+        "tax": "964.28"
+      },
+      {
+        "category": "clean",
+        "declared_total": "11484.50",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "11484.50",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40044",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-08-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0068",
+        "raw_invoice_number": "INV-40044",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0034",
+        "row_number": 34,
+        "shipping": "7.94",
+        "subcategory": "control",
+        "subtotal": "10826.95",
+        "tax": "649.61"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "2878.45",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "2878.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40082",
+          "vendor": "V-1014"
+        },
+        "invoice_date": "2026-02-12",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0106",
+        "raw_invoice_number": "INV-40082",
+        "raw_vendor_id": "V-1014",
+        "record_id": "R-0035",
+        "row_number": 35,
+        "shipping": "20.55",
+        "subcategory": "genuine_repeat_both_one_cent_high",
+        "subtotal": "2857.89",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "26767.23",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "26767.23",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40050",
+          "vendor": "V-1040"
+        },
+        "invoice_date": "2026-01-10",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0074",
+        "raw_invoice_number": "INV-40050",
+        "raw_vendor_id": "V-1040",
+        "record_id": "R-0036",
+        "row_number": 36,
+        "shipping": "36.39",
+        "subcategory": "control",
+        "subtotal": "24693.62",
+        "tax": "2037.22"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12232.23",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12232.23",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40005",
+          "vendor": "V-1029"
+        },
+        "invoice_date": "2026-02-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0029",
+        "raw_invoice_number": "INV-40005",
+        "raw_vendor_id": "V-1029",
+        "record_id": "R-0037",
+        "row_number": 37,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "11539.84",
+        "tax": "692.39"
+      },
+      {
+        "category": "clean",
+        "declared_total": "26362.07",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "26362.07",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40036",
+          "vendor": "V-1012"
+        },
+        "invoice_date": "2026-08-10",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0060",
+        "raw_invoice_number": "INV-40036",
+        "raw_vendor_id": "V-1012",
+        "record_id": "R-0038",
+        "row_number": 38,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "24869.88",
+        "tax": "1492.19"
+      },
+      {
+        "category": "clean",
+        "declared_total": "4922.86",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "4922.86",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40035",
+          "vendor": "V-1023"
+        },
+        "invoice_date": "2026-09-06",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0059",
+        "raw_invoice_number": "INV-40035",
+        "raw_vendor_id": "V-1023",
+        "record_id": "R-0039",
+        "row_number": 39,
+        "shipping": "33.08",
+        "subcategory": "control",
+        "subtotal": "4889.78",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "4912.79",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "4912.79",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40076",
+          "vendor": "V-1021"
+        },
+        "invoice_date": "2026-07-07",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0100",
+        "raw_invoice_number": "INV-40076",
+        "raw_vendor_id": "V-1021",
+        "record_id": "R-0040",
+        "row_number": 40,
+        "shipping": "72.28",
+        "subcategory": "genuine_repeat",
+        "subtotal": "4471.61",
+        "tax": "368.90"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "24173.30",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24173.30",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40077",
+          "vendor": "V-1015"
+        },
+        "invoice_date": "2026-05-20",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0101",
+        "raw_invoice_number": "INV-40077",
+        "raw_vendor_id": "V-1015",
+        "record_id": "R-0041",
+        "row_number": 41,
+        "shipping": "29.35",
+        "subcategory": "genuine_repeat",
+        "subtotal": "24143.95",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "13105.35",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "13105.35",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40055",
+          "vendor": "V-1003"
+        },
+        "invoice_date": "2026-08-09",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0079",
+        "raw_invoice_number": "INV-40055",
+        "raw_vendor_id": "V-1003",
+        "record_id": "R-0042",
+        "row_number": 42,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "12363.54",
+        "tax": "741.81"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "14631.29",
+        "discount": "1429.34",
+        "expected_delta": "0.00",
+        "expected_total": "14631.29",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40073",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-06-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0097",
+        "raw_invoice_number": "INV-40073",
+        "raw_vendor_id": "V-1006",
+        "record_id": "R-0043",
+        "row_number": 43,
+        "shipping": "24.42",
+        "subcategory": "genuine_repeat",
+        "subtotal": "16036.21",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "13019.44",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "13019.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40026",
+          "vendor": "V-1028"
+        },
+        "invoice_date": "2026-05-08",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0050",
+        "raw_invoice_number": "INV-40026",
+        "raw_vendor_id": "V-1028",
+        "record_id": "R-0044",
+        "row_number": 44,
+        "shipping": "49.19",
+        "subcategory": "control",
+        "subtotal": "12236.09",
+        "tax": "734.16"
+      },
+      {
+        "category": "clean",
+        "declared_total": "1234.56",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1234.56",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40004",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-07-07",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0028",
+        "raw_invoice_number": "INV-40004",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0045",
+        "row_number": 45,
+        "shipping": "0.00",
+        "subcategory": "subtotal_only",
+        "subtotal": "1234.56",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "22255.58",
+        "discount": "1387.34",
+        "expected_delta": "0.00",
+        "expected_total": "22255.58",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40051",
+          "vendor": "V-1028"
+        },
+        "invoice_date": "2026-05-18",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0075",
+        "raw_invoice_number": "INV-40051",
+        "raw_vendor_id": "V-1028",
+        "record_id": "R-0046",
+        "row_number": 46,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "21841.04",
+        "tax": "1801.88"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "17225.88",
+        "discount": "342.52",
+        "expected_delta": "0.00",
+        "expected_total": "17225.88",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40079",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-05-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0103",
+        "raw_invoice_number": "INV-40079",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0047",
+        "row_number": 47,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "16229.47",
+        "tax": "1338.93"
+      },
+      {
+        "category": "clean",
+        "declared_total": "16976.06",
+        "discount": "395.90",
+        "expected_delta": "0.00",
+        "expected_total": "16976.06",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40019",
+          "vendor": "V-1030"
+        },
+        "invoice_date": "2026-05-01",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0043",
+        "raw_invoice_number": "INV-40019",
+        "raw_vendor_id": "V-1030",
+        "record_id": "R-0048",
+        "row_number": 48,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "16388.65",
+        "tax": "983.31"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "1326.82",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1326.82",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40078",
+          "vendor": "V-1023"
+        },
+        "invoice_date": "2026-08-11",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0102",
+        "raw_invoice_number": "INV-40078",
+        "raw_vendor_id": "V-1023",
+        "record_id": "R-0049",
+        "row_number": 49,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "1225.70",
+        "tax": "101.12"
+      },
+      {
+        "category": "clean",
+        "declared_total": "25200.22",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "25200.22",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40007",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-01-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0031",
+        "raw_invoice_number": "INV-40007",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0050",
+        "row_number": 50,
+        "shipping": "67.16",
+        "subcategory": "control",
+        "subtotal": "23217.61",
+        "tax": "1915.45"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12286.09",
+        "discount": "297.78",
+        "expected_delta": "0.00",
+        "expected_total": "12286.09",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40025",
+          "vendor": "V-1008"
+        },
+        "invoice_date": "2026-08-21",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0049",
+        "raw_invoice_number": "INV-40025",
+        "raw_vendor_id": "V-1008",
+        "record_id": "R-0051",
+        "row_number": 51,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "11624.83",
+        "tax": "959.04"
+      },
+      {
+        "category": "clean",
+        "declared_total": "5286.39",
+        "discount": "72.49",
+        "expected_delta": "0.00",
+        "expected_total": "5286.39",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7002",
+          "vendor": "V-1040"
+        },
+        "invoice_date": "2026-02-01",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0003",
+        "raw_invoice_number": "INV-7002",
+        "raw_vendor_id": "V-1040",
+        "record_id": "R-0052",
+        "row_number": 52,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "5055.55",
+        "tax": "303.33"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24930.71",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24930.71",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "PO-42",
+          "vendor": "V-1033"
+        },
+        "invoice_date": "2026-03-30",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0022",
+        "raw_invoice_number": "PO-42",
+        "raw_vendor_id": "V-1033",
+        "record_id": "R-0053",
+        "row_number": 53,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "23519.54",
+        "tax": "1411.17"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "20743.30",
+        "discount": "0.00",
+        "expected_delta": "-0.01",
+        "expected_total": "20743.31",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40063",
+          "vendor": "V-1030"
+        },
+        "invoice_date": "2026-08-06",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0087",
+        "raw_invoice_number": "INV-40063",
+        "raw_vendor_id": "V-1030",
+        "record_id": "R-0054",
+        "row_number": 54,
+        "shipping": "0.00",
+        "subcategory": "one_cent_low",
+        "subtotal": "20743.31",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24930.71",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24930.71",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "PO-0042",
+          "vendor": "V-1033"
+        },
+        "invoice_date": "2026-03-30",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0021",
+        "raw_invoice_number": "PO-0042",
+        "raw_vendor_id": "V-1033",
+        "record_id": "R-0055",
+        "row_number": 55,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "23519.54",
+        "tax": "1411.17"
+      },
+      {
+        "category": "clean",
+        "declared_total": "11741.40",
+        "discount": "1067.64",
+        "expected_delta": "0.00",
+        "expected_total": "11741.40",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7108",
+          "vendor": "V-1005"
+        },
+        "invoice_date": "2026-04-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0016",
+        "raw_invoice_number": "INV-7108",
+        "raw_vendor_id": "V-1005",
+        "record_id": "R-0056",
+        "row_number": 56,
+        "shipping": "22.76",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "11811.81",
+        "tax": "974.47"
+      },
+      {
+        "category": "clean",
+        "declared_total": "2130.50",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "2130.50",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40008",
+          "vendor": "V-1008"
+        },
+        "invoice_date": "2026-05-21",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0032",
+        "raw_invoice_number": "INV-40008",
+        "raw_vendor_id": "V-1008",
+        "record_id": "R-0057",
+        "row_number": 57,
+        "shipping": "61.48",
+        "subcategory": "control",
+        "subtotal": "1911.34",
+        "tax": "157.68"
+      },
+      {
+        "category": "legitimate_reuse",
+        "declared_total": "119.08",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "119.08",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-6001",
+          "vendor": "V-1036"
+        },
+        "invoice_date": "2025-03-31",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0107",
+        "raw_invoice_number": "INV-6001",
+        "raw_vendor_id": "V-1036",
+        "record_id": "R-0058",
+        "row_number": 58,
+        "shipping": "0.00",
+        "subcategory": "same_key_different_period",
+        "subtotal": "112.34",
+        "tax": "6.74"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12103.15",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12103.15",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7106",
+          "vendor": "V-1003"
+        },
+        "invoice_date": "2026-09-27",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0014",
+        "raw_invoice_number": "INV-7106",
+        "raw_vendor_id": "V-1003",
+        "record_id": "R-0059",
+        "row_number": 59,
+        "shipping": "47.36",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "11373.39",
+        "tax": "682.40"
+      },
+      {
+        "category": "clean",
+        "declared_total": "15015.00",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "15015.00",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40010",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2026-07-15",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0034",
+        "raw_invoice_number": "INV-40010",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0060",
+        "row_number": 60,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "13870.67",
+        "tax": "1144.33"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "6011.77",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "6011.77",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40075",
+          "vendor": "V-1012"
+        },
+        "invoice_date": "2026-09-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0099",
+        "raw_invoice_number": "INV-40075",
+        "raw_vendor_id": "V-1012",
+        "record_id": "R-0061",
+        "row_number": 61,
+        "shipping": "48.59",
+        "subcategory": "genuine_repeat",
+        "subtotal": "5625.65",
+        "tax": "337.53"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24992.24",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24992.24",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40034",
+          "vendor": "V-1021"
+        },
+        "invoice_date": "2026-08-23",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0058",
+        "raw_invoice_number": "INV-40034",
+        "raw_vendor_id": "V-1021",
+        "record_id": "R-0062",
+        "row_number": 62,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "23087.52",
+        "tax": "1904.72"
+      },
+      {
+        "category": "clean",
+        "declared_total": "11555.40",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "11555.40",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40029",
+          "vendor": "V-1005"
+        },
+        "invoice_date": "2026-02-11",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0053",
+        "raw_invoice_number": "INV-40029",
+        "raw_vendor_id": "V-1005",
+        "record_id": "R-0063",
+        "row_number": 63,
+        "shipping": "59.82",
+        "subcategory": "control",
+        "subtotal": "11495.58",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12673.86",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12673.86",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40038",
+          "vendor": "V-1039"
+        },
+        "invoice_date": "2026-07-25",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0062",
+        "raw_invoice_number": "INV-40038",
+        "raw_vendor_id": "V-1039",
+        "record_id": "R-0064",
+        "row_number": 64,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "11707.96",
+        "tax": "965.90"
+      },
+      {
+        "category": "clean",
+        "declared_total": "5375.73",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "5375.73",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40014",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-03-29",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0038",
+        "raw_invoice_number": "INV-40014",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0065",
+        "row_number": 65,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "4966.04",
+        "tax": "409.69"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "28519.15",
+        "discount": "2035.48",
+        "expected_delta": "+4070.96",
+        "expected_total": "24448.19",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40069",
+          "vendor": "V-1035"
+        },
+        "invoice_date": "2026-08-23",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0093",
+        "raw_invoice_number": "INV-40069",
+        "raw_vendor_id": "V-1035",
+        "record_id": "R-0066",
+        "row_number": 66,
+        "shipping": "0.00",
+        "subcategory": "discount_added",
+        "subtotal": "24984.60",
+        "tax": "1499.07"
+      },
+      {
+        "category": "clean",
+        "declared_total": "6016.34",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "6016.34",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40049",
+          "vendor": "V-1036"
+        },
+        "invoice_date": "2026-01-22",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0073",
+        "raw_invoice_number": "INV-40049",
+        "raw_vendor_id": "V-1036",
+        "record_id": "R-0067",
+        "row_number": 67,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "5557.82",
+        "tax": "458.52"
+      },
+      {
+        "category": "clean",
+        "declared_total": "15024.39",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "15024.39",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40048",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-02-15",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0072",
+        "raw_invoice_number": "INV-40048",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0068",
+        "row_number": 68,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "13879.35",
+        "tax": "1145.04"
+      },
+      {
+        "category": "clean",
+        "declared_total": "11292.28",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "11292.28",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40024",
+          "vendor": "V-1028"
+        },
+        "invoice_date": "2026-03-13",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0048",
+        "raw_invoice_number": "INV-40024",
+        "raw_vendor_id": "V-1028",
+        "record_id": "R-0069",
+        "row_number": 69,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "11292.28",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "14631.29",
+        "discount": "1429.34",
+        "expected_delta": "0.00",
+        "expected_total": "14631.29",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40073",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-06-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0097",
+        "raw_invoice_number": "INV-40073",
+        "raw_vendor_id": "v-1006",
+        "record_id": "R-0070",
+        "row_number": 70,
+        "shipping": "24.42",
+        "subcategory": "genuine_repeat",
+        "subtotal": "16036.21",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "16196.33",
+        "discount": "0.00",
+        "expected_delta": "-48.46",
+        "expected_total": "16244.79",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40067",
+          "vendor": "V-1027"
+        },
+        "invoice_date": "2026-01-05",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0091",
+        "raw_invoice_number": "INV-40067",
+        "raw_vendor_id": "V-1027",
+        "record_id": "R-0071",
+        "row_number": 71,
+        "shipping": "48.46",
+        "subcategory": "omitted_shipping",
+        "subtotal": "16196.33",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "13407.88",
+        "discount": "1201.03",
+        "expected_delta": "+2402.06",
+        "expected_total": "11005.82",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40071",
+          "vendor": "V-1001"
+        },
+        "invoice_date": "2026-03-01",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0095",
+        "raw_invoice_number": "INV-40071",
+        "raw_vendor_id": "V-1001",
+        "record_id": "R-0072",
+        "row_number": 72,
+        "shipping": "0.00",
+        "subcategory": "discount_added",
+        "subtotal": "12206.85",
+        "tax": "0.00"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "26808.72",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "26808.71",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40060",
+          "vendor": "V-1033"
+        },
+        "invoice_date": "2026-06-17",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0084",
+        "raw_invoice_number": "INV-40060",
+        "raw_vendor_id": "V-1033",
+        "record_id": "R-0073",
+        "row_number": 73,
+        "shipping": "0.00",
+        "subcategory": "one_cent_high",
+        "subtotal": "24765.56",
+        "tax": "2043.15"
+      },
+      {
+        "category": "clean",
+        "declared_total": "17637.41",
+        "discount": "142.28",
+        "expected_delta": "0.00",
+        "expected_total": "17637.41",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7001",
+          "vendor": "V-1025"
+        },
+        "invoice_date": "2026-09-04",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0002",
+        "raw_invoice_number": "INV-7001",
+        "raw_vendor_id": "V-1025",
+        "record_id": "R-0074",
+        "row_number": 74,
+        "shipping": "22.99",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "16751.61",
+        "tax": "1005.09"
+      },
+      {
+        "category": "clean",
+        "declared_total": "2967.82",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "2967.82",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40040",
+          "vendor": "V-1031"
+        },
+        "invoice_date": "2026-02-10",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0064",
+        "raw_invoice_number": "INV-40040",
+        "raw_vendor_id": "V-1031",
+        "record_id": "R-0075",
+        "row_number": 75,
+        "shipping": "64.25",
+        "subcategory": "control",
+        "subtotal": "2682.29",
+        "tax": "221.28"
+      },
+      {
+        "category": "clean",
+        "declared_total": "14652.57",
+        "discount": "774.97",
+        "expected_delta": "0.00",
+        "expected_total": "14652.57",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40020",
+          "vendor": "V-1018"
+        },
+        "invoice_date": "2026-08-08",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0044",
+        "raw_invoice_number": "INV-40020",
+        "raw_vendor_id": "V-1018",
+        "record_id": "R-0076",
+        "row_number": 76,
+        "shipping": "58.21",
+        "subcategory": "control",
+        "subtotal": "14198.00",
+        "tax": "1171.33"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "1374.05",
+        "discount": "120.58",
+        "expected_delta": "+241.16",
+        "expected_total": "1132.89",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40070",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2026-03-08",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0094",
+        "raw_invoice_number": "INV-40070",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0077",
+        "row_number": 77,
+        "shipping": "0.00",
+        "subcategory": "discount_added",
+        "subtotal": "1253.47",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "1326.82",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1326.82",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40078",
+          "vendor": "V-1023"
+        },
+        "invoice_date": "2026-08-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0102",
+        "raw_invoice_number": "INV-40078",
+        "raw_vendor_id": "V-1023",
+        "record_id": "R-0078",
+        "row_number": 78,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "1225.70",
+        "tax": "101.12"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "12493.06",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12493.06",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40074",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-08-19",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0098",
+        "raw_invoice_number": "INV-40074",
+        "raw_vendor_id": "V-1006",
+        "record_id": "R-0079",
+        "row_number": 79,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "11540.94",
+        "tax": "952.12"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "2878.45",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "2878.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40082",
+          "vendor": "V-1014"
+        },
+        "invoice_date": "2026-02-12",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0106",
+        "raw_invoice_number": "INV-40082",
+        "raw_vendor_id": "V-1014",
+        "record_id": "R-0080",
+        "row_number": 80,
+        "shipping": "20.55",
+        "subcategory": "genuine_repeat_both_one_cent_high",
+        "subtotal": "2857.89",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "10848.80",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "10848.80",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40032",
+          "vendor": "V-1037"
+        },
+        "invoice_date": "2026-03-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0056",
+        "raw_invoice_number": "INV-40032",
+        "raw_vendor_id": "V-1037",
+        "record_id": "R-0081",
+        "row_number": 81,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "10848.80",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "24173.30",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24173.30",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40077",
+          "vendor": "V-1015"
+        },
+        "invoice_date": "2026-05-20",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0101",
+        "raw_invoice_number": "  inv-40077 ",
+        "raw_vendor_id": "V-1015",
+        "record_id": "R-0082",
+        "row_number": 82,
+        "shipping": "29.35",
+        "subcategory": "genuine_repeat",
+        "subtotal": "24143.95",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "12493.06",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "12493.06",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40074",
+          "vendor": "V-1006"
+        },
+        "invoice_date": "2026-08-19",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0098",
+        "raw_invoice_number": "INV-40074",
+        "raw_vendor_id": "v-1006",
+        "record_id": "R-0083",
+        "row_number": 83,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "11540.94",
+        "tax": "952.12"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "13474.28",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "13474.27",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40058",
+          "vendor": "V-1018"
+        },
+        "invoice_date": "2026-07-26",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0082",
+        "raw_invoice_number": "INV-40058",
+        "raw_vendor_id": "V-1018",
+        "record_id": "R-0084",
+        "row_number": 84,
+        "shipping": "0.00",
+        "subcategory": "one_cent_high",
+        "subtotal": "12711.58",
+        "tax": "762.69"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24317.19",
+        "discount": "1664.26",
+        "expected_delta": "0.00",
+        "expected_total": "24317.19",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40023",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-09-14",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0047",
+        "raw_invoice_number": "INV-40023",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0085",
+        "row_number": 85,
+        "shipping": "69.73",
+        "subcategory": "control",
+        "subtotal": "23936.93",
+        "tax": "1974.79"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "22912.41",
+        "discount": "0.00",
+        "expected_delta": "-55.51",
+        "expected_total": "22967.92",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40066",
+          "vendor": "V-1010"
+        },
+        "invoice_date": "2026-04-30",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0090",
+        "raw_invoice_number": "INV-40066",
+        "raw_vendor_id": "V-1010",
+        "record_id": "R-0086",
+        "row_number": 86,
+        "shipping": "55.51",
+        "subcategory": "omitted_shipping",
+        "subtotal": "21615.49",
+        "tax": "1296.92"
+      },
+      {
+        "category": "clean",
+        "declared_total": "1927.17",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1927.17",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40021",
+          "vendor": "V-1008"
+        },
+        "invoice_date": "2026-03-20",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0045",
+        "raw_invoice_number": "INV-40021",
+        "raw_vendor_id": "V-1008",
+        "record_id": "R-0087",
+        "row_number": 87,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "1818.09",
+        "tax": "109.08"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "7138.03",
+        "discount": "0.00",
+        "expected_delta": "-64.33",
+        "expected_total": "7202.36",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40065",
+          "vendor": "V-1027"
+        },
+        "invoice_date": "2026-04-19",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0089",
+        "raw_invoice_number": "INV-40065",
+        "raw_vendor_id": "V-1027",
+        "record_id": "R-0088",
+        "row_number": 88,
+        "shipping": "64.33",
+        "subcategory": "omitted_shipping",
+        "subtotal": "7138.03",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "14660.31",
+        "discount": "1234.93",
+        "expected_delta": "0.00",
+        "expected_total": "14660.31",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40041",
+          "vendor": "V-1011"
+        },
+        "invoice_date": "2026-01-15",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0065",
+        "raw_invoice_number": "INV-40041",
+        "raw_vendor_id": "V-1011",
+        "record_id": "R-0089",
+        "row_number": 89,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "15895.24",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "27055.13",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "27055.13",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "2026-17",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-09-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0024",
+        "raw_invoice_number": "2026-17",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0090",
+        "row_number": 90,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "24993.20",
+        "tax": "2061.93"
+      },
+      {
+        "category": "clean",
+        "declared_total": "16962.59",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "16962.59",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7001",
+          "vendor": "V-1035"
+        },
+        "invoice_date": "2026-01-06",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0001",
+        "raw_invoice_number": "INV-7001",
+        "raw_vendor_id": "V-1035",
+        "record_id": "R-0091",
+        "row_number": 91,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "16002.45",
+        "tax": "960.14"
+      },
+      {
+        "category": "legitimate_reuse",
+        "declared_total": "10774.36",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "10774.36",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-6001",
+          "vendor": "V-1036"
+        },
+        "invoice_date": "2026-03-31",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0108",
+        "raw_invoice_number": "INV-6001",
+        "raw_vendor_id": "V-1036",
+        "record_id": "R-0092",
+        "row_number": 92,
+        "shipping": "0.00",
+        "subcategory": "same_key_different_period",
+        "subtotal": "10774.36",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "6011.77",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "6011.77",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40075",
+          "vendor": "V-1012"
+        },
+        "invoice_date": "2026-09-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0099",
+        "raw_invoice_number": "INV-40075",
+        "raw_vendor_id": "v-1012",
+        "record_id": "R-0093",
+        "row_number": 93,
+        "shipping": "48.59",
+        "subcategory": "genuine_repeat",
+        "subtotal": "5625.65",
+        "tax": "337.53"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "19372.19",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "19372.19",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40080",
+          "vendor": "V-1017"
+        },
+        "invoice_date": "2026-01-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0104",
+        "raw_invoice_number": "INV-40080",
+        "raw_vendor_id": "V-1017",
+        "record_id": "R-0094",
+        "row_number": 94,
+        "shipping": "12.80",
+        "subcategory": "genuine_repeat",
+        "subtotal": "17883.97",
+        "tax": "1475.42"
+      },
+      {
+        "category": "clean",
+        "declared_total": "1279.24",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1279.24",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7101",
+          "vendor": "V-1022"
+        },
+        "invoice_date": "2026-05-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0009",
+        "raw_invoice_number": "INV-7101",
+        "raw_vendor_id": "V-1022",
+        "record_id": "R-0095",
+        "row_number": 95,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "1279.24",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "10616.45",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "10616.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40081",
+          "vendor": "V-1002"
+        },
+        "invoice_date": "2026-03-16",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0105",
+        "raw_invoice_number": "INV-40081",
+        "raw_vendor_id": "V-1002",
+        "record_id": "R-0096",
+        "row_number": 96,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat_both_one_cent_high",
+        "subtotal": "10015.51",
+        "tax": "600.93"
+      },
+      {
+        "category": "clean",
+        "declared_total": "18973.98",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "18973.98",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40052",
+          "vendor": "V-1011"
+        },
+        "invoice_date": "2026-05-09",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0076",
+        "raw_invoice_number": "INV-40052",
+        "raw_vendor_id": "V-1011",
+        "record_id": "R-0097",
+        "row_number": 97,
+        "shipping": "22.63",
+        "subcategory": "control",
+        "subtotal": "17507.03",
+        "tax": "1444.32"
+      },
+      {
+        "category": "clean",
+        "declared_total": "27055.13",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "27055.13",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "2026_17",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-09-03",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0023",
+        "raw_invoice_number": "2026_17",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0098",
+        "row_number": 98,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "24993.20",
+        "tax": "2061.93"
+      },
+      {
+        "category": "clean",
+        "declared_total": "14503.50",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "14503.50",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7103",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-05-04",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0011",
+        "raw_invoice_number": "INV-7103",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0099",
+        "row_number": 99,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "13682.55",
+        "tax": "820.95"
+      },
+      {
+        "category": "clean",
+        "declared_total": "23670.75",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "23670.75",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7004",
+          "vendor": "V-1030"
+        },
+        "invoice_date": "2026-02-21",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0007",
+        "raw_invoice_number": "INV-7004",
+        "raw_vendor_id": "V-1030",
+        "record_id": "R-0100",
+        "row_number": 100,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "23670.75",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "15431.15",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "15431.15",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40037",
+          "vendor": "V-1012"
+        },
+        "invoice_date": "2026-04-22",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0061",
+        "raw_invoice_number": "INV-40037",
+        "raw_vendor_id": "V-1012",
+        "record_id": "R-0101",
+        "row_number": 101,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "14557.69",
+        "tax": "873.46"
+      },
+      {
+        "category": "clean",
+        "declared_total": "24038.88",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "24038.88",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40046",
+          "vendor": "V-1030"
+        },
+        "invoice_date": "2026-08-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0070",
+        "raw_invoice_number": "INV-40046",
+        "raw_vendor_id": "V-1030",
+        "record_id": "R-0102",
+        "row_number": 102,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "22678.19",
+        "tax": "1360.69"
+      },
+      {
+        "category": "clean",
+        "declared_total": "1279.24",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "1279.24",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7102",
+          "vendor": "V-1022"
+        },
+        "invoice_date": "2026-05-17",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0010",
+        "raw_invoice_number": "INV-7102",
+        "raw_vendor_id": "V-1022",
+        "record_id": "R-0103",
+        "row_number": 103,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "1279.24",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "22926.84",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "22926.84",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-001",
+          "vendor": "V-1032"
+        },
+        "invoice_date": "2026-03-09",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0020",
+        "raw_invoice_number": "INV-001",
+        "raw_vendor_id": "V-1032",
+        "record_id": "R-0104",
+        "row_number": 104,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_punctuation_leading_zero",
+        "subtotal": "21629.10",
+        "tax": "1297.74"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "26097.55",
+        "discount": "1515.43",
+        "expected_delta": "+3030.86",
+        "expected_total": "23066.69",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40072",
+          "vendor": "V-1018"
+        },
+        "invoice_date": "2026-04-20",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0096",
+        "raw_invoice_number": "INV-40072",
+        "raw_vendor_id": "V-1018",
+        "record_id": "R-0105",
+        "row_number": 105,
+        "shipping": "0.00",
+        "subcategory": "discount_added",
+        "subtotal": "24582.12",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "8358.81",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "8358.81",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40045",
+          "vendor": "V-1011"
+        },
+        "invoice_date": "2026-09-13",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0069",
+        "raw_invoice_number": "INV-40045",
+        "raw_vendor_id": "V-1011",
+        "record_id": "R-0106",
+        "row_number": 106,
+        "shipping": "41.85",
+        "subcategory": "control",
+        "subtotal": "7846.19",
+        "tax": "470.77"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "15780.93",
+        "discount": "0.00",
+        "expected_delta": "-60.60",
+        "expected_total": "15841.53",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40068",
+          "vendor": "V-1038"
+        },
+        "invoice_date": "2026-01-11",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0092",
+        "raw_invoice_number": "INV-40068",
+        "raw_vendor_id": "V-1038",
+        "record_id": "R-0107",
+        "row_number": 107,
+        "shipping": "60.60",
+        "subcategory": "omitted_shipping",
+        "subtotal": "15780.93",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "12335.95",
+        "discount": "398.25",
+        "expected_delta": "0.00",
+        "expected_total": "12335.95",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7003",
+          "vendor": "V-1008"
+        },
+        "invoice_date": "2026-07-07",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0006",
+        "raw_invoice_number": "INV-7003",
+        "raw_vendor_id": "V-1008",
+        "record_id": "R-0108",
+        "row_number": 108,
+        "shipping": "17.48",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "11747.55",
+        "tax": "969.17"
+      },
+      {
+        "category": "clean",
+        "declared_total": "11741.40",
+        "discount": "1067.64",
+        "expected_delta": "0.00",
+        "expected_total": "11741.40",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7107",
+          "vendor": "V-1005"
+        },
+        "invoice_date": "2026-04-16",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0015",
+        "raw_invoice_number": "INV-7107",
+        "raw_vendor_id": "V-1005",
+        "record_id": "R-0109",
+        "row_number": 109,
+        "shipping": "22.76",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "11811.81",
+        "tax": "974.47"
+      },
+      {
+        "category": "clean",
+        "declared_total": "9863.37",
+        "discount": "771.59",
+        "expected_delta": "0.00",
+        "expected_total": "9863.37",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7003",
+          "vendor": "V-1004"
+        },
+        "invoice_date": "2026-01-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0005",
+        "raw_invoice_number": "INV-7003",
+        "raw_vendor_id": "V-1004",
+        "record_id": "R-0110",
+        "row_number": 110,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_number_diff_vendor",
+        "subtotal": "10634.96",
+        "tax": "0.00"
+      },
+      {
+        "category": "clean",
+        "declared_total": "14825.76",
+        "discount": "1276.49",
+        "expected_delta": "0.00",
+        "expected_total": "14825.76",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40043",
+          "vendor": "V-1017"
+        },
+        "invoice_date": "2026-01-06",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0067",
+        "raw_invoice_number": "INV-40043",
+        "raw_vendor_id": "V-1017",
+        "record_id": "R-0111",
+        "row_number": 111,
+        "shipping": "61.28",
+        "subcategory": "control",
+        "subtotal": "16040.97",
+        "tax": "0.00"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "19372.19",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "19372.19",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40080",
+          "vendor": "V-1017"
+        },
+        "invoice_date": "2026-01-26",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0104",
+        "raw_invoice_number": "INV-40080",
+        "raw_vendor_id": "V-1017",
+        "record_id": "R-0112",
+        "row_number": 112,
+        "shipping": "12.80",
+        "subcategory": "genuine_repeat",
+        "subtotal": "17883.97",
+        "tax": "1475.42"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "10616.45",
+        "discount": "0.00",
+        "expected_delta": "+0.01",
+        "expected_total": "10616.44",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40081",
+          "vendor": "V-1002"
+        },
+        "invoice_date": "2026-03-16",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0105",
+        "raw_invoice_number": "INV-40081",
+        "raw_vendor_id": "V-1002",
+        "record_id": "R-0113",
+        "row_number": 113,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat_both_one_cent_high",
+        "subtotal": "10015.51",
+        "tax": "600.93"
+      },
+      {
+        "category": "clean",
+        "declared_total": "20341.00",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "20341.00",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40027",
+          "vendor": "V-1014"
+        },
+        "invoice_date": "2026-06-15",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0051",
+        "raw_invoice_number": "INV-40027",
+        "raw_vendor_id": "V-1014",
+        "record_id": "R-0114",
+        "row_number": 114,
+        "shipping": "0.00",
+        "subcategory": "control",
+        "subtotal": "18790.77",
+        "tax": "1550.23"
+      },
+      {
+        "category": "clean",
+        "declared_total": "14503.50",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "14503.50",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-7104",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-05-04",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0012",
+        "raw_invoice_number": "INV-7104",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0115",
+        "row_number": 115,
+        "shipping": "0.00",
+        "subcategory": "hard_negative_same_vendor_date_amount",
+        "subtotal": "13682.55",
+        "tax": "820.95"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "17225.88",
+        "discount": "342.52",
+        "expected_delta": "0.00",
+        "expected_total": "17225.88",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40079",
+          "vendor": "V-1034"
+        },
+        "invoice_date": "2026-06-20",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0103",
+        "raw_invoice_number": "INV-40079",
+        "raw_vendor_id": "V-1034",
+        "record_id": "R-0116",
+        "row_number": 116,
+        "shipping": "0.00",
+        "subcategory": "genuine_repeat",
+        "subtotal": "16229.47",
+        "tax": "1338.93"
+      },
+      {
+        "category": "duplicate_genuine",
+        "declared_total": "4912.79",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "4912.79",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40076",
+          "vendor": "V-1021"
+        },
+        "invoice_date": "2026-07-07",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0100",
+        "raw_invoice_number": "  inv-40076 ",
+        "raw_vendor_id": "V-1021",
+        "record_id": "R-0117",
+        "row_number": 117,
+        "shipping": "72.28",
+        "subcategory": "genuine_repeat",
+        "subtotal": "4471.61",
+        "tax": "368.90"
+      },
+      {
+        "category": "mismatch",
+        "declared_total": "20810.41",
+        "discount": "88.53",
+        "expected_delta": "+0.01",
+        "expected_total": "20810.40",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40057",
+          "vendor": "V-1018"
+        },
+        "invoice_date": "2026-06-14",
+        "is_mismatch": true,
+        "obligation_id": "OBL-0081",
+        "raw_invoice_number": "INV-40057",
+        "raw_vendor_id": "V-1018",
+        "record_id": "R-0118",
+        "row_number": 118,
+        "shipping": "51.99",
+        "subcategory": "one_cent_high",
+        "subtotal": "19666.93",
+        "tax": "1180.01"
+      },
+      {
+        "category": "clean",
+        "declared_total": "0.30",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "0.30",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40002",
+          "vendor": "V-1025"
+        },
+        "invoice_date": "2026-05-08",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0026",
+        "raw_invoice_number": "INV-40002",
+        "raw_vendor_id": "V-1025",
+        "record_id": "R-0119",
+        "row_number": 119,
+        "shipping": "0.00",
+        "subcategory": "decimal_control_0.10+0.20=0.30",
+        "subtotal": "0.10",
+        "tax": "0.20"
+      },
+      {
+        "category": "clean",
+        "declared_total": "13746.62",
+        "discount": "0.00",
+        "expected_delta": "0.00",
+        "expected_total": "13746.62",
+        "intended_key": {
+          "currency": "USD",
+          "invoice": "INV-40006",
+          "vendor": "V-1011"
+        },
+        "invoice_date": "2026-04-25",
+        "is_mismatch": false,
+        "obligation_id": "OBL-0030",
+        "raw_invoice_number": "INV-40006",
+        "raw_vendor_id": "V-1011",
+        "record_id": "R-0120",
+        "row_number": 120,
+        "shipping": "35.08",
+        "subcategory": "control",
+        "subtotal": "13711.54",
+        "tax": "0.00"
+      }
+    ]
+  },
+  "normalization": "trim outer ASCII whitespace (space, \\t, \\n, \\r, \\x0b, \\x0c); uppercase ASCII a-z only; punctuation and leading zeros preserved; key = (vendor_id, invoice_number, currency)",
+  "seed": 20261021,
+  "synthetic": "SYNTHETIC DATA - invented figures, not real financial records",
+  "version": "invoice-fixtures-v1"
+}

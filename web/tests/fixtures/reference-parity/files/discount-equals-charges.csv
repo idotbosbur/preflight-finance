@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+P-0001,V-7,INV-7,2026-04-01,USD,5.00,3.00,2.00,10.00,0.00

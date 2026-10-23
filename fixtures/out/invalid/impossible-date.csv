@@ -1,0 +1,2 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,tax,shipping,discount,total
+X-0007,V-2007,INV-90007,2026-02-30,USD,266.66,15.99,0.00,0.00,282.65

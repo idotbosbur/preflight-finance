@@ -1,0 +1,4 @@
+record_id,vendor_id,invoice_number,invoice_date,currency,subtotal,subtotal,shipping,discount,total
+S-0001,V-3001,INV-30001,2026-05-01,USD,100.00,6.00,0.00,0.00,106.00
+S-0002,V-3002,INV-30002,2026-05-01,USD,125.00,7.50,0.00,0.00,132.50
+S-0003,V-3003,INV-30003,2026-05-01,USD,150.00,9.00,0.00,0.00,159.00
