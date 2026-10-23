@@ -40,6 +40,9 @@ export interface ImportMeta {
   readonly expectedResetGeneration?: number;
 }
 
+export const OWN_DELETED_MESSAGE =
+  "Your data was deleted while this file was importing, so nothing was imported. Import the file again if you still want it.";
+
 export const STALE_IMPORT_MESSAGE =
   "The demo data was reset while this import was running, so nothing was imported. Import the file again if you still want it.";
 
@@ -74,7 +77,9 @@ export interface ReviewStore {
    * Own-data workspace: unions `rows` into the single OWN_BATCH_ID batch by recordId and replaces its
    * findings with `findings` (computed by the caller over the whole workspace), keeping decided ones.
    */
-  mergeOwn(rows: readonly Invoice[], findings: readonly Finding[], file: OwnFileRecord, now: string, expectedResetGeneration: number): Promise<OwnMergeOutcome>;
+  mergeOwn(rows: readonly Invoice[], findings: readonly Finding[], file: OwnFileRecord, now: string, expectedResetGeneration: number, expectedOwnGeneration: number): Promise<OwnMergeOutcome>;
+  /** Bumped by deleteOwnData (the demo reset generation is untouched); lets an in-flight own import notice a delete. */
+  getOwnGeneration(): Promise<number>;
   /** Stored own-workspace rows (empty when none), so the caller can rerun the rules over the union. */
   listOwnRows(): Promise<OwnInvoice[]>;
   listOwnFiles(): Promise<OwnFileRecord[]>;
@@ -198,7 +203,9 @@ export function planOwnMerge(
     invoices.push(serializeInvoice(r));
     added += 1;
   }
-  const files = [...(existing?.files ?? []).filter((f) => f.fileSha256 !== file.fileSha256), { ...file, rowsAdded: added }];
+  // Re-importing a known file keeps its original record (rowsAdded, importedAt).
+  const prevFiles = existing?.files ?? [];
+  const files = prevFiles.some((f) => f.fileSha256 === file.fileSha256) ? prevFiles : [...prevFiles, { ...file, rowsAdded: added }];
   const batch: BatchRecord = {
     schemaVersion: SCHEMA_VERSION, contractsVersion: WEB_CONTRACTS_VERSION, batchId: OWN_BATCH_ID, fileSha256: "",
     displayName: "Your data", source: "own", ruleset: "invoice-v1", importedAt: now, rowCount: invoices.length,

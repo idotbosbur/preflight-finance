@@ -11,7 +11,7 @@ import type {
 } from "../domain/contracts.ts";
 import { compareCases, validateDecision } from "./review.ts";
 import {
-  STALE_IMPORT_MESSAGE, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
+  OWN_DELETED_MESSAGE, STALE_IMPORT_MESSAGE, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
   planOwnMerge, summarize, toFindingView,
 } from "./store.ts";
 import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore } from "./store.ts";
@@ -19,6 +19,7 @@ import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewSto
 export const DB_NAME = "preflight-demo";
 export const DB_VERSION = 1;
 const META_KEY = "resetGeneration";
+const OWN_META_KEY = "ownGeneration";
 
 function friendly(err: unknown): string {
   const name = (err as { name?: string } | null)?.name;
@@ -218,16 +219,21 @@ function wrap(db: IDBDatabase): ReviewStore {
       }
     },
 
-    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration): Promise<OwnMergeOutcome> {
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration): Promise<OwnMergeOutcome> {
       try {
         const outcome = await run<OwnMergeOutcome>(["meta", "batches", "findings"], "readwrite", (tx, set) => {
           const metaReq = tx.objectStore("meta").get(META_KEY);
+          const ownMetaReq = tx.objectStore("meta").get(OWN_META_KEY);
           const batchReq = tx.objectStore("batches").get(OWN_BATCH_ID);
           const oldReq = tx.objectStore("findings").index("byBatch").getAll(OWN_BATCH_ID);
           oldReq.onsuccess = () => {
             const generation = genOf(metaReq.result);
             if (expectedResetGeneration !== generation) {
               set({ status: "storage_error", message: STALE_IMPORT_MESSAGE });
+              return;
+            }
+            if (expectedOwnGeneration !== genOf(ownMetaReq.result)) {
+              set({ status: "storage_error", message: OWN_DELETED_MESSAGE });
               return;
             }
             const plan = planOwnMerge(batchReq.result as BatchRecord | undefined, oldReq.result as FindingRecord[],
@@ -246,6 +252,13 @@ function wrap(db: IDBDatabase): ReviewStore {
       }
     },
 
+    getOwnGeneration() {
+      return run<number>(["meta"], "readonly", (tx, set) => {
+        const r = tx.objectStore("meta").get(OWN_META_KEY);
+        r.onsuccess = () => set(genOf(r.result));
+      });
+    },
+
     async listOwnRows() {
       return ((await readOwnBatch())?.invoices ?? []).map(deserializeOwnInvoice);
     },
@@ -256,10 +269,12 @@ function wrap(db: IDBDatabase): ReviewStore {
 
     async deleteOwnData() {
       try {
-        await run<true>(["batches", "findings", "events"], "readwrite", (tx, set) => {
+        await run<true>(["meta", "batches", "findings", "events"], "readwrite", (tx, set) => {
+          const metaReq = tx.objectStore("meta").get(OWN_META_KEY);
           tx.objectStore("batches").delete(OWN_BATCH_ID);
           const keys = tx.objectStore("findings").index("byBatch").getAllKeys(OWN_BATCH_ID);
           keys.onsuccess = () => {
+            tx.objectStore("meta").put({ key: OWN_META_KEY, value: genOf(metaReq.result) + 1 });
             const evIndex = tx.objectStore("events").index("byFinding");
             for (const k of keys.result) {
               tx.objectStore("findings").delete(k);

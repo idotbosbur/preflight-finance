@@ -14,6 +14,8 @@ import { runOwnRules } from "../domain/rules.ts";
 import { safeDisplayName } from "./importer.ts";
 import type { OwnMergeOutcome, ReviewStore } from "./store.ts";
 
+const STORAGE_MESSAGE = "Browser storage failed, so nothing was imported.";
+
 export type OwnParseError = Extract<OwnParseResult, { error: unknown }>;
 
 const encoder = new TextEncoder();
@@ -31,31 +33,35 @@ export async function importOwnFile(
   opts: { displayName: string; dateOrder: DateOrder | null; now: string; expectedResetGeneration: number },
 ): Promise<OwnMergeOutcome | OwnParseError> {
   const displayName = safeDisplayName(opts.displayName);
-  try {
-    const parsed = buildOwnRows(bytes, mapping, { dateOrder: opts.dateOrder, fileLabel: displayName });
-    if ("error" in parsed) return parsed;
-    const fileSha256 = await sha256Hex(bytes);
-    const seenInFile = new Map<string, number>();
-    const rows: OwnInvoice[] = [];
-    for (const inv of parsed.invoices) {
-      const content = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total].join("|");
-      const occurrence = seenInFile.get(content) ?? 0;
-      seenInFile.set(content, occurrence + 1);
-      const recordId = await contentRecordId(inv, occurrence);
-      const raw = [...inv.raw];
-      raw[0] = recordId;
-      rows.push({ ...inv, recordId, raw });
-    }
-    const all = new Map((await store.listOwnRows()).map((r) => [r.recordId, r] as const));
-    for (const r of rows) if (!all.has(r.recordId)) all.set(r.recordId, r);
-    const findings: Finding[] = [];
-    for (const c of runOwnRules([...all.values()])) {
-      findings.push({ ...c, findingId: await makeFindingId(c.ruleId, c.ruleVersion, c.memberIds) });
-    }
-    return await store.mergeOwn(rows, findings,
-      { fileSha256, displayName, importedAt: opts.now, rowsAdded: 0, rowsSkipped: parsed.skipped.length },
-      opts.now, opts.expectedResetGeneration);
-  } catch (err) {
-    return { status: "storage_error", message: err instanceof Error ? err.message : "Import failed." };
+  const parsed = buildOwnRows(bytes, mapping, { dateOrder: opts.dateOrder, fileLabel: displayName });
+  if ("error" in parsed) return parsed;
+  const fileSha256 = await sha256Hex(bytes);
+  const seenInFile = new Map<string, number>();
+  const rows: OwnInvoice[] = [];
+  for (const inv of parsed.invoices) {
+    const content = [inv.vendorNorm, inv.invoiceNorm, inv.invoiceDate, inv.total].join("|");
+    const occurrence = seenInFile.get(content) ?? 0;
+    seenInFile.set(content, occurrence + 1);
+    const recordId = await contentRecordId(inv, occurrence);
+    const raw = [...inv.raw];
+    raw[0] = recordId;
+    rows.push({ ...inv, recordId, raw });
   }
+  // Capture the own generation BEFORE reading rows: a delete in between makes mergeOwn refuse.
+  let ownGeneration: number;
+  const all = new Map<string, OwnInvoice>();
+  try {
+    ownGeneration = await store.getOwnGeneration();
+    for (const r of await store.listOwnRows()) all.set(r.recordId, r);
+  } catch {
+    return { status: "storage_error", message: STORAGE_MESSAGE };
+  }
+  for (const r of rows) if (!all.has(r.recordId)) all.set(r.recordId, r);
+  const findings: Finding[] = [];
+  for (const c of runOwnRules([...all.values()])) {
+    findings.push({ ...c, findingId: await makeFindingId(c.ruleId, c.ruleVersion, c.memberIds) });
+  }
+  return store.mergeOwn(rows, findings,
+    { fileSha256, displayName, importedAt: opts.now, rowsAdded: 0, rowsSkipped: parsed.skipped.length },
+    opts.now, opts.expectedResetGeneration, ownGeneration);
 }

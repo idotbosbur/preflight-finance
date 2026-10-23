@@ -70,12 +70,19 @@ function suite(name: string, make: () => Promise<ReviewStore>) {
 
     test("deleteOwnData removes own batch, findings and events but leaves the demo batch", async () => {
       const s = await make();
-      const demoRow: Invoice = {
-        recordId: "R-1", rowNumber: 1, raw: [], vendorNorm: "V", invoiceNorm: "I", invoiceDate: "2026-01-01",
+      const demoRow = (id: string): Invoice => ({
+        recordId: id, rowNumber: 1, raw: [], vendorNorm: "V", invoiceNorm: "I", invoiceDate: "2026-01-01",
         currency: "USD", subtotal: 0, tax: 0, shipping: 0, discount: 0, total: 100,
-      };
-      const demo = await finalizeBatch(enc("demo"), [demoRow], []);
+      });
+      const demo = await finalizeBatch(enc("demo"), [demoRow("R-1"), demoRow("R-2")], [
+        { ruleId: RULE_DUPLICATE, ruleVersion: "invoice-v1", memberIds: ["R-1", "R-2"],
+          evidence: { kind: RULE_DUPLICATE, key: { vendor: "V", invoice: "I", currency: "USD" }, members: [] } },
+      ]);
       assert.equal((await s.importPrepared(demo, { displayName: "demo.csv", source: "demo", now: NOW })).status, "created");
+      assert.equal((await s.saveDecision({
+        batchId: demo.batchId, findingId: demo.findings[0]!.findingId, action: "confirm", reason: "demo", reviewer: "Me",
+        expected: { sequence: 0, resetGeneration: 0 },
+      }, NOW)).status, "saved");
       await own(s, JAN, "jan.csv");
       const f = (await s.listFindings(OWN_BATCH_ID))[0]!;
       await s.saveDecision({
@@ -85,6 +92,9 @@ function suite(name: string, make: () => Promise<ReviewStore>) {
 
       assert.deepEqual(await s.deleteOwnData(), { ok: true });
       assert.deepEqual((await s.listBatches()).map((b) => b.batchId), [demo.batchId]);
+      const demoCase = await s.getCase(demo.batchId, demo.findings[0]!.findingId);
+      assert.equal(demoCase?.finding.state, "confirmed");
+      assert.equal(demoCase?.history.length, 1);
       assert.deepEqual(await s.listFindings(OWN_BATCH_ID), []);
       assert.equal(await s.getCase(OWN_BATCH_ID, f.findingId), null);
       assert.deepEqual(await s.listOwnRows(), []);
@@ -102,6 +112,65 @@ function suite(name: string, make: () => Promise<ReviewStore>) {
       const out = await importOwnFile(s, enc(JAN), MAPPING, { displayName: "jan.csv", dateOrder: null, now: NOW, expectedResetGeneration });
       assert.ok("status" in out && out.status === "storage_error");
       assert.deepEqual(await s.listOwnRows(), []);
+      s.close();
+    });
+
+    test("a finding that is reproduced keeps its state, sequence and history", async () => {
+      const s = await make();
+      await own(s, JAN, "jan.csv");
+      await own(s, FEB, "feb.csv");
+      const febRow = (await s.listOwnRows()).find((r) => r.invoiceDate === "2026-02-03")!;
+      const group = (await s.listFindings(OWN_BATCH_ID)).find((f) => f.ruleId === RULE_DUPLICATE && f.memberIds.includes(febRow.recordId))!;
+      assert.equal((await s.saveDecision({
+        batchId: OWN_BATCH_ID, findingId: group.findingId, action: "dismiss", reason: "fine", reviewer: "Me",
+        expected: { sequence: 0, resetGeneration: 0 },
+      }, NOW)).status, "saved");
+      // Third import reproduces the same group; it must stay dismissed (also in the summary).
+      const again = await own(s, FEB + "Delta,INV-7,2026-02-09,10.00\n", "feb2.csv");
+      assert.equal(again.batch.dismissedCount, 1);
+      const kept = await s.getCase(OWN_BATCH_ID, group.findingId);
+      assert.equal(kept?.finding.state, "dismissed");
+      assert.equal(kept?.finding.sequence, 1);
+      assert.equal(kept?.history.length, 1);
+      s.close();
+    });
+
+    test("an open finding that is no longer reproduced is dropped", async () => {
+      const s = await make();
+      await own(s, JAN, "jan.csv");
+      const pair = (await s.listFindings(OWN_BATCH_ID)).find((f) => f.ruleId === RULE_DUPLICATE)!;
+      await own(s, FEB, "feb.csv"); // the pair becomes a 3-member group; the open pair is gone
+      assert.equal(await s.getCase(OWN_BATCH_ID, pair.findingId), null);
+      assert.ok(!(await s.listFindings(OWN_BATCH_ID)).some((f) => f.findingId === pair.findingId));
+      s.close();
+    });
+
+    test("deleting own data while a file is importing stores nothing", async () => {
+      const s = await make();
+      const racing: ReviewStore = {
+        ...s,
+        listOwnRows: async () => { const rows = await s.listOwnRows(); await s.deleteOwnData(); return rows; },
+      };
+      const out = await importOwnFile(racing, enc(JAN), MAPPING, {
+        displayName: "jan.csv", dateOrder: null, now: NOW, expectedResetGeneration: await s.getResetGeneration(),
+      });
+      assert.ok("status" in out && out.status === "storage_error");
+      assert.match((out as { message: string }).message, /deleted while this file was importing/);
+      assert.deepEqual(await s.listOwnRows(), []);
+      assert.deepEqual(await s.listFindings(OWN_BATCH_ID), []);
+      assert.equal((await s.listBatches()).length, 0);
+      s.close();
+    });
+
+    test("re-importing a known file keeps its original file record", async () => {
+      const s = await make();
+      await own(s, JAN, "jan.csv");
+      await importOwnFile(s, enc(JAN), MAPPING, {
+        displayName: "jan.csv", dateOrder: null, now: "2026-11-01T00:00:00Z", expectedResetGeneration: 0,
+      });
+      const [f] = await s.listOwnFiles();
+      assert.equal(f?.rowsAdded, 3);
+      assert.equal(f?.importedAt, NOW);
       s.close();
     });
 
