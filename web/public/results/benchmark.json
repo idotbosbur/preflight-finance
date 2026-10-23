@@ -6,7 +6,7 @@
   "runs": [
     {
       "source": "browser-port",
-      "runAt": "2026-10-23T18:30:33Z",
+      "runAt": "2026-10-23T20:07:25Z",
       "command": "node tests/evaluation/benchmark.ts",
       "checksPassed": 233,
       "checksTotal": 233,
@@ -38,7 +38,7 @@
     },
     {
       "source": "python-reference",
-      "runAt": "2026-10-23T18:30:33Z",
+      "runAt": "2026-10-23T20:07:25Z",
       "command": "python -m tests.evaluation.evaluate",
       "checksPassed": 263,
       "checksTotal": 263,
@@ -70,6 +70,12 @@
       "referenceTests": 110
     }
   ],
+  "nearDuplicate": {
+    "pairsLabelled": 18,
+    "tp": 5,
+    "fp": 2,
+    "fn": 1
+  },
   "limitations": [
     "Duplicate detection is within one batch only: a duplicate split across two uploaded files is not detected (known limitation, asserted by the split-batch fixtures).",
     "Synthetic, self-constructed benchmark: invented figures generated and labelled within the same AI-assisted build that wrote the rules; it says nothing about real-world accuracy, fraud detection or money saved.",

@@ -69,7 +69,7 @@ export interface SerializedInvoice {
   readonly vendorNorm: string;
   readonly invoiceNorm: string;
   readonly invoiceDate: string;
-  readonly currency: "USD";
+  readonly currency: string;
   readonly subtotal: string;
   readonly tax: string;
   readonly shipping: string;
@@ -127,7 +127,7 @@ export function serializeInvoice(inv: Invoice): SerializedInvoice {
 export function deserializeInvoice(s: SerializedInvoice): Invoice {
   return {
     recordId: s.recordId, rowNumber: s.rowNumber, raw: [...s.raw], vendorNorm: s.vendorNorm,
-    invoiceNorm: s.invoiceNorm, invoiceDate: s.invoiceDate, currency: "USD",
+    invoiceNorm: s.invoiceNorm, invoiceDate: s.invoiceDate, currency: s.currency,
     subtotal: centsFromString(s.subtotal), tax: centsFromString(s.tax), shipping: centsFromString(s.shipping),
     discount: centsFromString(s.discount), total: centsFromString(s.total),
   };

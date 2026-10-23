@@ -3,8 +3,8 @@
  * `rules/duplicates.py::_member` and the TOTAL_MISMATCH evidence in `rules/totals.py`.
  * Every financial string is produced by money.ts (formatCents / formatDelta).
  */
-import type { DuplicateEvidence, DuplicateMemberEvidence, Invoice, MismatchEvidence } from "./contracts.ts";
-import { CSV_HEADER, RULE_DUPLICATE, RULE_MISMATCH, compareStrings } from "./contracts.ts";
+import type { DuplicateEvidence, DuplicateMemberEvidence, Invoice, MismatchEvidence, NearDuplicateEvidence } from "./contracts.ts";
+import { CSV_HEADER, RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, compareStrings } from "./contracts.ts";
 import { expectedTotalCents, formatCents, formatDelta } from "./money.ts";
 
 const VENDOR_INDEX = CSV_HEADER.indexOf("vendor_id");
@@ -35,6 +35,17 @@ export function duplicateEvidence(group: readonly Invoice[]): DuplicateEvidence 
     kind: RULE_DUPLICATE,
     key: { vendor: first.vendorNorm, invoice: first.invoiceNorm, currency: first.currency },
     members: members.map(duplicateMember),
+  };
+}
+
+/** Evidence for one near-duplicate pair (same vendorNorm, currency and total; different invoiceNorm). */
+export function nearDuplicateEvidence(a: Invoice, b: Invoice, daysApart: number): NearDuplicateEvidence {
+  return {
+    kind: RULE_NEAR_DUPLICATE,
+    vendor: a.vendorNorm,
+    total: formatCents(a.total),
+    daysApart,
+    members: [a, b].sort(compareMembers).map(duplicateMember),
   };
 }
 

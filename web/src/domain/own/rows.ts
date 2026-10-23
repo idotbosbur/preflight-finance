@@ -7,7 +7,7 @@ import type { ColumnMapping, OwnField } from "./columns.ts";
 import { detectDateOrder, parseLooseAmount, parseLooseDate } from "./values.ts";
 import type { DateOrder } from "./values.ts";
 
-export type OwnInvoice = Omit<Invoice, "currency"> & { readonly currency: string; readonly hasComponents: boolean };
+export type OwnInvoice = Invoice & { readonly hasComponents: boolean };
 export interface SkippedRow { readonly row: number; readonly reason: string }
 export interface OwnWarning { readonly row: number; readonly field: string; readonly reason: string }
 export type OwnParseResult =

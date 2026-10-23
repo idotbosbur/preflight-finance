@@ -123,6 +123,8 @@ export interface BenchmarkFile {
   readonly manifestSha256: string;
   readonly runs: readonly BenchmarkRun[];
   readonly limitations: readonly string[];
+  /** Near-duplicate rule measured on the hand-labelled own-data fixture (raw pair counts). */
+  readonly nearDuplicate?: { readonly pairsLabelled: number; readonly tp: number; readonly fp: number; readonly fn: number };
 }
 
 // ---- Story data for the landing narrative (real fixture findings, computed in-browser, not stored) ----

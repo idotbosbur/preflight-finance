@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { BenchmarkFile } from "../../src/ui-contracts.ts";
 import { loadManifest, readProjectBytes, sha256Node, WEB_ROOT } from "./harness.ts";
+import { loadNearDupFixture } from "./near-dup-eval.ts";
 
 const path = join(WEB_ROOT, "public", "results", "benchmark.json");
 
@@ -30,6 +31,12 @@ test("public/results/benchmark.json matches BenchmarkFile, manifest hashes and r
     assert.equal(r.mismatch.tp + r.mismatch.fp + r.mismatch.fn + r.mismatch.tn, manifest.main.rows.length, `${r.source} mismatch sum`);
     if (r.source === "browser-port") assert.equal(r.referenceTests, undefined, "referenceTests is Python-only");
   }
+  const nd = b.nearDuplicate;
+  assert.ok(nd, "nearDuplicate missing");
+  const { labels } = loadNearDupFixture();
+  assert.equal(nd.pairsLabelled, labels.pairs.length);
+  assert.equal(nd.tp + nd.fn, labels.pairs.filter((p) => p.genuine).length, "tp + fn = genuine labelled pairs");
+  assert.ok([nd.tp, nd.fp, nd.fn].every((n) => Number.isInteger(n) && n >= 0));
   assert.ok(b.limitations.length >= 4);
   for (const needle of [/within one batch/i, /self-constructed/i, /legitimate/i, /browser|unauthenticated/i]) {
     assert.ok(b.limitations.some((l) => needle.test(l)), `limitation ${needle} missing`);

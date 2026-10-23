@@ -162,7 +162,7 @@ export interface Invoice {
   readonly invoiceNorm: string;
   /** ISO YYYY-MM-DD exactly as supplied (dates are not trimmed). */
   readonly invoiceDate: string;
-  readonly currency: "USD";
+  readonly currency: string;
   readonly subtotal: Cents;
   readonly tax: Cents;
   readonly shipping: Cents;
