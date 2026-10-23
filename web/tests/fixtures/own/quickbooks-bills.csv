@@ -1,0 +1,5 @@
+Vendor,Date,Bill No.,Due Date,Amount,Open Balance
+Acme Test Supplies,03/05/2026,INV-1001,04/04/2026,"$1,234.56","$1,234.56"
+Globex Example Ltd,03/15/2026,B-2002,04/14/2026,$300.00,$0.00
+Initech Sample Co,03/20/2026,3003,04/19/2026,$45.10,$45.10
+Acme Test Supplies,03/22/2026,INV-1001,04/21/2026,"$1,234.56","$1,234.56"

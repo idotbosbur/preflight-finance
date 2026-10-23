@@ -43,6 +43,31 @@ test("parseLooseDate", () => {
   assert.equal(parseLooseDate("2026-03-05", "YMD"), "2026-03-05");
   assert.equal(parseLooseDate("29/02/2024", "DMY"), "2024-02-29");
   assert.equal(parseLooseDate("29/02/2026", "DMY"), null);
-  assert.equal(parseLooseDate("26-03-05", "YMD"), null);
   assert.equal(parseLooseDate("nope", "MDY"), null);
+});
+
+test("R5: credit notations are classified as credit or negative", () => {
+  for (const s of ["250.00-", "250.00 CR", "250.00cr", "250.00Cr", "−250.00", "$(250.00)", "USD (250)", "$-5", "5.00 -"]) {
+    assert.deepEqual(parseLooseAmount(s), bad("credit or negative amount"), s);
+  }
+  assert.deepEqual(parseLooseAmount("abc cr"), bad("not a number"));
+});
+
+test("R5: trailing time part is stripped from dates", () => {
+  assert.equal(parseLooseDate("3/5/2026 00:00", "MDY"), "2026-03-05");
+  assert.equal(parseLooseDate("2026-03-05T00:00:00", "YMD"), "2026-03-05");
+  assert.equal(parseLooseDate("2026-03-05 13:45:10.123Z", "YMD"), "2026-03-05");
+  assert.equal(parseLooseDate("3/5/2026 1:05 PM", "MDY"), "2026-03-05");
+  assert.equal(detectDateOrder(["3/15/2026 00:00"]), "MDY");
+  assert.equal(detectDateOrder(["2026-03-15T00:00:00"]), "YMD");
+});
+
+test("R5: two-digit-year shapes are ambiguous unless definite", () => {
+  assert.equal(detectDateOrder(["03-04-05"]), "ambiguous");
+  assert.equal(detectDateOrder(["56-03-05"]), "YMD");
+  assert.equal(detectDateOrder(["03/15/26"]), "MDY");
+  assert.equal(detectDateOrder(["15/03/36"]), "DMY");
+  assert.equal(detectDateOrder(["03/15/2026", "03-04-05"]), "MDY");
+  assert.equal(parseLooseDate("26-03-05", "YMD"), "2026-03-05");
+  assert.equal(parseLooseDate("26-02-30", "YMD"), null);
 });
