@@ -1974,3 +1974,40 @@ h1[tabindex="-1"]:focus { outline: none; }
   .ov-card, .ov-guide, .ov-pillar .ov-icon, .ov-guide-arrow { transition: none; }
   .ov-card:hover, .ov-guide:hover, .ov-pillar:hover .ov-icon, .ov-guide:hover .ov-guide-arrow { transform: none; }
 }
+
+/* ---------- Whole-page tone on the landing (vars set on <html> by useDarkScroll; absent elsewhere) ---------- */
+body { background: var(--ov-bg, var(--bg)); }
+.topnav {
+  background: var(--ov-nav-bg, rgba(255, 255, 255, 0.72));
+  border-bottom-color: var(--ov-rule, rgba(24, 24, 24, 0.06));
+}
+.topnav .brand,
+.topnav .menu-trigger { color: var(--ov-fg, var(--ink)); }
+.topnav .menu-trigger { border-color: var(--ov-rule, var(--line)); background: transparent; }
+.topnav .nav-link { color: var(--ov-fg-soft, var(--ink-soft)); }
+.topnav .nav-link:hover,
+.topnav .nav-link.is-current { color: var(--ov-fg, var(--ink)); background: var(--ov-hover, var(--teal-tint)); }
+
+.footer {
+  background: var(--ov-bg, #fff);
+  border-top-color: var(--ov-rule, rgba(24, 24, 24, 0.1));
+}
+.footer-nav a,
+.footer-wordmark,
+.footer .footer-label { color: var(--ov-fg, var(--ink)); }
+.footer-meta,
+.footer-attrib { color: var(--ov-fg-soft, var(--ink-soft)); }
+
+.ov-cta,
+.ov-cta .ov-display,
+.ov-cta .btn-line { color: var(--ov-fg, var(--ink)); }
+.ov-dark { padding-bottom: 12vh; }
+.ov-after { padding-top: 64px; }
+.ov-after .ov-chips li { color: var(--ov-fg, var(--ink)); }
+.ov-guide {
+  background: var(--ov-card, rgba(255, 255, 255, 0.72));
+  border-color: var(--ov-rule, rgba(24, 24, 24, 0.08));
+  color: var(--ov-fg, var(--ink));
+}
+.ov-guide:hover { border-color: var(--ov-fg-soft, rgba(24, 24, 24, 0.16)); box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25); }
+.ov-guide-kicker { color: var(--ov-fg-soft, var(--ink-soft)); }

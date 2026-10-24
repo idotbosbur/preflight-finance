@@ -118,14 +118,15 @@ export function modeAt(sections: readonly { top: number; bottom: number; mode: s
 }
 
 /**
- * How dark the page should be (0..1) for the viewport centre: 1 inside a `data-chrome="dark"` section, easing to 0 over
- * `fade` px outside it. Continuous in scroll position, so background, text and ribbons fade instead of switching.
+ * How dark the page should be (0..1) for the viewport centre: 0 well above the first `data-chrome="dark"` section,
+ * easing to 1 over the `fade` px before it, then staying 1 to the end of the page (one white-to-black change, no way
+ * back). Continuous in scroll position, so background, text and ribbons fade instead of switching.
  */
 export function darknessAt(sections: readonly { top: number; bottom: number; mode: string }[], centre: number, fade: number): number {
   let dark = 0;
   for (const s of sections) {
     if (s.mode !== "dark") continue;
-    const dist = centre < s.top ? s.top - centre : centre > s.bottom ? centre - s.bottom : 0;
+    const dist = centre < s.top ? s.top - centre : 0;
     const t = Math.min(1, dist / Math.max(fade, 1));
     dark = Math.max(dark, 1 - t * t * (3 - 2 * t));
   }
