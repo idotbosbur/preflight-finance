@@ -14,12 +14,13 @@ test("overview: headline, actions, artwork and story from real story data", () =
   assert.ok(/href="#\/mine"[^>]*>Check your own invoices</.test(html), "own-invoices link in hero");
   assert.ok(html.includes("<svg"));
   assert.ok(html.indexOf("Try the demo") < html.indexOf("<svg"), "primary action precedes artwork");
-  for (const s of ["1234.50", "98.76", "15.00", "0.00", "1348.26", "1348.27", "+0.01", "NW-0042", "R-0005", "R-0032"]) {
+  for (const s of ["1234.50", "98.76", "15.00", "0.00", "1348.26", "1348.27", "+0.01", "NW-0042"]) {
     assert.ok(html.includes(s), s);
   }
   assert.ok(html.includes("12 groups flagged: 10 genuine duplicates, 2 legitimate reuses"));
-  assert.ok(html.includes("not a production finance platform"));
-  assert.ok(html.includes("120 invented invoices with 32 candidate findings"));
+  assert.ok(html.includes('href="#/how"'), "links to How it works");
+  assert.ok(html.includes("On 120 invented invoices"));
+  assert.ok(!html.includes("<details"), "nothing hidden behind disclosures");
   assert.ok(!html.includes("reveal-pending"), "content not hidden in markup");
 });
 

@@ -1914,16 +1914,5 @@ h1[tabindex="-1"]:focus { outline: none; }
   .fb-spinner { animation-duration: 2s; }
 }
 
-/* ---------- Inline "i" disclosures (Info component) ---------- */
-.mod-more.info-inline { margin-top: 10px; border-top: 0; padding-top: 0; }
-.info-inline .info-body { margin-top: 8px; animation: info-open 260ms var(--ease-out); }
-.info-inline .info-body > :first-child { margin-top: 0; }
-.info-inline .info-body p { color: var(--ink-soft); }
-@keyframes info-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
-.info-dark > summary { color: var(--on-dark-soft); }
-.info-dark > summary:hover, .info-dark[open] > summary { color: var(--on-dark); }
-.info-dark[open] .mod-info { background: var(--on-dark); color: var(--dark); border-color: var(--on-dark); }
-.info-dark .info-body p { color: var(--on-dark-soft); }
-.order-note { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
-.order-note .mod-more.info-inline { margin-top: 0; }
-@media (prefers-reduced-motion: reduce) { .info-inline .info-body { animation: none; } }
+
+.ov-more { margin-top: 18px; }

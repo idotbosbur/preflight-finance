@@ -1,5 +1,4 @@
 import { MAX_ROWS, RULESET_VERSION } from "../domain/contracts.ts";
-import { Info } from "../components/Info.tsx";
 
 interface Principle {
   readonly id: string;
@@ -52,13 +51,11 @@ export function HowPage() {
       <header className="page-head">
         <p className="eyebrow">How it works</p>
         <h1 className="page-title" tabIndex={-1}>Small, checkable guarantees</h1>
-        <p className="lede">Exact rules, a person in the loop, and nothing leaves your browser.</p>
-        <Info label="What the rules are">
-          <p>
-            Two exact rules: possible duplicates (same vendor, invoice number and currency) and totals that don't add up. With your
-            own files, a third lower-confidence rule also looks for same-vendor, same-amount bills within 14 days. No AI model is used.
-          </p>
-        </Info>
+        <p className="lede">
+          Deterministic rules (possible duplicates and total mismatches), a human review step and a measured synthetic
+          benchmark. With your own files, a third lower-confidence rule also looks for same-vendor, same-amount bills within
+          14 days. No AI model is used, and nothing leaves your browser.
+        </p>
       </header>
 
       <ul className="principles">
@@ -66,28 +63,27 @@ export function HowPage() {
           <li key={p.id} className="panel principle">
             <h2 className="section-title">{p.title}</h2>
             <p>{p.body}</p>
-            <Info label="Example"><p>{p.example}</p></Info>
+            <p className="example">
+              <strong>Example: </strong>
+              {p.example}
+            </p>
           </li>
         ))}
       </ul>
 
       <section className="panel" aria-labelledby="limits-heading">
         <h2 id="limits-heading" className="section-title">Limits</h2>
-        <p>A prototype: no integrations, payments or accounts.</p>
-        <Info label="All limits">
         <ul>
           <li>Demo: synthetic USD invoices only; at most 1 MiB and {MAX_ROWS.toLocaleString("en-US")} rows per file.</li>
           <li>Demo: duplicates are found within one batch only, by exact normalized vendor + invoice number + currency. With your own files, checks run across every file you import, and only the 14-day same-amount rule is approximate.</li>
           <li>Legitimate invoice-number reuse looks the same as a duplicate to this rule; a person must decide.</li>
           <li>No real integrations, payments or accounts.</li>
         </ul>
-        </Info>
       </section>
 
       <section className="panel history-note" aria-labelledby="ref-heading">
         <p className="eyebrow">Python reference history</p>
         <h2 id="ref-heading" className="section-title">A defect found in real-browser testing</h2>
-        <Info label="What happened">
         <p>
           This browser app is a port of an earlier local Python prototype. In that Python reference, submitting a review returned
           HTTP 403 in a real browser. The cause was the header <code>Referrer-Policy: no-referrer</code>, which makes Chromium send{" "}
@@ -99,13 +95,10 @@ export function HowPage() {
           Codex found the defect during browser QA and reported a successful retest; Claude fixed the code. This history belongs
           to the Python reference, not to this browser port.
         </p>
-        </Info>
       </section>
 
       <section className="panel" aria-labelledby="credit-heading">
         <h2 id="credit-heading" className="section-title">Who did what</h2>
-        <p>Concept and decisions by the project owner; code and tests by Claude.</p>
-        <Info label="Full credits">
         <ul>
           <li>The project owner originated the invoice-control concept and made the scope and product decisions.</li>
           <li>An earlier assistant elaborated the concept into the twelve-module roadmap.</li>
@@ -113,7 +106,6 @@ export function HowPage() {
           <li>Codex coordinated the work, reviewed it and ran browser QA.</li>
         </ul>
         <p className="muted">The owner does not claim to have written this code.</p>
-        </Info>
       </section>
     </div>
   );
