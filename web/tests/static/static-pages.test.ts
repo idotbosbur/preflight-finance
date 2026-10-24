@@ -21,7 +21,10 @@ for (const page of PAGES) {
 for (const page of PAGES.slice(1)) {
   test(`${page}: no script tag, no inline handlers, links to app and siblings`, () => {
     const html = read(page);
-    assert.doesNotMatch(html, /<script/i);
+    const withoutAnalytics = html
+      .replace(/<script defer src="\.?\/va\.js"><\/script>/, "")
+      .replace('<script defer src="/_vercel/insights/script.js"></script>', "");
+    assert.doesNotMatch(withoutAnalytics, /<script/i, "only the two analytics tags are allowed");
     assert.doesNotMatch(html, /\son[a-z]+=/i);
     assert.match(html, /<html lang="en"/);
     assert.match(html, /href="\.\/"/);

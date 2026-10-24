@@ -7,6 +7,8 @@
     <meta name="description" content="What Preflight stores, what it does not, and how to delete your data. Your files stay in your browser and are never uploaded." />
     <link rel="canonical" href="https://preflight-finance-portfolio.vercel.app/privacy.html" />
     <link rel="stylesheet" href="/src/styles/static.css" />
+      <script defer src="/va.js"></script>
+    <script defer src="/_vercel/insights/script.js"></script>
   </head>
   <body>
     <nav class="site-nav" aria-label="Site">
@@ -31,7 +33,8 @@
       <ul>
         <li>No uploads. Your CSV is parsed by code running in your browser.</li>
         <li>No accounts and no sign-in.</li>
-        <li>No analytics, advertising or tracking scripts, and no cookies set by the app. The app's only network requests are for its own files (the synthetic demo data and the benchmark results).</li>
+        <li>Visit counts: the site uses Vercel Web Analytics, which counts page views without cookies. It records the page path, referring site, country, browser and device type, and identifies a visit only by a short-lived hash that Vercel discards after 24 hours. The part of app addresses after <code>#</code> is removed before anything is sent, and invoice files, rows and findings are never sent.</li>
+        <li>No advertising, no cookies set by the app, and no other tracking. Apart from page views, the app's only network requests are for its own files, and the feedback form when you choose to send it.</li>
       </ul>
 
       <h2>Hosting</h2>
