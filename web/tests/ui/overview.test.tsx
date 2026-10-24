@@ -29,3 +29,22 @@ test("overview: null story shows no invented figures; error is shown", () => {
   assert.ok(!html.includes("1348.27"));
   assert.ok(html.includes("The demo could not be loaded: boom"));
 });
+
+test("darknessAt: 1 inside the dark section, fades smoothly to 0 outside it", async () => {
+  const { darknessAt } = await import("../../src/art/ChromeField.tsx");
+  const secs = [{ top: 1000, bottom: 2000, mode: "dark" }, { top: 0, bottom: 1000, mode: "haze" }];
+  assert.equal(darknessAt(secs, 1500, 500), 1);
+  assert.equal(darknessAt(secs, 400, 500), 0);
+  const near = darknessAt(secs, 900, 500);
+  const nearer = darknessAt(secs, 950, 500);
+  assert.ok(near > 0 && near < 1 && nearer > near, `${near} < ${nearer}`);
+  assert.equal(darknessAt(secs, 2250, 500), darknessAt(secs, 750, 500), "symmetric fade in and out");
+});
+
+test("overview: dark section, check cards, tools and guide links", () => {
+  const html = render(<OverviewPage story={story} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} />);
+  assert.ok(html.includes('data-chrome="dark"'));
+  for (const s of ["Duplicate bills", "Repeat charges", "Stays in your browser", "QuickBooks Online", "/guide-excel-duplicate-invoices.html"]) {
+    assert.ok(html.includes(s), s);
+  }
+});
