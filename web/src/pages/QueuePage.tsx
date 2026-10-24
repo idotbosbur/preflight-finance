@@ -5,6 +5,7 @@ import type { ReviewState, RuleId } from "../domain/contracts.ts";
 import { RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
 import { RULE_LABEL, sourceBadge, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
+import { Info } from "../components/Info.tsx";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
@@ -169,10 +170,10 @@ export function QueuePage(props: QueueProps) {
               </select>
             </div>
           </div>
-          <p className="order-note">
-            Showing {findings.length} {findings.length === 1 ? "finding" : "findings"}. Order: open first, then rule, then record
-            ID — no risk score.
-          </p>
+          <div className="order-note">
+            <span>Showing {findings.length} {findings.length === 1 ? "finding" : "findings"}.</span>
+            <Info label="How they're ordered"><p>Open first, then rule, then record ID — no risk score.</p></Info>
+          </div>
           {findings.length === 0 ? (
             <p className="empty-inline">No findings match these filters.</p>
           ) : (

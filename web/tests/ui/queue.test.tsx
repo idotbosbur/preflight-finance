@@ -10,7 +10,7 @@ test("queue: cards with rule and state words, filters, ordering note, investigat
   assert.ok(html.includes("Possible duplicate"));
   assert.ok(html.includes("Open"));
   assert.ok(html.includes("Dismissed"));
-  assert.ok(html.includes("open first, then rule, then record ID — no risk score"));
+  assert.ok(html.includes("Open first, then rule, then record ID — no risk score"));
   assert.match(html, /<label[^>]*for="filter-state"/);
   assert.match(html, /<label[^>]*for="filter-rule"/);
   assert.ok(html.includes(`href="#/case/${batch.batchId}/f00000000000mm09"`));
