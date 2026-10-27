@@ -31,13 +31,13 @@ export function deriveGuide(f: GuideFacts): GuideView {
 
   const raw: Array<Omit<GuideStepView, "status"> & { done: boolean }> = [
     { id: "load", title: "Load 120 synthetic invoices", done: f.demoLoaded, href: "#/queue",
-      instruction: "The demo batch loads in your browser — nothing is uploaded.", note: null },
+      instruction: "The demo batch loads in your browser. Nothing is uploaded.", note: null },
     { id: "confirm-mismatch", title: "Confirm a one-cent total mismatch", done: confirmDone, href: f.mismatchHref,
       instruction: "Open invoice R-0009, read why it was flagged, and confirm it with a reason.",
-      note: !confirmDone && f.mismatch?.finding.state === "dismissed" ? "This finding is dismissed — reopen it, then confirm." : null },
+      note: !confirmDone && f.mismatch?.finding.state === "dismissed" ? "This finding is dismissed. Reopen it, then confirm." : null },
     { id: "dismiss-reuse", title: "Dismiss a legitimate invoice-number reuse", done: dismissDone, href: f.reuseHref,
       instruction: "Compare R-0005 and R-0032: same vendor and number, different periods. Dismiss the false alert with a reason.",
-      note: !dismissDone && f.reuse?.finding.state === "confirmed" ? "This candidate is confirmed — reopen it, then dismiss." : null },
+      note: !dismissDone && f.reuse?.finding.state === "confirmed" ? "This candidate is confirmed. Reopen it, then dismiss." : null },
     { id: "reopen-history", title: "Reopen and see the history", done: reopenDone, href: f.reuseHref,
       instruction: "Reopen the dismissed candidate. The history keeps every decision and reason.", note: null },
     { id: "results", title: "See the measured results", done: f.visitedResults, href: "#/results",
@@ -49,7 +49,7 @@ export function deriveGuide(f: GuideFacts): GuideView {
   const steps: GuideStepView[] = raw.map(({ done, ...s }, i) => ({
     ...s,
     status: done ? "done" : i === idx ? "current" : "upcoming",
-    note: s.note ?? (done && i > 0 && i < 4 ? "Already done in this browser — reopen the case to replay it." : null),
+    note: s.note ?? (done && i > 0 && i < 4 ? "Already done in this browser. Reopen the case to replay it." : null),
   }));
   return { active: f.active, steps, currentIndex: idx, complete: idx === raw.length };
 }
@@ -60,7 +60,7 @@ export const SUGGESTED_REASONS: Readonly<Record<string, readonly string[]>> = {
     "Recomputed from the source invoice; the difference is real.",
   ],
   [RULE_DUPLICATE]: [
-    "Different billing periods — legitimate reuse of the invoice number, not a duplicate.",
+    "Different billing periods: a legitimate reuse of the invoice number, not a duplicate.",
     "Same obligation billed twice; hold for vendor confirmation through a known contact.",
   ],
 };

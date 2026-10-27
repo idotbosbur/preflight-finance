@@ -79,7 +79,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
   const gl = useShader(canvas);
   const sq = shape === "square";
 
-  // ----- page tone: white → near-black across 20.0–22.6s, then dark to the end -----
+  // ----- page tone: white → near-black across 20.0 to 22.6s, then dark to the end -----
   const dark = smooth(t, 20, 22.6);
   const ink = clamp((dark - 0.3) / 0.4);
   const bg = `rgb(${[255, 255, 255].map((v, i) => Math.round(lerp(v, [17, 18, 20][i]!, dark))).join(",")})`;
@@ -135,7 +135,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
     <div className={`film film-${shape}`} style={{ background: bg, color: fg } as CSSProperties}>
       <canvas ref={canvas} className="f-canvas" aria-hidden="true" />
 
-      {/* Scene A — hero */}
+      {/* Scene A, hero */}
       <Layer className="f-hero" style={{ opacity: heroK }}>
         <p className="f-kicker" style={rise(seg(t, 0.5, 1.4), 16)}>Invoice review · free prototype</p>
         <h1 className="f-display">
@@ -145,7 +145,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
         <p className="f-lede" style={rise(seg(t, 1.7, 2.7), 14)}>Duplicate bills. Totals that don't add up. Right in your browser.</p>
       </Layer>
 
-      {/* Scenes B–D — the data */}
+      {/* Scenes B-D, the data */}
       <Layer className="f-data" style={{ opacity: tableIn }}>
         <div className="f-caption" style={{ opacity: life(t, 5.0, 8.6, 0.5) }}>Export your bills as a CSV. Drop it in.</div>
         <div className="f-caption" style={{ opacity: life(t, 9.0, 14.4, 0.5) }}>Says 7,668.65. Adds up to 7,668.66.</div>
@@ -200,13 +200,13 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
             <div className="f-decide" style={rise(seg(t, 17.4, 18.1), 16)}>
               <span className="f-btn">Confirm finding</span>
               <span className={`f-btn ${t > 18.3 ? "is-on" : ""}`}>Dismiss candidate</span>
-              <span className="f-reason"><Typed text="Different billing year — legitimate reuse." k={seg(t, 18.5, 19.5)} /></span>
+              <span className="f-reason"><Typed text="Different billing year. Legitimate reuse." k={seg(t, 18.5, 19.5)} /></span>
             </div>
           </div>
         </div>
       </Layer>
 
-      {/* Scene E — the dark */}
+      {/* Scene E, the dark */}
       <Layer className="f-center" style={{ opacity: darkHead }}>
         <h2 className="f-display f-display-mid">
           <span style={rise(seg(t, 21.6, 22.6))}>Your invoices never</span>
@@ -215,7 +215,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
         <p className="f-lede" style={rise(seg(t, 22.6, 23.5), 14)}>No upload · No account · Delete it all in one click</p>
       </Layer>
 
-      {/* Scene F — end card */}
+      {/* Scene F, end card */}
       <Layer className="f-center f-end" style={{ opacity: endK }}>
         <div className="f-brand" style={{ transform: `scale(${lerp(0.92, 1, endK)})` }}>
           <ChromeMark className="f-mark" />

@@ -6,7 +6,7 @@ import type { Durability } from "../domain/contracts.ts";
 import { FEEDBACK_URL, SYNTHETIC_LABEL } from "../domain/contracts.ts";
 import { DEMO_BADGE, OWN_BADGE } from "./labels.ts";
 
-const OWN_LABEL = "Your data — stays in this browser. Nothing is uploaded.";
+const OWN_LABEL = "Your data stays in this browser. Nothing is uploaded.";
 
 interface NavItem {
   readonly href: string;
@@ -43,7 +43,7 @@ export function nextStep(route: Route, own = false): { readonly kicker: string; 
 }
 
 export const MEMORY_BANNER =
-  "Not saved — browser storage unavailable; decisions in this tab will be lost on reload";
+  "Not saved: browser storage is unavailable, so decisions in this tab will be lost on reload";
 
 export const ATTRIBUTION =
   "Concept and product decisions: the project owner. Code and tests: written by Claude. Coordination and browser QA: Codex.";
@@ -65,9 +65,9 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   not_found: "Page not found",
 };
 
-/** document.title for a route: "<page name> — Preflight (synthetic demo)", or no suffix in own mode. */
+/** document.title for a route: "<page name> | Preflight (synthetic demo)", or no suffix in own mode. */
 export function pageTitle(route: Route, own = false): string {
-  return own ? `${PAGE_NAME[route.name]} — Preflight` : `${PAGE_NAME[route.name]} — Preflight (synthetic demo)`;
+  return own ? `${PAGE_NAME[route.name]} | Preflight` : `${PAGE_NAME[route.name]} | Preflight (synthetic demo)`;
 }
 
 /** Move focus only on a real route change after the first render (never on initial load). */
@@ -133,7 +133,7 @@ export function GuideBar({ guide, onExit, durability }: { readonly guide: GuideV
         <h2 id="guide-heading" className="guide-title">
           Guided demo{" "}
           <span className="muted">
-            {guide.complete ? "— complete" : `— step ${position} of ${total}`}
+            {guide.complete ? "· complete" : `· step ${position} of ${total}`}
           </span>
         </h2>
         <button type="button" className="btn btn-quiet" onClick={onExit}>

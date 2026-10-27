@@ -1,10 +1,10 @@
 /* =====================================================================
    Chrome & editorial layer (landing, intro, nav, footer).
-   Monochrome ink on white; chrome mark and ribbons with blue–peach iridescence.
+   Monochrome ink on white; chrome mark and ribbons with blue-peach iridescence.
    Loaded after app.css, so these rules refine the base shell.
    ===================================================================== */
 
-/* Instrument Sans (SIL Open Font License 1.1, see /fonts/OFL.txt), self-hosted variable 400–700. */
+/* Instrument Sans (SIL Open Font License 1.1, see /fonts/OFL.txt), self-hosted variable 400 to 700. */
 @font-face {
   font-family: "Instrument Sans";
   font-style: normal;

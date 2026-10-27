@@ -20,7 +20,7 @@ const PRINCIPLES: readonly Principle[] = [
     title: "Atomic validation",
     body: "A file is checked completely before anything is stored. If any row is invalid, nothing from that file is imported, and every issue is listed by row and field.",
     example:
-      "The test file mixed-128.csv has 120 valid rows followed by 8 invalid ones (rows 121–128). It is rejected as a whole with 8 issues, and no batch is created.",
+      "The test file mixed-128.csv has 120 valid rows followed by 8 invalid ones (rows 121 to 128). It is rejected as a whole with 8 issues, and no batch is created.",
   },
   {
     id: "idempotent",

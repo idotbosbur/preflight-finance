@@ -33,7 +33,7 @@ test("shell: nav, synthetic badge and label, skip link, live region, attribution
 
 test("shell: memory durability banner", () => {
   const html = render(<AppShell {...base} durability="memory"><p /></AppShell>);
-  assert.ok(html.includes("Not saved — browser storage unavailable; decisions in this tab will be lost on reload"));
+  assert.ok(html.includes("Not saved: browser storage is unavailable, so decisions in this tab will be lost on reload"));
 });
 
 test("shell: announcement text is escaped in the live region", () => {
@@ -48,7 +48,7 @@ test("shell: guide steps render status words and Exit guide", () => {
   assert.ok(html.includes("Upcoming"));
   assert.ok(html.includes("step 2 of 5"));
   assert.ok(html.includes("Open R-0009 and confirm it with a reason."));
-  assert.ok(html.includes("Already confirmed earlier — reopen to replay this step."));
+  assert.ok(html.includes("Already confirmed earlier, reopen to replay this step."));
   assert.ok(html.includes("Exit guide"));
   // Links are direct children of .guide-step-title (styled display:block for a full hit area).
   assert.match(html, /<span class="guide-step-title"><a href="#\/demo">Load the demo<\/a><\/span>/);

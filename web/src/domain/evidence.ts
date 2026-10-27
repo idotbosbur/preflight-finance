@@ -1,5 +1,5 @@
 /**
- * Pure evidence builders for the `invoice-v1` rules — parity with Python
+ * Pure evidence builders for the `invoice-v1` rules, parity with Python
  * `rules/duplicates.py::_member` and the TOTAL_MISMATCH evidence in `rules/totals.py`.
  * Every financial string is produced by money.ts (formatCents / formatDelta).
  */

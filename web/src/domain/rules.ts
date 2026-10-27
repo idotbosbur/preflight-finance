@@ -1,5 +1,5 @@
 /**
- * Deterministic invoice rules (`invoice-v1`) — parity with Python `src/preflight/rules/`.
+ * Deterministic invoice rules (`invoice-v1`), parity with Python `src/preflight/rules/`.
  * Pure and synchronous. Output sorted by (ruleId, memberIds) with Python tuple ordering.
  */
 import type { CandidateFinding, Invoice, RunInvoiceRules } from "./contracts.ts";

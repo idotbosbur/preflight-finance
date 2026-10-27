@@ -47,7 +47,7 @@ export interface GuideStepView {
   readonly status: "done" | "current" | "upcoming";
   /** Where the step happens, if it has a place to go. */
   readonly href: RouteHref | null;
-  /** e.g. "Already confirmed earlier — reopen to replay this step." */
+  /** e.g. "Already confirmed earlier, reopen to replay this step." */
   readonly note: string | null;
 }
 export interface GuideView {

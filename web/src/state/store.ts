@@ -3,7 +3,7 @@
  * - idbStore.ts (IndexedDB, persistent in this browser), and
  * - memoryStore.ts (this tab only; also used for fault-injection tests).
  *
- * History is browser-local, resettable and unauthenticated — not an enterprise audit log.
+ * History is browser-local, resettable and unauthenticated, not an enterprise audit log.
  */
 import {
   ACTIONS,

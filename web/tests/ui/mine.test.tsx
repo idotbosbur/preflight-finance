@@ -12,7 +12,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { buttons, render } from "./helpers.ts";
 
 const noop = () => {};
-const OWN_BADGE = "Your data — stays in this browser";
+const OWN_BADGE = "Your data stays in this browser";
 const ownBatch: BatchSummary = { ...batch, batchId: OWN_BATCH_ID, displayName: "Your data", source: "own", nearDuplicateCount: 1 };
 
 test("mapping: a labelled select per field, required ones marked", () => {
@@ -115,8 +115,8 @@ test("shell: own mode badge, title and nav", () => {
   const html = render(<AppShell {...base} route={{ name: "mine" }} own><p /></AppShell>);
   assert.ok(html.includes(OWN_BADGE) && !/synthetic demo/i.test(html));
   assert.match(html, /aria-current="page"[^>]*>Your data/);
-  assert.equal(pageTitle({ name: "mine" }, true), "Your data — Preflight");
-  assert.equal(pageTitle({ name: "mine" }), "Your data — Preflight (synthetic demo)");
+  assert.equal(pageTitle({ name: "mine" }, true), "Your data | Preflight");
+  assert.equal(pageTitle({ name: "mine" }), "Your data | Preflight (synthetic demo)");
   assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Synthetic demo"));
 });
 

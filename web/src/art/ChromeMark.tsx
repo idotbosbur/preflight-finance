@@ -1,10 +1,10 @@
 import { useId } from "react";
 
 /**
- * Original Preflight mark — the "check-P" monogram: one continuous inflated chrome tube.
+ * Original Preflight mark, the "check-P" monogram: one continuous inflated chrome tube.
  * A check's short leg drops in, its long stroke rises into the stem of a P and curls round
  * into the bowl, so "pre-flight check" lives in a single shape. Pure SVG (no images):
- * a chrome horizon-reflection body, iridescent blue–peach rim, specular streak and a soft
+ * a chrome horizon-reflection body, iridescent blue-peach rim, specular streak and a soft
  * contact shadow. Gradient/filter ids are per-instance so several marks can share a page.
  */
 const PATH = "M14 63 L31 80 L31 36 C31 21 42 13 56 13 C72 13 84 23 84 38 C84 53 72 62 57 62 L44 62";

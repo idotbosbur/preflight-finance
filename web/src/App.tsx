@@ -30,7 +30,7 @@ import type { DraftBinding } from "./state/draft.ts";
 
 const DEMO_CSV = "./demo/main-120.csv";
 const BENCHMARK_JSON = "./results/benchmark.json";
-const DEMO_NAME = "Synthetic demo batch — 120 invoices";
+const DEMO_NAME = "Synthetic demo batch: 120 invoices";
 const GUIDE_KEY = "preflight.guideActive";
 const DEFAULT_REVIEWER = "Demo reviewer";
 
@@ -356,7 +356,7 @@ export function App() {
       case "saved": {
         const label = result.event.nextState === "open" ? "Reopened" : result.event.nextState === "confirmed" ? "Confirmed" : "Dismissed";
         const where = durability === "memory" ? "in this tab only (browser storage unavailable)" : "in this browser";
-        setSave({ kind: "saved", message: `${label} — saved ${where}. Added to the history below.` });
+        setSave({ kind: "saved", message: `${label}. Saved ${where}. Added to the history below.` });
         setForm((prev) => ({ ...prev, reason: "" }));
         setAnnouncement(`${label}. Decision saved.`);
         // Keep the reviewer oriented on this case (the queue re-orders behind it).

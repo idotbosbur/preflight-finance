@@ -50,7 +50,7 @@ export function FeedbackPage({ demoHref, send = sendFeedback }: { demoHref: stri
           </svg>
           <p className="eyebrow">Feedback</p>
           <h1 className="page-title" tabIndex={-1}>Thank you</h1>
-          <p className="lede" role="status">Thanks — your answers were sent.</p>
+          <p className="lede" role="status">Thanks, your answers were sent.</p>
           <p><a className="btn btn-quiet" href={demoHref}>Back to the demo</a></p>
         </header>
       </div>

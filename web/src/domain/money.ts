@@ -1,5 +1,5 @@
 /**
- * Integer-cent money handling — parity with Python `src/preflight/money.py`.
+ * Integer-cent money handling, parity with Python `src/preflight/money.py`.
  *
  * Amounts enter as strings with exactly two fractional ASCII digits and are held as safe-integer
  * cents. No float arithmetic or rounding is ever applied: the whole and fraction digit strings are

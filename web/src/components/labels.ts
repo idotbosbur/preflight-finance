@@ -1,4 +1,4 @@
-/** Plain-language labels shared by pages. Text only — no arithmetic on money. */
+/** Plain-language labels shared by pages. Text only, no arithmetic on money. */
 import type { BatchSource, ReviewAction, ReviewState, RuleId, FindingView } from "../domain/contracts.ts";
 import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 
@@ -8,7 +8,7 @@ export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   NEAR_DUPLICATE: "Possible duplicate (lower confidence)",
 };
 
-export const OWN_BADGE = "Your data — stays in this browser";
+export const OWN_BADGE = "Your data stays in this browser";
 export const DEMO_BADGE = "Synthetic demo";
 /** Batches uploaded with an earlier version of the app may hold real data: never call them synthetic. */
 export const LEGACY_UPLOAD_BADGE = "Uploaded file (older version)";

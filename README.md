@@ -1,4 +1,4 @@
-# Preflight — catch invoice errors before they're paid
+# Preflight: catch invoice errors before they're paid
 
 **Live demo:** https://preflight-finance-portfolio.vercel.app/ · works in the browser, no sign-up · all data is synthetic
 

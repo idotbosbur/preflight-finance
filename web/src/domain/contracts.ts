@@ -1,5 +1,5 @@
 /**
- * Frozen shared contracts for the Preflight browser port — version `web-contracts-v1`.
+ * Frozen shared contracts for the Preflight browser port, version `web-contracts-v1`.
  *
  * Owned by Preflight-Lead. Workers must not edit this file; request changes via SendMessage.
  * Pure types/constants/functions only: no DOM, storage, network or Node APIs.
@@ -63,7 +63,7 @@ export const ACTIONS: Readonly<Record<ReviewAction, { readonly from: readonly Re
 export const REASON_MAX = 500;
 export const REVIEWER_MAX = 80;
 
-export const SYNTHETIC_LABEL = "Synthetic demo — invented figures, not real financial records";
+export const SYNTHETIC_LABEL = "Synthetic demo: invented figures, not real financial records";
 
 export type IssueCode =
   | "EMPTY_FILE"
@@ -94,7 +94,7 @@ export type CentsString = string;
 // Pure helpers shared by every layer
 // ---------------------------------------------------------------------------
 
-/** Python `str.strip(" \t\n\r\x0b\x0c")` — never JS trim() (which strips NBSP/U+FEFF/U+2028). */
+/** Python `str.strip(" \t\n\r\x0b\x0c")`, never JS trim() (which strips NBSP/U+FEFF/U+2028). */
 export function asciiTrim(text: string): string {
   let start = 0;
   let end = text.length;
@@ -209,7 +209,7 @@ export interface MismatchEvidence {
   readonly discount: string;
   readonly expected: string;
   readonly declared: string;
-  /** declared - expected, signed: "+0.01", "-0.01" (never "0.00" — no finding then). */
+  /** declared - expected, signed: "+0.01", "-0.01" (never "0.00", no finding then). */
   readonly delta: string;
 }
 export interface NearDuplicateEvidence {
@@ -233,18 +233,18 @@ export interface CandidateFinding {
 export type RunInvoiceRules = (invoices: readonly Invoice[]) => readonly CandidateFinding[];
 
 // ---------------------------------------------------------------------------
-// Identity finalization (domain/ids.ts, lead) — native async Web Crypto SHA-256
+// Identity finalization (domain/ids.ts, lead), native async Web Crypto SHA-256
 // ---------------------------------------------------------------------------
 
 export interface Finding extends CandidateFinding {
-  /** sha256("ruleId|ruleVersion|member1|member2…").hex[:16] — Python make_finding_id parity. */
+  /** sha256("ruleId|ruleVersion|member1|member2…").hex[:16], Python make_finding_id parity. */
   readonly findingId: string;
 }
 
 export interface PreparedBatch {
   /** sha256 of the ORIGINAL bytes (BOM/CRLF intact). */
   readonly fileSha256: string;
-  /** sha256(`${fileSha256}|invoice-v1`).hex[:16] — Python batch_id_for parity. */
+  /** sha256(`${fileSha256}|invoice-v1`).hex[:16], Python batch_id_for parity. */
   readonly batchId: string;
   readonly invoices: readonly Invoice[];
   readonly findings: readonly Finding[];
@@ -358,7 +358,7 @@ export const MODULES: readonly ModuleStatus[] = [
     exists: "Duplicate-candidate and total-mismatch checks with source evidence and human review",
     next: "Cross-batch and near-match duplicate scenarios (P2)",
     validation: "Independent synthetic labels; raw true/false-positive counts",
-    qualifier: "Review aid only — never blocks, approves or releases a payment" },
+    qualifier: "Review aid only. Never blocks, approves or releases a payment" },
   { number: 2, name: "Contract Intelligence", summary: "Checks invoices against contract terms", label: "Next synthetic scenario", phase: "P2",
     exists: "Not built",
     next: "Overbilling, missed discounts, renewal deadlines and violations citing synthetic clauses and dated calculations",
@@ -375,7 +375,7 @@ export const MODULES: readonly ModuleStatus[] = [
     exists: "Deterministic why-flagged evidence and exact arithmetic",
     next: "Linked multi-record investigations (P2); model interpretation only with an approved backend",
     validation: "Citations or abstention; deterministic money logic stays authoritative",
-    qualifier: "Deterministic — no AI model is used" },
+    qualifier: "Deterministic. No AI model is used" },
   { number: 6, name: "Predictive Budget Monitoring", summary: "Warns before budgets overrun", label: "Planned", phase: "P3",
     exists: "Not built",
     next: "Department/project budgets, actuals and commitments with dated overrun scenarios",
@@ -392,7 +392,7 @@ export const MODULES: readonly ModuleStatus[] = [
     exists: "Not built",
     next: "Journal/adjustment rules and reconciliation gaps with thresholds and review trail",
     validation: "No statutory-audit claim",
-    qualifier: "Deterministic rules — no AI agent" },
+    qualifier: "Deterministic rules, no AI agent" },
   { number: 10, name: "Financial Scenario Simulator", summary: "Models hiring, capex and contract changes", label: "Planned", phase: "P3",
     exists: "Not built",
     next: "Hiring, capex and contract-change inputs producing reproducible deltas (after budget and cash)",
@@ -401,10 +401,10 @@ export const MODULES: readonly ModuleStatus[] = [
     exists: "Human review state machine with reasons and append-only local history",
     next: "Simulated draft corrections, evidence collection and approval routing with hard gates",
     validation: "No external writes; no autonomous money approval",
-    qualifier: "Human decisions only — nothing autonomous" },
+    qualifier: "Human decisions only, nothing autonomous" },
   { number: 12, name: "Executive AI Advisor", summary: "Source-backed summaries for leadership", label: "Implemented foundation", phase: "P1",
     exists: "Measured synthetic benchmark and results view",
     next: "Source-backed synthetic reports and preset questions (P3); model Q&A only with an approved backend",
     validation: "Every figure cites its source; synthetic labelled",
-    qualifier: "Deterministic — no AI model is used" },
+    qualifier: "Deterministic. No AI model is used" },
 ];

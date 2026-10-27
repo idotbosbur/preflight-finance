@@ -21,7 +21,7 @@ test("Other software sends sentinel plus response", () => {
 
 test("Q4 Yes appends detail", () => {
   const base = { role: "Xero" };
-  assert.equal(buildFeedbackBody({ ...base, missed: "Yes", missedDetail: "a dup" }).get("entry.1506806643"), "Yes — a dup");
+  assert.equal(buildFeedbackBody({ ...base, missed: "Yes", missedDetail: "a dup" }).get("entry.1506806643"), "Yes: a dup");
   assert.equal(buildFeedbackBody({ ...base, missed: "Yes" }).get("entry.1506806643"), "Yes");
   assert.equal(buildFeedbackBody({ ...base, missed: "No", missedDetail: "x" }).get("entry.1506806643"), "No");
 });

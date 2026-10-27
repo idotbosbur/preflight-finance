@@ -4,8 +4,8 @@
  * A draft is bound to the case version the reviewer was looking at when they started typing.
  * If another tab changes the case, the refreshed evidence/history is shown, the typed reason is
  * kept, but the draft stays bound to the OLD token so submitting it produces an explicit
- * conflict. Only after that conflict (the reviewer has now been shown the change) — or when the
- * draft is empty — does the draft rebind to the latest version.
+ * conflict. Only after that conflict (the reviewer has now been shown the change), or when the
+ * draft is empty, does the draft rebind to the latest version.
  */
 import type { ExpectedToken, FindingView } from "../domain/contracts.ts";
 

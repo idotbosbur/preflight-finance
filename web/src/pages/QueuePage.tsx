@@ -171,7 +171,7 @@ export function QueuePage(props: QueueProps) {
           </div>
           <p className="order-note">
             Showing {findings.length} {findings.length === 1 ? "finding" : "findings"}. Order: open first, then rule, then record
-            ID — no risk score.
+            ID. No risk score.
           </p>
           {findings.length === 0 ? (
             <p className="empty-inline">No findings match these filters.</p>

@@ -47,7 +47,7 @@ function RawFields({ invoice }: { readonly invoice: Invoice }) {
   return (
     <div className="raw">
       <h4 className="small-title">
-        {invoice.recordId} — source row {invoice.rowNumber}
+        {invoice.recordId} · source row {invoice.rowNumber}
       </h4>
       <dl className="kv kv-raw">
         {CSV_HEADER.map((field, i) => (
@@ -118,7 +118,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
           <>
             <p>
               These invoices have the same vendor, invoice number and currency after normalization (outer spaces trimmed, letters
-              upper-cased). That can mean the same invoice was entered twice — or that a vendor legitimately reused an invoice
+              upper-cased). That can mean the same invoice was entered twice, or that a vendor legitimately reused an invoice
               number. The rule cannot tell which, so a person decides.
             </p>
             <DuplicateMembers evidence={ev} currency={currency} />
@@ -163,7 +163,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
             onChange={(e) => onFormChange({ ...form, reviewer: e.target.value })}
           />
           <p id="reviewer-hint" className="hint">
-            1–{REVIEWER_MAX} characters. Self-declared; there are no accounts.
+            1 to {REVIEWER_MAX} characters. Self-declared; there are no accounts.
           </p>
         </div>
         <div className="field">
@@ -178,7 +178,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
             onChange={(e) => onFormChange({ ...form, reason: e.target.value })}
           />
           <p id="reason-hint" className="hint">
-            Required, 1–{REASON_MAX} characters ({codePointLength(form.reason)} used).
+            Required, 1 to {REASON_MAX} characters ({codePointLength(form.reason)} used).
           </p>
           {suggestedReasons.length > 0 ? (
             <div className="chips" role="group" aria-label="Suggested reasons (fills the reason box; you can edit it)">

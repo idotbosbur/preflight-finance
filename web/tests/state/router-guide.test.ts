@@ -44,7 +44,7 @@ test("guide derives steps from stored state, never from pre-seeded decisions", (
   assert.equal(g.currentIndex, 2);
 
   g = deriveGuide({ ...base, demoLoaded: true, mismatch: caseWith("dismissed", ["dismiss"]), reuse: caseWith("open", []) });
-  assert.match(g.steps[1]!.note ?? "", /reopen it, then confirm/);
+  assert.match(g.steps[1]!.note ?? "", /Reopen it, then confirm/);
 
   g = deriveGuide({ ...base, demoLoaded: true, mismatch: caseWith("confirmed", ["confirm"]),
     reuse: caseWith("open", ["dismiss", "reopen"]), visitedResults: true });

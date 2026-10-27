@@ -1,5 +1,5 @@
 /**
- * Strict, atomic validation of one synthetic invoice CSV batch — parity with Python
+ * Strict, atomic validation of one synthetic invoice CSV batch, parity with Python
  * `src/preflight/imports.py` `validate_bytes` (precedence, issue codes, rows and fields).
  *
  * The CSV tokenizer is a hand-written state machine mirroring CPython 3.12

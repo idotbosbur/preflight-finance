@@ -27,7 +27,7 @@ export function buildFeedbackBody(a: FeedbackAnswers): URLSearchParams {
   if (a.software === OTHER_OPTION) put("entry.552812709.other_option_response", a.softwareOther);
   put("entry.772120213", a.tried);
   const detail = a.missedDetail?.trim();
-  put("entry.1506806643", a.missed === "Yes" && detail ? `Yes — ${detail}` : a.missed);
+  put("entry.1506806643", a.missed === "Yes" && detail ? `Yes: ${detail}` : a.missed);
   put("entry.766796994", a.ease ? String(a.ease) : undefined);
   put("entry.1467106461", a.confusion);
   put("entry.581263092", a.wish);

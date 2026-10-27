@@ -122,7 +122,7 @@ export const guide: GuideView = {
   complete: false,
   steps: [
     { id: "load", title: "Load the demo", instruction: "Load the synthetic batch.", status: "done", href: "#/demo", note: null },
-    { id: "confirm-mismatch", title: "Confirm the one-cent mismatch", instruction: "Open R-0009 and confirm it with a reason.", status: "current", href: "#/case/b/f", note: "Already confirmed earlier — reopen to replay this step." },
+    { id: "confirm-mismatch", title: "Confirm the one-cent mismatch", instruction: "Open R-0009 and confirm it with a reason.", status: "current", href: "#/case/b/f", note: "Already confirmed earlier, reopen to replay this step." },
     { id: "dismiss-reuse", title: "Dismiss the legitimate reuse", instruction: "Dismiss DG-12.", status: "upcoming", href: null, note: null },
     { id: "reopen-history", title: "Reopen and read history", instruction: "Reopen a case.", status: "upcoming", href: null, note: null },
     { id: "results", title: "See results", instruction: "Open Results.", status: "upcoming", href: "#/results", note: null },
