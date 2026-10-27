@@ -124,6 +124,14 @@ export interface Loaded { readonly name: string; readonly bytes: Uint8Array; rea
 const NOT_UTF8 = "This file is not saved as UTF-8 text. In Excel, choose Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
 
 export function readPreview(name: string, bytes: Uint8Array): Loaded | string {
+  // The two commonest wrong picks: a PDF, or the spreadsheet itself instead of its CSV export.
+  const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
+  if (/\.pdf$/i.test(name) || starts(0x25, 0x50, 0x44, 0x46)) {
+    return "That is a PDF. Export your bills from your accounting software as a CSV file instead (the pilot guide shows how).";
+  }
+  if (/\.(xlsx|xlsm|xls|numbers|ods)$/i.test(name) || starts(0x50, 0x4b, 0x03, 0x04) || starts(0xd0, 0xcf, 0x11, 0xe0)) {
+    return "That is a spreadsheet file, not a CSV. In Excel, choose File, then Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
+  }
   let text: string;
   try {
     const bom = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
@@ -193,7 +201,12 @@ export function MapStep({ loaded, mapping, dateOrder, working, onMapping, onDate
         <MappingForm headers={loaded.headers} mapping={mapping} onChange={onMapping} />
         <PreviewTable headers={loaded.headers} rows={loaded.rows} />
         {askOrder ? <DateOrderQuestion value={dateOrder} onChange={onDateOrder} /> : null}
-        {error && error !== "ambiguous date order" ? <p className="notice" role="status">{PARSE_MESSAGE[error]}</p> : null}
+        {error === "missing required column" ? (
+          <p className="notice" role="status">
+            Choose a column for {REQUIRED_FIELDS.filter((f) => mapping[f] === undefined).map((f) => FIELD_LABEL[f]).join(", ")}.
+            {mapping.invoiceNumber === undefined ? " If your file has no invoice or bill number, export a report that includes it." : ""}
+          </p>
+        ) : error && error !== "ambiguous date order" ? <p className="notice" role="status">{PARSE_MESSAGE[error]}</p> : null}
       </section>
       {!("error" in dry) ? (
         <ImportSummary readable={dry.invoices.length} skipped={dry.skipped} warnings={dry.warnings}

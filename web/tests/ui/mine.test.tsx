@@ -263,3 +263,24 @@ test("M15: a legacy uploaded batch is labelled neutrally, never as synthetic", (
     save: { kind: "idle" } as const, durability: "persistent" as const, guideHint: null, queueHref: "#/q", prevHref: null, nextHref: null,
     suggestedReasons: [] }} />).includes("Uploaded file (older version)"));
 });
+
+test("readPreview: a PDF or a spreadsheet file gets a clear 'not a CSV' message", async () => {
+  const { readPreview } = await import("../../src/pages/MinePage.tsx");
+  const pdf = readPreview("bills.pdf", new TextEncoder().encode("%PDF-1.4"));
+  assert.equal(typeof pdf, "string");
+  assert.match(pdf as string, /That is a PDF/);
+  const xlsx = readPreview("bills.xlsx", new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2, 3]));
+  assert.match(xlsx as string, /spreadsheet file, not a CSV/);
+  const zipNamedCsv = readPreview("bills.csv", new Uint8Array([0x50, 0x4b, 0x03, 0x04]));
+  assert.match(zipNamedCsv as string, /spreadsheet file/);
+  assert.equal(typeof readPreview("ok.csv", new TextEncoder().encode("Vendor,Bill No.,Amount\nA,1,2\n")), "object");
+});
+
+test("map step: a file with no invoice number column names what is missing", async () => {
+  const { MapStep } = await import("../../src/pages/MinePage.tsx");
+  const bytes = new TextEncoder().encode("Vendor,Date,Amount\nUmbrella Sample,2026-01-02,10.00\n");
+  const html = render(<MapStep loaded={{ name: "list.csv", bytes, headers: ["Vendor", "Date", "Amount"], rows: [["Umbrella Sample", "2026-01-02", "10.00"]] }}
+    mapping={{ vendor: 0, date: 1, total: 2 }} dateOrder={null} working={false} onMapping={() => {}} onDateOrder={() => {}} onContinue={() => {}} />);
+  assert.ok(html.includes("Choose a column for Invoice number."), "names the missing field");
+  assert.ok(html.includes("If your file has no invoice or bill number"));
+});

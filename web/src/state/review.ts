@@ -33,7 +33,7 @@ export function validateDecision(req: Pick<DecisionRequest, "action" | "reason" 
   else if (CONTROL.test(reason)) errors.push("The reason contains unsupported control characters.");
 
   const reviewer = asciiTrim(String(req.reviewer ?? ""));
-  if (!reviewer) errors.push("Enter a reviewer name (a fictional demo name is fine).");
+  if (!reviewer) errors.push("Enter a reviewer name or initials.");
   else if (codePointLength(reviewer) > REVIEWER_MAX) errors.push(`The reviewer name must be at most ${REVIEWER_MAX} characters.`);
   else if (CONTROL.test(reviewer) || /[\n\t]/.test(reviewer)) errors.push("The reviewer name must be a single line of text.");
 

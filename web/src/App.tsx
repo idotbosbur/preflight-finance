@@ -187,7 +187,8 @@ export function App() {
     : { kind: "not_loaded" };
 
   const queueBatchId = route.name === "queue"
-    ? route.batchId ?? (demoLoaded ? demo!.batchId : batches[0]?.batchId ?? null)
+    // "#/queue" with no id is the demo queue: never fall back to the person's own data.
+    ? route.batchId ?? (demoLoaded ? demo!.batchId : batches.find((b) => b.source !== "own")?.batchId ?? null)
     : route.name === "case" ? route.batchId : null;
   const queueBatch = batches.find((b) => b.batchId === queueBatchId) ?? null;
   const ownMode = route.name === "mine" || route.name === "mine-summary"
