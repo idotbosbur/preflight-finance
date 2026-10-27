@@ -159,7 +159,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
             <span className="f-file-meta">QuickBooks export · 120 rows</span>
           </div>
 
-          <div className="f-table" style={{ opacity: seg(t, 6.4, 7.2) * (1 - 0.82 * pairK) }}>
+          <div className="f-table" style={{ opacity: seg(t, 6.4, 7.2) * (1 - pairK) }}>
             <Row className="f-head" cells={["Record", "Vendor", "Invoice", "Date", "Total"]} />
             {ROWS.map((r, i) => {
               const k = seg(t, 6.6 + i * 0.16, 7.3 + i * 0.16);
