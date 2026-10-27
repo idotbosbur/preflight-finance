@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { FRAG, VERT } from "../art/ChromeField.tsx";
+import { VERT } from "../art/ChromeField.tsx";
+import { FILM_FRAG } from "./filmShader.ts";
 import { ChromeMark } from "../art/ChromeMark.tsx";
 
 /**
@@ -44,7 +45,7 @@ function useShader(canvas: React.RefObject<HTMLCanvasElement | null>) {
     const sh = (type: number, src: string) => { const s = ctx.createShader(type)!; ctx.shaderSource(s, src); ctx.compileShader(s); return s; };
     const prog = ctx.createProgram()!;
     ctx.attachShader(prog, sh(ctx.VERTEX_SHADER, VERT));
-    ctx.attachShader(prog, sh(ctx.FRAGMENT_SHADER, FRAG));
+    ctx.attachShader(prog, sh(ctx.FRAGMENT_SHADER, FILM_FRAG));
     ctx.linkProgram(prog);
     ctx.useProgram(prog);
     ctx.bindBuffer(ctx.ARRAY_BUFFER, ctx.createBuffer());
@@ -88,7 +89,8 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
   // ----- shader keyframes -----
   const reading = smooth(t, 4.2, 5.4) * (1 - smooth(t, 19.6, 21));       // calm ribbons behind the data scenes
   const alpha = lerp(seg(t, 0, 1.6), 0.26, reading);
-  const swirl = lerp(0.18, 0, smooth(t, 3.5, 5.5)) + 0.5 * smooth(t, 20, 23) - 0.2 * smooth(t, 25.5, 27.5);
+  const swirl = lerp(0.12, 0, smooth(t, 3.5, 5.5)) + 0.25 * smooth(t, 20, 23);
+  const ring = smooth(t, 20.4, 23.2);                                      // chrome ring behind the dark scenes
   const clearZ = lerp(1, 0.25, reading) * (1 - 0.35 * smooth(t, 20, 23));
   const cx = sq ? 0 : lerp(-0.45, 0, smooth(t, 20, 23));
   const cy = sq ? lerp(0.12, 0, smooth(t, 20, 23)) : lerp(-0.04, 0.02, smooth(t, 20, 23));
@@ -108,6 +110,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
     ctx.uniform1f(u("u_shift"), t * 0.18);
     ctx.uniform3f(u("u_clear"), cx, cy, clearZ);
     ctx.uniform1f(u("u_dark"), dark);
+    ctx.uniform1f(u("u_ring"), ring);
     ctx.clearColor(0, 0, 0, 0);
     ctx.clear(ctx.COLOR_BUFFER_BIT);
     ctx.drawArrays(ctx.TRIANGLES, 0, 3);
