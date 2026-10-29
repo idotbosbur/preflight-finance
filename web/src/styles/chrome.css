@@ -2039,3 +2039,9 @@ body { background: var(--ov-bg, var(--bg)); }
 .btn-big { min-height: 52px; padding-inline: 1.6rem; font-size: 1.05rem; }
 .payee-missing { display: block; color: var(--err-ink); font-weight: 600; }
 .payee-files label { display: block; white-space: nowrap; }
+.vote fieldset { border: 0; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.vote-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--ov-rule, var(--line)); border-radius: var(--radius); background: var(--ov-card, var(--surface)); color: var(--ov-fg, var(--ink)); cursor: pointer; }
+.vote .field-label { color: var(--ov-fg, var(--ink)); }
+.vote .btn-primary:disabled { opacity: 0.5; }
+.vote-option input { margin-top: 3px; }
+.ov-later-text { color: var(--ov-fg-soft, var(--ink-soft)); max-width: 46ch; }

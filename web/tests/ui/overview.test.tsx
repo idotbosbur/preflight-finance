@@ -11,7 +11,7 @@ test("overview: headline, actions, artwork and story from real story data", () =
   assert.ok(html.includes("Catch invoice errors before they&#x27;re paid"));
   const b = buttons(html);
   assert.ok(b.includes("Try the demo"));
-  assert.ok(/href="#\/mine"[^>]*>Check your own invoices</.test(html), "own-invoices link in hero");
+  assert.ok(/href="#\/mine"[^>]*>Check your own bills</.test(html), "own-invoices link in hero");
   assert.ok(html.includes("<svg"));
   assert.ok(html.indexOf("Try the demo") < html.indexOf("<svg"), "primary action precedes artwork");
   for (const s of ["1234.50", "98.76", "15.00", "0.00", "1348.26", "1348.27", "+0.01", "NW-0042"]) {
@@ -44,7 +44,7 @@ test("darknessAt: 1 inside the dark section, fades in above it and stays dark to
 test("overview: dark section, check cards, tools and guide links", () => {
   const html = render(<OverviewPage story={story} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} />);
   assert.ok(html.includes('data-chrome="dark"'));
-  for (const s of ["Duplicate bills", "Repeat charges", "Stays in your browser", "QuickBooks Online", "/guide-excel-duplicate-invoices.html"]) {
+  for (const s of ["Duplicate bills", "Bills paid twice", "Monthly charges creeping up", "Which would you use?", "Stays in your browser", "QuickBooks Online", "/guide-excel-duplicate-invoices.html"]) {
     assert.ok(html.includes(s), s);
   }
 });

@@ -1,3 +1,4 @@
+import { InterestVote } from "../components/InterestVote.tsx";
 import type { ReactNode } from "react";
 import type { OverviewProps } from "../ui-contracts.ts";
 import { ChromeField } from "../art/ChromeField.tsx";
@@ -23,7 +24,7 @@ function Step({ n, title, children }: { readonly n: string; readonly title: stri
   );
 }
 
-type IconName = "dup" | "sum" | "repeat" | "lock" | "cents" | "person" | "scale";
+type IconName = "dup" | "sum" | "repeat" | "lock" | "cents" | "person" | "scale" | "up" | "list";
 
 const ICON_PATHS: Readonly<Record<IconName, ReactNode>> = {
   dup: <><rect x="4" y="6" width="11" height="14" rx="2" /><path d="M9 3h9a2 2 0 0 1 2 2v12" /></>,
@@ -33,6 +34,8 @@ const ICON_PATHS: Readonly<Record<IconName, ReactNode>> = {
   cents: <><circle cx="12" cy="12" r="8" /><path d="M14.5 9.5a3 3 0 1 0 0 5M12 6.5v2M12 15.5v2" /></>,
   person: <><circle cx="12" cy="8" r="3.5" /><path d="M5 20a7 7 0 0 1 14 0" /></>,
   scale: <><path d="M12 4v16M6 20h12M4 8h16" /><path d="M7 8l-3 6h6zM17 8l-3 6h6z" /></>,
+  up: <><path d="M4 17l6-6 4 4 6-7" /><path d="M15 8h5v5" /></>,
+  list: <><path d="M9 7h11M9 12h11M9 17h11" /><path d="M4.5 7h.01M4.5 12h.01M4.5 17h.01" /></>,
 };
 
 /** Small line icons (inline SVG, inherit text colour). */
@@ -45,9 +48,12 @@ function Icon({ name }: { readonly name: IconName }) {
 }
 
 const CHECKS: readonly (readonly [IconName, string, string])[] = [
-  ["dup", "Duplicate bills", "Same vendor and invoice number, across every file you import."],
+  ["dup", "Duplicate bills", "The same bill entered twice, even when the supplier name or number is written differently."],
+  ["repeat", "Bills paid twice", "Add a bank or card statement and we find bills paid more than once, and payments with no bill."],
+  ["up", "Monthly charges creeping up", "Phone, internet and software charges that rose or were taken twice in a month."],
+  ["cents", "Supplier price increases", "Item prices that went up since your first order, from bills with item lines."],
   ["sum", "Totals that don't add up", "Subtotal, tax, shipping and discount, checked to the cent."],
-  ["repeat", "Repeat charges", "Same vendor and amount within 14 days. Lower confidence."],
+  ["list", "Year-end contractor list", "Who you paid enough to need a 1099, and whose W-9 or insurance is missing."],
 ];
 
 const PILLARS: readonly (readonly [IconName, string, string])[] = [
@@ -76,14 +82,14 @@ export function OverviewPage({ story, demo, onStartGuide, benchmark = null }: Ov
       <ChromeField className="chrome-field" />
 
       <section className="ov-hero" data-chrome="hero" aria-labelledby="hero-heading">
-        <p className="ov-kicker hero-rise">Invoice review · free prototype</p>
+        <p className="ov-kicker hero-rise">Free · for small businesses and individuals</p>
         <h1 id="hero-heading" className="ov-display hero-rise" tabIndex={-1}>Catch invoice errors before they're paid</h1>
-        <p className="ov-lede hero-rise">Flags duplicate bills and totals that don't add up. Your file never leaves your browser.</p>
+        <p className="ov-lede hero-rise">Drop in your bills and bank statement. See what was paid twice, overcharged or quietly went up. Your files never leave your browser.</p>
         <div className="ov-actions hero-rise">
           <button type="button" className="btn-line btn-line-strong" onClick={onStartGuide} disabled={busy}>
             Try the demo
           </button>
-          <a className="btn-line" href={MINE_HREF}>Check your own invoices</a>
+          <a className="btn-line" href={MINE_HREF}>Check your own bills</a>
         </div>
         {demo.kind === "loading" ? <p className="hero-status" role="status">Loading the synthetic demo batch…</p> : null}
         {demo.kind === "error" ? (
@@ -100,7 +106,7 @@ export function OverviewPage({ story, demo, onStartGuide, benchmark = null }: Ov
       <section className="ov-statement" data-chrome="statement">
         <Reveal>
           <p className="ov-statement-text">
-            Two exact checks. <span className="ov-soft">A person makes every decision.</span>
+            Six free checks. <span className="ov-soft">You make every decision.</span>
           </p>
         </Reveal>
       </section>
@@ -213,13 +219,29 @@ export function OverviewPage({ story, demo, onStartGuide, benchmark = null }: Ov
         </div>
       </section>
 
+      <section className="ov-section ov-after" data-chrome="haze" aria-labelledby="later-heading">
+        <p className="ov-label">Coming later, if you want it</p>
+        <div className="ov-split">
+          <Reveal className="ov-split-head">
+            <h2 id="later-heading" className="ov-h2">Everything above stays free</h2>
+            <p className="ov-later-text">
+              These would need servers and paid AI, so they would be part of a paid version later. Tick what you would actually use.
+              It decides what gets built next.
+            </p>
+          </Reveal>
+          <Reveal>
+            <InterestVote />
+          </Reveal>
+        </div>
+      </section>
+
       <section className="ov-cta" data-chrome="hero" aria-labelledby="cta-heading">
         <h2 id="cta-heading" className="ov-display ov-display-sm">Try it in three minutes</h2>
         <div className="ov-actions">
           <button type="button" className="btn-line btn-line-strong" onClick={onStartGuide} disabled={busy}>
             Try the demo
           </button>
-          <a className="btn-line" href={MINE_HREF}>Check your own invoices</a>
+          <a className="btn-line" href={MINE_HREF}>Check your own bills</a>
         </div>
       </section>
     </div>
