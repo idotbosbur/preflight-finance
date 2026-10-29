@@ -1,6 +1,6 @@
 # Catchfold: find the bills you paid twice
 
-**Live:** https://preflight-finance-portfolio.vercel.app/ · free · no sign-up · your files never leave your browser
+**Live:** https://catchfold.com/ · free · no sign-up · your files never leave your browser
 
 Catchfold (formerly Preflight) is a free web tool for small businesses and individuals. You drop in a bills export from your accounting
 software and, if you like, a bank or card statement. In a few seconds it shows what may have been paid twice,
@@ -120,4 +120,4 @@ Python reference (from the repository root): `python -m unittest discover -s tes
 The free version stays free. Ideas that would need servers and paid AI (connecting QuickBooks, Xero or a bank,
 reading PDFs, a stronger AI, chasing refunds, a bookkeeper mode) are listed on the site, where visitors vote on what
 they would use. The longer-term twelve-module vision is on the
-[Roadmap page](https://preflight-finance-portfolio.vercel.app/#/roadmap).
+[Roadmap page](https://catchfold.com/#/roadmap).

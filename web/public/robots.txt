@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://preflight-finance-portfolio.vercel.app/sitemap.xml
+Sitemap: https://catchfold.com/sitemap.xml
