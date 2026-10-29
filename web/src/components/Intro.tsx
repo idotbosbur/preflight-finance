@@ -81,7 +81,7 @@ export function Intro({ onDone }: { readonly onDone: () => void }) {
         </span>
         <span className="intro-word intro-word-right"><span>flight</span></span>
       </div>
-      <p className="intro-caption">Invoice review · working prototype · synthetic data</p>
+      <p className="intro-caption">Free bill checker · nothing uploaded</p>
       <p className="intro-skip">Click or press any key to skip</p>
     </div>
   );

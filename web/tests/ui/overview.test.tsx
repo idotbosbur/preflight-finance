@@ -6,20 +6,12 @@ import { buttons, render } from "./helpers.ts";
 
 const noop = () => {};
 
-test("overview: headline, actions, artwork and story from real story data", () => {
-  const html = render(<OverviewPage story={story} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} />);
-  assert.ok(html.includes("Catch invoice errors before they&#x27;re paid"));
-  const b = buttons(html);
-  assert.ok(b.includes("Try the demo"));
-  assert.ok(/href="#\/mine"[^>]*>Check your own bills</.test(html), "own-invoices link in hero");
-  assert.ok(html.includes("<svg"));
-  assert.ok(html.indexOf("Try the demo") < html.indexOf("<svg"), "primary action precedes artwork");
-  for (const s of ["1234.50", "98.76", "15.00", "0.00", "1348.26", "1348.27", "+0.01", "NW-0042"]) {
-    assert.ok(html.includes(s), s);
-  }
-  assert.ok(html.includes("12 groups flagged: 10 genuine duplicates, 2 legitimate reuses"));
+test("overview: the drop box is the first thing, with the demo as a quiet second option", () => {
+  const html = render(<OverviewPage story={story} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} drop={<div id="drop-slot" />} />);
+  assert.ok(html.includes("Find the bills you paid twice"));
+  assert.ok(html.indexOf("drop-slot") < html.indexOf("Try the demo"), "drop box comes before the demo button");
+  assert.ok(buttons(html).includes("Try the demo"));
   assert.ok(html.includes('href="#/how"'), "links to How it works");
-  assert.ok(html.includes("On 120 invented invoices"));
   assert.ok(!html.includes("<details"), "nothing hidden behind disclosures");
   assert.ok(!html.includes("reveal-pending"), "content not hidden in markup");
 });
@@ -41,10 +33,10 @@ test("darknessAt: 1 inside the dark section, fades in above it and stays dark to
   assert.equal(darknessAt(secs, 2600, 500), 1, "stays dark below the dark section (no fade back to white)");
 });
 
-test("overview: dark section, check cards, tools and guide links", () => {
+test("overview: dark section, the six checks and the paid-idea vote", () => {
   const html = render(<OverviewPage story={story} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} />);
   assert.ok(html.includes('data-chrome="dark"'));
-  for (const s of ["Duplicate bills", "Bills paid twice", "Monthly charges creeping up", "Which would you use?", "Stays in your browser", "QuickBooks Online", "/guide-excel-duplicate-invoices.html"]) {
+  for (const s of ["Bills entered twice", "Bills paid twice", "Monthly charges creeping up", "Year-end 1099 contractor list", "Your files never leave your browser.", "Which would you use?"]) {
     assert.ok(html.includes(s), s);
   }
 });

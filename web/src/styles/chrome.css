@@ -273,7 +273,7 @@ h3 {
   display: block;
   width: clamp(76px, 12vw, 136px);
   height: auto;
-  animation: intro-mark-in 900ms var(--ease-out) both;
+  animation: intro-coin 1500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .intro-caption {
@@ -2045,3 +2045,70 @@ body { background: var(--ov-bg, var(--bg)); }
 .vote .btn-primary:disabled { opacity: 0.5; }
 .vote-option input { margin-top: 3px; }
 .ov-later-text { color: var(--ov-fg-soft, var(--ink-soft)); max-width: 46ch; }
+
+/* ---------- Landing: the drop card is the hero ---------- */
+/* The mark arrives spinning like a coin, then settles face-on before it flies to the top bar. */
+@keyframes intro-coin {
+  0% { opacity: 0; transform: perspective(700px) rotateY(-540deg) scale(0.7); }
+  35% { opacity: 1; }
+  100% { opacity: 1; transform: perspective(700px) rotateY(0deg) scale(1); }
+}
+.ov-hero-drop { align-items: center; text-align: center; }
+.ov-hero-drop .ov-display { max-width: 13ch; margin-inline: auto; }
+.ov-hero-drop .ov-lede { margin-inline: auto; margin-bottom: 2.2rem; }
+.hero-drop { width: min(640px, 100%); margin: 0 auto 1.6rem; }
+.drop-hero { text-align: left; }
+.drop-hero .drop-zone {
+  padding: clamp(32px, 6vh, 56px) 24px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 30px 80px rgba(20, 24, 32, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: transform 320ms var(--ease-out), box-shadow 320ms var(--ease-out), background-color 320ms ease;
+}
+.drop-hero .drop-zone:hover, .drop-hero .drop-zone.is-over {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 40px 90px rgba(20, 24, 32, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.drop-hero .drop-title { font-size: clamp(1.35rem, 2.6vw, 1.8rem); letter-spacing: -0.02em; }
+.drop-hero .drop-item, .drop-hero .notice {
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.drop-hero > p { text-align: center; }
+.ov-hero-links { display: flex; flex-wrap: wrap; gap: 1rem 2.2rem; justify-content: center; margin: 0; }
+
+.ov-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 980px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 56px;
+}
+.ov-list li {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(24, 24, 24, 0.12);
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2.4vw, 1.9rem);
+  letter-spacing: -0.025em;
+}
+.ov-list-n { font-family: var(--font); font-size: 0.78rem; letter-spacing: 0.04em; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+@media (max-width: 680px) { .ov-list { grid-template-columns: 1fr; } }
+.ov-dark { text-align: center; }
+.ov-dark .ov-dark-title { margin-inline: auto; }
+.ov-dark-points { margin: 1.4rem 0 0; color: var(--ov-fg-soft, var(--ink-soft)); font-size: 1.05rem; }
+.ov-list li { color: var(--ov-fg, var(--ink)); border-bottom-color: var(--ov-rule, rgba(24, 24, 24, 0.12)); transition: color 200ms linear; }
+.ov-list-n { color: var(--ov-fg-soft, var(--ink-soft)); }
+.ov-section > .ov-label { color: var(--ov-fg-soft, var(--ink-soft)); border-bottom-color: var(--ov-rule, rgba(24, 24, 24, 0.12)); }
+/* Room for the white-to-black fade below the list, so the list itself stays on white. */
+.ov-checks { padding-bottom: 65vh; }
+.drop-zone { grid-template-columns: minmax(0, 1fr); }
+.drop-zone .file-input { min-width: 0; justify-self: center; }

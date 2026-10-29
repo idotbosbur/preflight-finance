@@ -26,6 +26,7 @@ import { importBytes } from "./state/importer.ts";
 import { importBankFile, importOwnFile } from "./state/ownImporter.ts";
 import { buildScorer } from "./state/aiMatch.ts";
 import type { BankImport } from "./pages/BankSection.tsx";
+import { DropFiles } from "./pages/DropFiles.tsx";
 import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
 import type { OwnFileRecord, ReviewStore } from "./state/store.ts";
 import { onCaseLoaded, onConflictShown, onSaved, reviewerFor } from "./state/draft.ts";
@@ -456,6 +457,7 @@ export function App() {
   } else switch (route.name) {
     case "overview":
       page = <OverviewPage story={demo?.story ?? null} demo={demoStatus} onStartGuide={startGuide} onExplore={explore}
+        drop={<DropFiles hero onImport={onImportOwn} onImportBank={onImportBank} queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} />}
         benchmark={benchmark?.runs.find((r) => r.source === "browser-port") ?? null} />;
       break;
     case "demo":

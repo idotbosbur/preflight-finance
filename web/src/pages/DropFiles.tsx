@@ -80,7 +80,11 @@ function columnsLine(item: Item): string {
 
 let nextId = 1;
 
-export function DropFiles({ onImport, onImportBank, queueHref }: { readonly onImport: BillsImport; readonly onImportBank: BankImport; readonly queueHref: string }) {
+export function DropFiles({ onImport, onImportBank, queueHref, hero = false }: {
+  readonly onImport: BillsImport; readonly onImportBank: BankImport; readonly queueHref: string;
+  /** Landing-page version: no panel or heading, a glass card over the artwork. */
+  readonly hero?: boolean;
+}) {
   const [items, setItems] = useState<Item[]>([]);
   const [problems, setProblems] = useState<string[]>([]);
   const [working, setWorking] = useState<string | null>(null);
@@ -135,17 +139,17 @@ export function DropFiles({ onImport, onImportBank, queueHref }: { readonly onIm
 
   const allReady = items.length > 0 && ready.every((r) => r.ok);
   return (
-    <section className="panel drop" aria-labelledby="drop-heading">
-      <h2 id="drop-heading" className="section-title">Add your files</h2>
+    <section className={hero ? "drop drop-hero" : "panel drop"} aria-labelledby="drop-heading">
+      <h2 id="drop-heading" className={hero ? "sr-only" : "section-title"}>Add your files</h2>
       <label htmlFor="own-file" className={`drop-zone${over ? " is-over" : ""}`}
         onDragOver={(e: DragEvent) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
         onDrop={(e: DragEvent) => { e.preventDefault(); setOver(false); void add([...e.dataTransfer.files]); }}>
-        <span className="drop-title">Drop CSV files here, or choose them</span>
-        <span className="drop-sub">Your bills export, and if you like, a bank or card statement. You can add several at once.</span>
+        <span className="drop-title">{hero ? "Drop your CSV files here" : "Drop CSV files here, or choose them"}</span>
+        <span className="drop-sub">{hero ? "Bills, a bank statement, or both." : "Your bills export, and if you like, a bank or card statement. You can add several at once."}</span>
         <input id="own-file" className="file-input" type="file" accept=".csv,text/csv" multiple disabled={working !== null}
           onChange={(e: ChangeEvent<HTMLInputElement>) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void add(fs); }} />
       </label>
-      <p className="hint">Your file is read on this device. It is never uploaded.</p>
+      {hero ? null : <p className="hint">Your file is read on this device. It is never uploaded.</p>}
       {problems.map((p) => <p key={p} className="notice notice-error" role="alert">{p}</p>)}
 
       {items.length > 0 ? (
