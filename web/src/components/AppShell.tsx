@@ -16,7 +16,7 @@ interface NavItem {
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "#/demo", label: "Demo", match: ["demo", "queue", "case"] },
-  { href: "#/mine", label: "Your data", match: ["mine", "mine-summary"] },
+  { href: "#/mine", label: "Your files", match: ["mine", "mine-summary"] },
   { href: "#/results", label: "Results", match: ["results"] },
   { href: "#/how", label: "How it works", match: ["how"] },
   { href: "#/roadmap", label: "Roadmap", match: ["roadmap"] },
@@ -60,7 +60,7 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   how: "How it works",
   roadmap: "Roadmap",
   feedback: "Feedback",
-  mine: "Your data",
+  mine: "Your files",
   "mine-summary": "Your data summary",
   not_found: "Page not found",
 };

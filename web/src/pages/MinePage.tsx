@@ -7,7 +7,7 @@ import { REQUIRED_FIELDS, guessMapping } from "../domain/own/columns.ts";
 import type { ColumnMapping, OwnField } from "../domain/own/columns.ts";
 import type { DateOrder } from "../domain/own/values.ts";
 import type { OwnFileRecord } from "../state/store.ts";
-import { OWN_BADGE, plural } from "../components/labels.ts";
+import { plural } from "../components/labels.ts";
 import { FeedbackLink } from "../components/AppShell.tsx";
 import { DropFiles } from "./DropFiles.tsx";
 import type { BillsImport } from "./DropFiles.tsx";
@@ -203,20 +203,17 @@ export function MinePage({ ownBatch, files, onImport, onImportBank = noBank, onD
     }
   }
 
+  const hasData = files.length > 0 || ownBatch !== null;
   return (
     <div className="workspace">
       <header className="page-head">
-        <p className="eyebrow">Your data</p>
-        <h1 ref={headingRef} className="page-title" tabIndex={-1}>Check your bills</h1>
-        <p><span className="badge badge-synthetic">{OWN_BADGE}</span></p>
-        <p className="lede">Drop in a CSV export of your bills. Add a bank or card statement too and we also check for bills paid twice.</p>
+        <h1 ref={headingRef} className="page-title" tabIndex={-1}>{hasData ? "Your files" : "Check your bills"}</h1>
+        {hasData ? null : <p className="lede">Drop in a CSV export of your bills. Add a bank or card statement too and we also check for bills paid twice.</p>}
       </header>
 
-      <DropFiles onImport={onImport} onImportBank={onImportBank} queueHref={queueHref} />
-
-      <section className="panel" aria-labelledby="files-heading">
-        <h2 id="files-heading" className="section-title">Files in this browser</h2>
-        {files.length === 0 ? <p className="muted">Nothing added yet.</p> : (
+      {hasData ? (
+        <section className="panel" aria-labelledby="files-heading">
+          <h2 id="files-heading" className="section-title">Checked so far</h2>
           <ul className="issues">
             {files.map((f) => (
               <li key={f.fileSha256} className="issue">
@@ -225,18 +222,28 @@ export function MinePage({ ownBatch, files, onImport, onImportBank = noBank, onD
               </li>
             ))}
           </ul>
-        )}
-        {ownBatch ? <p><a href={queueHref}>See what we found</a> · <a href={summaryHref}>Summary and contractor list</a></p> : null}
-        {deleteError ? <p className="notice notice-error" role="alert">{deleteError}</p> : null}
-        {files.length > 0 || ownBatch ? (confirming ? (
-          <DeleteConfirmation busy={deleting} cancelRef={cancelRef} onCancel={() => { focusAfter.current = "trigger"; setDeleteError(null); setConfirming(false); }}
-            onConfirm={() => void onDelete()} />
-        ) : (
-          <button ref={triggerRef} type="button" className="btn btn-quiet"
-            onClick={() => { focusAfter.current = "cancel"; setDeleteError(null); setConfirming(true); }}>Delete my data</button>
-        )) : null}
-        {feedbackUrl ? <p className="hint"><FeedbackLink url={feedbackUrl} /></p> : null}
-      </section>
+          <p className="row-actions">
+            <a className="btn btn-primary btn-big" href={queueHref}>See what we found <span aria-hidden="true">→</span></a>
+            <a className="btn btn-secondary" href={summaryHref}>Summary and contractor list</a>
+          </p>
+        </section>
+      ) : null}
+
+      <DropFiles onImport={onImport} onImportBank={onImportBank} queueHref={queueHref} heading={hasData ? "Add more files" : "Add your files"} />
+
+      {hasData ? (
+        <section className="mine-end" aria-label="Delete your data">
+          {deleteError ? <p className="notice notice-error" role="alert">{deleteError}</p> : null}
+          {confirming ? (
+            <DeleteConfirmation busy={deleting} cancelRef={cancelRef} onCancel={() => { focusAfter.current = "trigger"; setDeleteError(null); setConfirming(false); }}
+              onConfirm={() => void onDelete()} />
+          ) : (
+            <button ref={triggerRef} type="button" className="btn btn-quiet"
+              onClick={() => { focusAfter.current = "cancel"; setDeleteError(null); setConfirming(true); }}>Delete my data</button>
+          )}
+        </section>
+      ) : null}
+      {feedbackUrl ? <p className="hint"><FeedbackLink url={feedbackUrl} /></p> : null}
     </div>
   );
 }

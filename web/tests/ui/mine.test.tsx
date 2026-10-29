@@ -48,7 +48,7 @@ test("mine page: privacy line, file picker, imported files and confirmed delete"
     <MinePage ownBatch={ownBatch} files={[{ fileSha256: "a", displayName: "march.csv", importedAt: "2026-10-23T10:00:00Z", rowsAdded: 12, rowsSkipped: 1 }]}
       onImport={() => Promise.reject(new Error("unused"))} onDeleteOwn={() => Promise.resolve({ ok: true })} queueHref="#/queue/x" summaryHref="#/mine/summary" />,
   );
-  assert.ok(html.includes("Your file is read on this device. It is never uploaded."));
+  assert.ok(html.includes("Your files") && html.includes("See what we found"), "files page leads with results");
   assert.match(html, /type="file"/);
   assert.ok(html.includes("march.csv"));
   assert.ok(buttons(html).includes("Delete my data"));
@@ -104,9 +104,9 @@ test("shell: own mode badge, title and nav", () => {
   const base = { guide: null, onGuideExit: noop, durability: "persistent" as const, announcement: "" };
   const html = render(<AppShell {...base} route={{ name: "mine" }} own><p /></AppShell>);
   assert.ok(html.includes(OWN_BADGE) && !/synthetic demo/i.test(html));
-  assert.match(html, /aria-current="page"[^>]*>Your data/);
-  assert.equal(pageTitle({ name: "mine" }, true), "Your data | Preflight");
-  assert.equal(pageTitle({ name: "mine" }), "Your data | Preflight (synthetic demo)");
+  assert.match(html, /aria-current="page"[^>]*>Your files/);
+  assert.equal(pageTitle({ name: "mine" }, true), "Your files | Preflight");
+  assert.equal(pageTitle({ name: "mine" }), "Your files | Preflight (synthetic demo)");
   assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Synthetic demo"));
 });
 

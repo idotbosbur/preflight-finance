@@ -2119,3 +2119,4 @@ body { background: var(--ov-bg, var(--bg)); }
 .footer-brand-mark { width: 26px; height: auto; color: currentColor; }
 /* The 3D lens is wider than tall; the canvas gets room for the discs to arrive from the sides. */
 .intro-mark { width: clamp(150px, 22vw, 260px); height: clamp(100px, 14.5vw, 172px); animation: fade-in 300ms ease both; }
+.mine-end { margin: 8px 0 18px; }

@@ -80,8 +80,8 @@ function columnsLine(item: Item): string {
 
 let nextId = 1;
 
-export function DropFiles({ onImport, onImportBank, queueHref, hero = false }: {
-  readonly onImport: BillsImport; readonly onImportBank: BankImport; readonly queueHref: string;
+export function DropFiles({ onImport, onImportBank, queueHref, hero = false, heading = "Add your files" }: {
+  readonly onImport: BillsImport; readonly onImportBank: BankImport; readonly queueHref: string; readonly heading?: string;
   /** Landing-page version: no panel or heading, a glass card over the artwork. */
   readonly hero?: boolean;
 }) {
@@ -140,7 +140,7 @@ export function DropFiles({ onImport, onImportBank, queueHref, hero = false }: {
   const allReady = items.length > 0 && ready.every((r) => r.ok);
   return (
     <section className={hero ? "drop drop-hero" : "panel drop"} aria-labelledby="drop-heading">
-      <h2 id="drop-heading" className={hero ? "sr-only" : "section-title"}>Add your files</h2>
+      <h2 id="drop-heading" className={hero ? "sr-only" : "section-title"}>{heading}</h2>
       <label htmlFor="own-file" className={`drop-zone${over ? " is-over" : ""}`}
         onDragOver={(e: DragEvent) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
         onDrop={(e: DragEvent) => { e.preventDefault(); setOver(false); void add([...e.dataTransfer.files]); }}>
@@ -149,7 +149,6 @@ export function DropFiles({ onImport, onImportBank, queueHref, hero = false }: {
         <input id="own-file" className="file-input" type="file" accept=".csv,text/csv" multiple disabled={working !== null}
           onChange={(e: ChangeEvent<HTMLInputElement>) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void add(fs); }} />
       </label>
-      {hero ? null : <p className="hint">Your file is read on this device. It is never uploaded.</p>}
       {problems.map((p) => <p key={p} className="notice notice-error" role="alert">{p}</p>)}
 
       {items.length > 0 ? (
