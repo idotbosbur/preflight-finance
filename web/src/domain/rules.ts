@@ -3,7 +3,7 @@
  * Pure and synchronous. Output sorted by (ruleId, memberIds) with Python tuple ordering.
  */
 import type { CandidateFinding, Invoice, RunInvoiceRules } from "./contracts.ts";
-import { NEAR_DUP_WINDOW_DAYS, RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULESET_VERSION, assertSafeCents, compareStrings, compareTuples } from "./contracts.ts";
+import { NEAR_DUP_WINDOW_DAYS, RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULESET_VERSION, assertSafeCents, compareStrings, compareTuples } from "./contracts.ts";
 import { compareMembers, duplicateEvidence, mismatchEvidence, nearDuplicateEvidence } from "./evidence.ts";
 import { expectedTotalCents } from "./money.ts";
 import type { OwnInvoice } from "./own/rows.ts";
@@ -91,6 +91,7 @@ function evidenceRow(f: CandidateFinding): number {
   if (ev.kind === RULE_MISMATCH) return ev.row;
   if (ev.kind === RULE_PAID_TWICE) return ev.bill.row;
   if (ev.kind === RULE_PAYMENT_NO_BILL) return ev.payment.row;
+  if (ev.kind === RULE_PRICE_INCREASE) return 0;
   return ev.members[0]?.row ?? 0;
 }
 

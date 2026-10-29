@@ -1,6 +1,6 @@
 import type { CaseProps, SaveStatus } from "../ui-contracts.ts";
 import type { Invoice, ReviewAction } from "../domain/contracts.ts";
-import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, codePointLength } from "../domain/contracts.ts";
+import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, codePointLength } from "../domain/contracts.ts";
 import type { PaymentEvidence } from "../domain/contracts.ts";
 import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
 import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
@@ -154,6 +154,29 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
               {ev.bill.total} {ev.currency}
             </p>
             <PaymentsTable payments={ev.payments} />
+          </>
+        ) : ev.kind === RULE_PRICE_INCREASE ? (
+          <>
+            <p>
+              The unit price of this item from <strong>{ev.vendor}</strong> went from <strong className="num">{ev.from}</strong> to{" "}
+              <strong className="num">{ev.to}</strong> {ev.currency} (+{ev.percent}%) between the first and the latest bill. Across the later
+              purchases that is <strong className="num">{ev.extra}</strong> above the first price.{" "}
+              {ev.match === "same name"
+                ? "The bills use the same item name (capitals and spacing ignored)."
+                : `Item names written differently were treated as one item by ${ev.match}, and only because their sizes and counts match exactly.`}{" "}
+              The supplier may have raised prices on purpose, so a person decides.
+            </p>
+            <div className="dup-scroll">
+              <table className="dup-table">
+                <caption className="sr-only">Purchases of this item</caption>
+                <thead><tr><th scope="col">Bill date</th><th scope="col">Invoice</th><th scope="col">Item as written</th><th scope="col" className="num">Quantity</th><th scope="col" className="num">Unit price</th></tr></thead>
+                <tbody>
+                  {ev.purchases.map((p, i) => (
+                    <tr key={`${p.recordId}-${i}`}><td><code>{p.date}</code></td><td><code>{p.invoice}</code></td><td>{p.description}</td><td className="num">{p.quantity}</td><td className="num">{p.unit}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         ) : ev.kind === RULE_PAYMENT_NO_BILL ? (
           <>

@@ -7,7 +7,7 @@
  * are left out. Amounts in other currencies are named, never added together.
  */
 import type { Cents, FindingView, Invoice } from "./contracts.ts";
-import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "./contracts.ts";
+import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "./contracts.ts";
 import { formatCents, parseCents } from "./money.ts";
 
 const VENDOR_INDEX = CSV_HEADER.indexOf("vendor_id");
@@ -45,6 +45,13 @@ function item(f: FindingView, byId: ReadonlyMap<string, Invoice>, currencyOf: (v
     return {
       finding: f, cents: parseCents(ev.bill.total) * (n - 1), currency: ev.currency, vendor: ev.bill.rawVendor.trim() || "Unknown supplier",
       invoices: unique([ev.bill.rawInvoice]), reason: `Invoice #${ev.bill.rawInvoice.trim()} was paid ${n} times (${list(ev.payments.map((p) => p.date))})`,
+    };
+  }
+  if (ev.kind === RULE_PRICE_INCREASE) {
+    const last = ev.purchases[ev.purchases.length - 1]!;
+    return {
+      finding: f, cents: parseCents(ev.extra), currency: ev.currency, vendor: ev.vendor, invoices: unique([last.invoice]),
+      reason: `"${last.description}" went from ${ev.from} to ${ev.to} each (+${ev.percent}%)`,
     };
   }
   if (ev.kind === RULE_PAYMENT_NO_BILL) {
@@ -118,6 +125,14 @@ export function supplierEmail(i: GlanceItem): { readonly subject: string; readon
       subject: `Invoice ${nums} may have been paid twice`,
       body: `Hello,\n\nOur records show invoice ${nums} (${ev.bill.total} ${i.currency}) was paid ${ev.payments.length} times, on ${list(ev.payments.map((p) => p.date))}. `
         + `Could you check on your side and, if so, refund or credit the extra payment?${sign}`,
+    };
+  }
+  if (ev.kind === RULE_PRICE_INCREASE) {
+    const first = ev.purchases[0]!, last = ev.purchases[ev.purchases.length - 1]!;
+    return {
+      subject: `Price of ${last.description}`,
+      body: `Hello,\n\nWe noticed the unit price for "${last.description}" went from ${ev.from} ${ev.currency} (invoice ${first.invoice}, ${first.date}) `
+        + `to ${ev.to} ${ev.currency} (invoice ${last.invoice}, ${last.date}). Could you confirm the current agreed price, and credit the difference if the increase was not intended?${sign}`,
     };
   }
   if (ev.kind === RULE_PAYMENT_NO_BILL) {

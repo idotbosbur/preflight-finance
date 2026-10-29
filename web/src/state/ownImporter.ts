@@ -4,11 +4,12 @@
  * transaction (idbStore forbids `await` inside one).
  * Two tabs importing at once: every mergeOwn bumps the own generation, so the later one refuses (R23).
  */
-import type { Finding, Invoice } from "../domain/contracts.ts";
+import type { CandidateFinding, Finding, Invoice } from "../domain/contracts.ts";
 import { CSV_HEADER, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "../domain/contracts.ts";
 import { buildBankRows } from "../domain/own/bank.ts";
 import type { BankMapping, BankParseResult, BankPayment } from "../domain/own/bank.ts";
 import { reconcile, tokenScore } from "../domain/reconcile.ts";
+import { priceIncreases } from "../domain/prices.ts";
 import type { NameScorer } from "../domain/reconcile.ts";
 import type { ColumnMapping } from "../domain/own/columns.ts";
 import { buildOwnRows } from "../domain/own/rows.ts";
@@ -40,17 +41,25 @@ const VENDOR_INDEX = CSV_HEADER.indexOf("vendor_id");
 async function ownFindings(invoices: readonly OwnInvoice[], payments: readonly BankPayment[], scorers: ScorerFactory): Promise<{ findings: Finding[]; report: MatchReport | null }> {
   const candidates = runOwnRules(invoices);
   let report: MatchReport | null = null;
-  if (payments.length > 0 && invoices.length > 0) {
-    const vendors = [...new Set(invoices.map((i: Invoice) => (i.raw[VENDOR_INDEX] ?? "").trim() || i.vendorNorm))];
-    const { scorer, ai } = await scorers(payments.map((p) => p.description), vendors);
+  const items = [...new Set(invoices.flatMap((i) => (i.lines ?? []).map((l) => l.description)))];
+  const reconciling = payments.length > 0 && invoices.length > 0;
+  if (!reconciling && items.length === 0) return { findings: await withIds(candidates), report };
+  const vendors = [...new Set(invoices.map((i: Invoice) => (i.raw[VENDOR_INDEX] ?? "").trim() || i.vendorNorm))];
+  const { scorer, ai } = await scorers([...payments.map((p) => p.description), ...items], vendors);
+  candidates.push(...priceIncreases(invoices, scorer));
+  if (reconciling) {
     const r = reconcile(invoices, payments, scorer);
     candidates.push(...r.findings);
     const count = (id: string) => r.findings.filter((f) => f.ruleId === id).length;
     report = { payments: payments.length, matched: r.matched, unpaidBills: r.unpaidBills, ai, paidTwice: count(RULE_PAID_TWICE), noBill: count(RULE_PAYMENT_NO_BILL) };
   }
+  return { findings: await withIds(candidates), report };
+}
+
+async function withIds(candidates: readonly CandidateFinding[]): Promise<Finding[]> {
   const findings: Finding[] = [];
   for (const c of candidates) findings.push({ ...c, findingId: await makeFindingId(c.ruleId, c.ruleVersion, c.memberIds) });
-  return { findings, report };
+  return findings;
 }
 
 const encoder = new TextEncoder();

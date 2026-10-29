@@ -48,7 +48,10 @@ export const RULE_NEAR_DUPLICATE = "NEAR_DUPLICATE";
 /** Bank statement vs bills (own data only). */
 export const RULE_PAID_TWICE = "PAID_TWICE";
 export const RULE_PAYMENT_NO_BILL = "PAYMENT_NO_BILL";
-export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE | typeof RULE_PAID_TWICE | typeof RULE_PAYMENT_NO_BILL;
+/** Supplier unit price rose (own data with line items only). */
+export const RULE_PRICE_INCREASE = "PRICE_INCREASE";
+export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE | typeof RULE_PAID_TWICE | typeof RULE_PAYMENT_NO_BILL
+  | typeof RULE_PRICE_INCREASE;
 
 export const OWN_BATCH_ID = "00000000000000a1";
 export const OWN_MAX_BYTES = 10_485_760;
@@ -249,7 +252,33 @@ export interface PaymentNoBillEvidence {
   readonly vendor: string;
   readonly payment: PaymentEvidence;
 }
-export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence | PaidTwiceEvidence | PaymentNoBillEvidence;
+/** One purchase of an item, from a bill's line. */
+export interface PurchaseEvidence {
+  readonly recordId: string;
+  readonly invoice: string;
+  readonly date: string;
+  readonly description: string;
+  /** As written, e.g. "2" or "1.5". */
+  readonly quantity: string;
+  /** Unit price, decimal string. */
+  readonly unit: string;
+}
+export interface PriceIncreaseEvidence {
+  readonly kind: typeof RULE_PRICE_INCREASE;
+  readonly vendor: string;
+  readonly currency: string;
+  /** Date order; the first is the baseline price. */
+  readonly purchases: readonly PurchaseEvidence[];
+  readonly from: string;
+  readonly to: string;
+  /** Rise of the latest unit price over the first, e.g. "18.2". */
+  readonly percent: string;
+  /** Paid above the first price across the later purchases, decimal string. */
+  readonly extra: string;
+  /** How differently written item names were grouped: "same name", "name words" or "AI similarity 0.84". */
+  readonly match: string;
+}
+export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence | PaidTwiceEvidence | PaymentNoBillEvidence | PriceIncreaseEvidence;
 
 /** Rule output before ID finalization. memberIds sorted ascending (compareStrings). */
 export interface CandidateFinding {

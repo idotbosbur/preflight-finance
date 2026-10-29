@@ -1,17 +1,19 @@
 /** Build Invoice-shaped rows from any CSV export, tolerantly (own-data mode). */
 import { CSV_HEADER, OWN_MAX_BYTES, OWN_MAX_ROWS, normalizeIdentifier } from "../contracts.ts";
-import type { Invoice } from "../contracts.ts";
+import type { Cents, Invoice } from "../contracts.ts";
 import { CsvError, parseCsvRecords } from "../csv.ts";
 import { REQUIRED_FIELDS, key } from "./columns.ts";
 import type { ColumnMapping, OwnField } from "./columns.ts";
 import { detectDateOrder, parseLooseAmount, parseLooseDate } from "./values.ts";
 import type { DateOrder } from "./values.ts";
 
-export type OwnInvoice = Invoice & { readonly hasComponents: boolean };
+/** One item line of a bill (line-item exports such as Xero's), kept for the price-change check. */
+export interface OwnLine { readonly description: string; readonly quantity: string; readonly unitCents: Cents }
+export type OwnInvoice = Invoice & { readonly hasComponents: boolean; readonly lines?: readonly OwnLine[] };
 export interface SkippedRow { readonly row: number; readonly reason: string }
 export interface OwnWarning { readonly row: number; readonly field: string; readonly reason: string }
 export type OwnParseResult =
-  | { readonly invoices: OwnInvoice[]; readonly skipped: SkippedRow[]; readonly warnings: OwnWarning[]; readonly checksAvailable: { readonly totals: boolean } }
+  | { readonly invoices: OwnInvoice[]; readonly skipped: SkippedRow[]; readonly warnings: OwnWarning[]; readonly checksAvailable: { readonly totals: boolean; readonly prices: boolean } }
   | {
       readonly error: "too large" | "too many rows" | "not a CSV" | "no header" | "missing required column" | "ambiguous date order";
       readonly detail: string;
@@ -23,6 +25,11 @@ const CSV_COLUMN: Record<OwnField, string> = {
 };
 // Only exports with a line-item column repeat one bill over several rows (R20).
 const LINE_ITEM_KEYS = new Set(["description", "quantity", "qty", "unitamount", "unitprice", "lineamount", "item", "itemcode", "lineitem"]);
+// Item columns are found by header name (no mapping step); description + unit price turn on the price check.
+const ITEM_DESC = ["description", "itemdescription", "linedescription", "item"];
+const ITEM_QTY = ["quantity", "qty"];
+const ITEM_UNIT = ["unitamount", "unitprice", "unitcost", "rate", "price"];
+const QTY = /^\d{1,7}(?:\.\d{1,4})?$/;
 const RAW_INDEX = Object.fromEntries(
   (Object.keys(CSV_COLUMN) as OwnField[]).map((f) => [f, CSV_HEADER.indexOf(CSV_COLUMN[f] as (typeof CSV_HEADER)[number])]),
 ) as Record<OwnField, number>;
@@ -48,6 +55,11 @@ export function buildOwnRows(
 
   const width = records[0]!.length;
   const lineCols = records[0]!.flatMap((h, i) => (LINE_ITEM_KEYS.has(key(h)) ? [i] : []));
+  const headerKeys = records[0]!.map(key);
+  const itemCol = (ks: readonly string[]) => ks.map((k) => headerKeys.indexOf(k)).find((i) => i >= 0) ?? -1;
+  const [descCol, qtyCol, unitCol] = [itemCol(ITEM_DESC), itemCol(ITEM_QTY), itemCol(ITEM_UNIT)];
+  const hasItems = descCol >= 0 && unitCol >= 0;
+  const lineOf: (OwnLine | null)[] = [];
   const missing = REQUIRED_FIELDS.filter((f) => !(mapping[f] !== undefined && mapping[f]! < width));
   if (missing.length) return { error: "missing required column", detail: `Map a column for: ${missing.join(", ")}` };
 
@@ -102,6 +114,14 @@ export function buildOwnRows(
     const raw = CSV_HEADER.map(() => "");
     for (const f of Object.keys(RAW_INDEX) as OwnField[]) if (mapping[f] !== undefined) raw[RAW_INDEX[f]] = cell(rec, f);
     recKeys.push(JSON.stringify(lineCols.map((i) => rec[i] ?? "")));
+    let line: OwnLine | null = null;
+    if (hasItems) {
+      const description = (rec[descCol] ?? "").trim();
+      const quantity = qtyCol >= 0 ? (rec[qtyCol] ?? "").trim() || "1" : "1";
+      const unit = parseLooseAmount(rec[unitCol] ?? "");
+      if (description !== "" && unit.ok && unit.cents > 0 && QTY.test(quantity)) line = { description, quantity, unitCents: unit.cents };
+    }
+    lineOf.push(line);
     invoices.push({
       recordId: "", rowNumber: row, raw,
       vendorNorm: normalizeIdentifier(vendor), invoiceNorm: normalizeIdentifier(number),
@@ -111,6 +131,8 @@ export function buildOwnRows(
   }
   // Line-item exports repeat the bill's header on every row: combine rows of one bill.
   const combined = new Map<string, OwnInvoice>();
+  const linesOf = new Map<string, OwnLine[]>();
+  const addLine = (k: string, i: number) => { const l = lineOf[i]; if (l) linesOf.set(k, [...(linesOf.get(k) ?? []), l]); };
   const rowsIn = new Map<string, number>();
   const seenRecs = new Set<string>();
   for (const [i, inv] of invoices.entries()) {
@@ -120,7 +142,8 @@ export function buildOwnRows(
     const lineKey = k + "\u0000" + recKeys[i]!;
     const dup = seenRecs.has(lineKey);
     seenRecs.add(lineKey);
-    if (dup) { combined.set(`dup${i}`, inv); continue; }
+    if (dup) { combined.set(`dup${i}`, inv); addLine(`dup${i}`, i); continue; }
+    addLine(k, i);
     rowsIn.set(k, (rowsIn.get(k) ?? 0) + 1);
     const first = combined.get(k);
     if (!first) { combined.set(k, inv); continue; }
@@ -134,5 +157,6 @@ export function buildOwnRows(
     const n = multi.reduce((a, b) => a + b, 0), m = multi.length;
     warnings.push({ row: 0, field: "rows", reason: `${n} line-item rows were combined into ${m} invoice${m === 1 ? "" : "s"} (same vendor, invoice number, date, total and currency)` });
   }
-  return { invoices: [...combined.values()], skipped, warnings, checksAvailable: { totals: mapping.subtotal !== undefined } };
+  const withLines = [...combined].map(([k, inv]) => (linesOf.has(k) ? { ...inv, lines: linesOf.get(k)! } : inv));
+  return { invoices: withLines, skipped, warnings, checksAvailable: { totals: mapping.subtotal !== undefined, prices: hasItems } };
 }

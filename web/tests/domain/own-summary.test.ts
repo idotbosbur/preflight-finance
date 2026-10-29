@@ -28,7 +28,7 @@ test("counts match the fixture workspace", () => {
   assert.equal(s.invoices, 4);
   assert.equal(s.files, 2);
   assert.deepEqual([s.dateFrom, s.dateTo], ["2026-01-05", "2026-09-14"]);
-  assert.deepEqual(s.byRule, { duplicate: 1, mismatch: 2, nearDuplicate: 1, paidTwice: 0, noBill: 0 });
+  assert.deepEqual(s.byRule, { duplicate: 1, mismatch: 2, nearDuplicate: 1, paidTwice: 0, noBill: 0, priceUp: 0 });
   assert.deepEqual([s.confirmed, s.dismissed, s.open], [1, 1, 2]);
   assert.equal(s.details.length, 0);
 });

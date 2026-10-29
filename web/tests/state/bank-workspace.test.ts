@@ -49,3 +49,21 @@ function suite(name: string, make: () => Promise<ReviewStore>) {
 
 suite("memory", async () => createMemoryStore());
 suite("indexeddb", () => openIdbStore(new IDBFactory()));
+
+describe("price increases across two Xero line-item files", () => {
+  test("the second file's higher unit price is found and kept with its bills", async () => {
+    const s = createMemoryStore();
+    const head = "*ContactName,*InvoiceNumber,*InvoiceDate,Total,Description,*Quantity,*UnitAmount,Currency\n";
+    const jan = head + "Acme Supply,A-1,2026-01-10,170.00,Nitrile gloves L 100ct,10,12.00,USD\nAcme Supply,A-1,2026-01-10,170.00,Freight,1,50.00,USD\n";
+    const jun = head + "Acme Supply,A-7,2026-06-10,166.00,NITRILE GLOVES L 100CT,8,14.50,USD\nAcme Supply,A-7,2026-06-10,166.00,Freight,1,50.00,USD\n";
+    const m = { vendor: 0, invoiceNumber: 1, date: 2, total: 3, currency: 7 };
+    for (const [csv, name] of [[jan, "jan.csv"], [jun, "jun.csv"]] as const) {
+      const out = await importOwnFile(s, enc(csv), m, await opts(s, name));
+      assert.ok("status" in out && out.status === "merged", JSON.stringify(out));
+    }
+    const [f] = await s.listFindings(OWN_BATCH_ID);
+    assert.ok(f && f.evidence.kind === "PRICE_INCREASE");
+    assert.deepEqual([f.evidence.from, f.evidence.to, f.evidence.extra], ["12.00", "14.50", "20.00"]);
+    assert.equal((await s.listOwnRows()).every((r) => r.lines?.length === 2), true);
+  });
+});

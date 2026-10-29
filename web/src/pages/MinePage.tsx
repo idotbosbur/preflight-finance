@@ -100,9 +100,9 @@ function Notes({ title, items }: { readonly title: string; readonly items: reado
   );
 }
 
-export function ImportSummary({ readable, skipped, warnings, totalsCheck, onContinue, disabled }: {
+export function ImportSummary({ readable, skipped, warnings, totalsCheck, pricesCheck = false, onContinue, disabled }: {
   readonly readable: number; readonly skipped: readonly SkippedRow[]; readonly warnings: readonly OwnWarning[];
-  readonly totalsCheck: boolean; readonly onContinue: () => void; readonly disabled: boolean;
+  readonly totalsCheck: boolean; readonly pricesCheck?: boolean; readonly onContinue: () => void; readonly disabled: boolean;
 }) {
   return (
     <section className="panel" aria-labelledby="summary-heading">
@@ -112,6 +112,12 @@ export function ImportSummary({ readable, skipped, warnings, totalsCheck, onCont
       <Notes title="Skipped rows" items={skipped.map((s) => ({ where: `Row ${s.row}`, text: s.reason }))} />
       <Notes title="Worth knowing" items={warnings.map((w) => ({ where: w.row === 0 ? "File" : `Row ${w.row}`, text: w.reason }))} />
       {!totalsCheck ? <p className="hint">No subtotal column is mapped, so the total-mismatch check is off for this file.</p> : null}
+      {pricesCheck ? (
+        <p className="hint">
+          Item lines found (description and unit price), so supplier price increases will be checked too. The first time, this downloads a
+          small AI model (about 30 MB, once; none of your data is sent) that recognises differently written names of the same item.
+        </p>
+      ) : null}
       <p><button type="button" className="btn btn-primary" onClick={onContinue} disabled={disabled}>{continueLabel(readable, skipped.length)}</button></p>
     </section>
   );
@@ -210,7 +216,7 @@ export function MapStep({ loaded, mapping, dateOrder, working, onMapping, onDate
       </section>
       {!("error" in dry) ? (
         <ImportSummary readable={dry.invoices.length} skipped={dry.skipped} warnings={dry.warnings}
-          totalsCheck={dry.checksAvailable.totals} onContinue={onContinue} disabled={working || dry.invoices.length === 0} />
+          totalsCheck={dry.checksAvailable.totals} pricesCheck={dry.checksAvailable.prices} onContinue={onContinue} disabled={working || dry.invoices.length === 0} />
       ) : null}
     </>
   );

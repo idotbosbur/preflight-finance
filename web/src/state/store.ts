@@ -123,6 +123,8 @@ export interface SerializedInvoice {
   readonly total: string;
   /** Own-data rows only: whether the subtotal column was present (totals check applies). */
   readonly hasComponents?: boolean;
+  /** Own-data rows only: item lines (unit price as a cents string). */
+  readonly lines?: readonly { readonly description: string; readonly quantity: string; readonly unit: string }[];
 }
 
 export interface BatchRecord {
@@ -184,6 +186,8 @@ export function serializeInvoice(inv: Invoice): SerializedInvoice {
     subtotal: centsToString(inv.subtotal), tax: centsToString(inv.tax), shipping: centsToString(inv.shipping),
     discount: centsToString(inv.discount), total: centsToString(inv.total),
     ...("hasComponents" in inv ? { hasComponents: (inv as OwnInvoice).hasComponents } : {}),
+    ...((inv as OwnInvoice).lines?.length
+      ? { lines: (inv as OwnInvoice).lines!.map((l) => ({ description: l.description, quantity: l.quantity, unit: centsToString(l.unitCents) })) } : {}),
   };
 }
 
@@ -197,7 +201,9 @@ export function deserializeInvoice(s: SerializedInvoice): Invoice {
 }
 
 export function deserializeOwnInvoice(s: SerializedInvoice): OwnInvoice {
-  return { ...deserializeInvoice(s), hasComponents: s.hasComponents ?? false };
+  const base = { ...deserializeInvoice(s), hasComponents: s.hasComponents ?? false };
+  return s.lines?.length
+    ? { ...base, lines: s.lines.map((l) => ({ description: l.description, quantity: l.quantity, unitCents: centsFromString(l.unit) })) } : base;
 }
 
 export interface OwnMergePlan {

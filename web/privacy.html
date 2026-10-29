@@ -35,7 +35,7 @@
         <li>No accounts and no sign-in.</li>
         <li>Visit counts: the site uses Vercel Web Analytics, which counts page views without cookies. It records the page path, referring site, country, browser and device type, and identifies a visit only by a short-lived hash that Vercel discards after 24 hours. The part of app addresses after <code>#</code> is removed before anything is sent, and invoice files, rows and findings are never sent.</li>
         <li>No advertising, no cookies set by the app, and no other tracking. Apart from page views, the app's only network requests are for its own files, the AI model described below, and the feedback form when you choose to send it.</li>
-        <li>AI model: the first time you match a bank or card statement, your browser downloads a small public text model (all-MiniLM-L6-v2, about 23 MB) from Hugging Face (huggingface.co) and keeps it in its cache. The model then runs on your device to compare payee names with supplier names. Only the model files are downloaded; no invoice, statement or finding is sent to Hugging Face or anyone else. If the download fails, matching uses name words only.</li>
+        <li>AI model: the first time you match a bank or card statement, or add bills with item lines, your browser downloads a small public text model (all-MiniLM-L6-v2, about 23 MB) from Hugging Face (huggingface.co) and keeps it in its cache. The model then runs on your device to compare payee names with supplier names, and item names with each other. Only the model files are downloaded; no invoice, statement or finding is sent to Hugging Face or anyone else. If the download fails, matching uses name words only.</li>
       </ul>
 
       <h2>Hosting</h2>
