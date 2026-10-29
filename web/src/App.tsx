@@ -524,7 +524,8 @@ export function App() {
     case "mine-summary":
       page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (
         <MineSummaryPage batch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} findings={ownFindings} files={ownFiles}
-          rows={ownRows} reasons={ownReasons} loading={!ownLoaded} mineHref={formatRoute({ name: "mine" })} />
+          rows={ownRows} reasons={ownReasons} loading={!ownLoaded} mineHref={formatRoute({ name: "mine" })}
+          scoreNames={(names) => buildScorer(names, names)} />
       );
       break;
     case "results":

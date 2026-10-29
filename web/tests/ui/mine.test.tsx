@@ -4,6 +4,7 @@ import { AppShell, pageTitle } from "../../src/components/index.ts";
 import { CasePage, QueuePage } from "../../src/pages/index.ts";
 import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel, forgetOwnMappings, readPreview } from "../../src/pages/MinePage.tsx";
 import { BankSection, MatchResult } from "../../src/pages/BankSection.tsx";
+import { ContractorList } from "../../src/pages/MineSummaryPage.tsx";
 import { OWN_BATCH_ID, RULE_NEAR_DUPLICATE } from "../../src/domain/contracts.ts";
 import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contracts.ts";
 import { guessMapping } from "../../src/domain/own/columns.ts";
@@ -297,4 +298,13 @@ test("bank section: disabled until there are bills; result says how names were m
   const words = render(<MatchResult report={{ payments: 2, matched: 2, unpaidBills: 0, ai: false, paidTwice: 0, noBill: 0 }} queueHref="#/queue" />);
   assert.ok(words.includes("Nothing looks paid twice"));
   assert.ok(words.includes("could not load"));
+});
+
+test("contractor list: year picker and a build button, nothing computed until asked", () => {
+  const rows = [{ ...caseView("open").members[0]!, invoiceDate: "2026-02-01" }];
+  const html = render(<ContractorList rows={rows} scoreNames={async () => ({ scorer: () => ({ score: 0, how: "" }), ai: false })} />);
+  assert.ok(html.includes("Year-end contractor list (1099)"));
+  assert.match(html, /<option[^>]*value="2026"/);
+  assert.ok(buttons(html).includes("Build the contractor list"));
+  assert.ok(!html.includes("<table"));
 });
