@@ -2037,3 +2037,5 @@ body { background: var(--ov-bg, var(--bg)); }
 .drop-edit { margin-top: 10px; display: grid; gap: 10px; }
 .btn-link { font: inherit; background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; justify-self: start; }
 .btn-big { min-height: 52px; padding-inline: 1.6rem; font-size: 1.05rem; }
+.payee-missing { display: block; color: var(--err-ink); font-weight: 600; }
+.payee-files label { display: block; white-space: nowrap; }

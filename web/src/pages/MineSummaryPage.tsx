@@ -1,7 +1,7 @@
 /** Printable pilot summary for the person's own workspace. Counts only unless the box is ticked. */
 import { useMemo, useState } from "react";
-import { STATUS_TEXT, contractorCsv, contractorTotals, yearsIn } from "../domain/contractors.ts";
-import type { ContractorTotals } from "../domain/contractors.ts";
+import { STATUS_TEXT, contractorCsv, contractorTotals, missingPaperwork, yearsIn } from "../domain/contractors.ts";
+import type { ContractorTotals, OnFile } from "../domain/contractors.ts";
 import { formatMoney } from "../domain/glance.ts";
 import type { NameScorer } from "../domain/reconcile.ts";
 import type { BatchSummary, FindingView, Invoice } from "../domain/contracts.ts";
@@ -24,12 +24,26 @@ export interface MineSummaryPageProps {
   readonly scoreNames?: (names: readonly string[]) => Promise<{ scorer: NameScorer; ai: boolean }>;
 }
 
+/** Paperwork ticks are a convenience kept in this browser only (cleared by "Delete my data"). */
+export const PAYEE_KEY = "preflight.payee:";
+function readOnFile(name: string): OnFile {
+  try {
+    const v = JSON.parse(window.localStorage.getItem(PAYEE_KEY + name) ?? "null") as OnFile | null;
+    return { w9: v?.w9 === true, insurance: v?.insurance === true };
+  } catch { return { w9: false, insurance: false }; }
+}
+function writeOnFile(name: string, v: OnFile): void {
+  try { window.localStorage.setItem(PAYEE_KEY + name, JSON.stringify(v)); } catch { /* convenience only */ }
+}
+
 /** Year-end contractor totals for 1099-NEC preparation. Built on request, since it may download the AI model. */
 export function ContractorList({ rows, scoreNames }: { readonly rows: readonly Invoice[]; readonly scoreNames: NonNullable<MineSummaryPageProps["scoreNames"]> }) {
   const years = useMemo(() => yearsIn(rows), [rows]);
   const [year, setYear] = useState<number | null>(null);
   const [built, setBuilt] = useState<{ totals: ContractorTotals; ai: boolean; year: number } | null>(null);
   const [working, setWorking] = useState(false);
+  const [, setTicks] = useState(0);
+  const tick = (name: string, change: Partial<OnFile>) => { writeOnFile(name, { ...readOnFile(name), ...change }); setTicks((n) => n + 1); };
   const chosen = year ?? years[0] ?? null;
   if (chosen === null) return null;
   async function build(y: number) {
@@ -62,14 +76,22 @@ export function ContractorList({ rows, scoreNames }: { readonly rows: readonly I
           </p>
           <div className="dup-scroll">
             <table className="summary-table">
-              <thead><tr><th scope="col">Payee</th><th scope="col">Bills</th><th scope="col" className="num">Total</th><th scope="col">1099</th></tr></thead>
+              <thead><tr><th scope="col">Payee</th><th scope="col">Bills</th><th scope="col" className="num">Total</th><th scope="col">1099</th><th scope="col">On file</th></tr></thead>
               <tbody>
                 {t.payees.map((p) => (
                   <tr key={p.name} className={`payee-${p.status}`}>
                     <td>{p.name}{p.names.length > 1 ? <span className="hint"> Also written as {p.names.filter((n) => n !== p.name).join(", ")}</span> : null}</td>
                     <td>{p.bills}</td>
                     <td className="num">{formatMoney(p.cents, "USD")}</td>
-                    <td>{STATUS_TEXT[p.status]}</td>
+                    <td>
+                      {STATUS_TEXT[p.status]}
+                      {missingPaperwork(p, readOnFile(p.name)).length
+                        ? <strong className="payee-missing"> Missing: {missingPaperwork(p, readOnFile(p.name)).join(" and ")}</strong> : null}
+                    </td>
+                    <td className="payee-files">
+                      <label><input type="checkbox" checked={readOnFile(p.name).w9} onChange={(e) => tick(p.name, { w9: e.target.checked })} /> W-9</label>
+                      <label><input type="checkbox" checked={readOnFile(p.name).insurance} onChange={(e) => tick(p.name, { insurance: e.target.checked })} /> Insurance</label>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -81,11 +103,12 @@ export function ContractorList({ rows, scoreNames }: { readonly rows: readonly I
               <ul>{t.maybeSame.map((m) => <li key={m.a + m.b}>{m.a} and {m.b}: {formatMoney(m.cents, "USD")} together</li>)}</ul>
             </div>
           ) : null}
-          <p className="no-print"><button type="button" className="btn btn-secondary" onClick={() => download(`preflight-contractors-${chosen}.csv`, contractorCsv(t, chosen))}>Download the list (.csv)</button></p>
+          <p className="no-print"><button type="button" className="btn btn-secondary" onClick={() => download(`preflight-contractors-${chosen}.csv`, contractorCsv(t, chosen, readOnFile))}>Download the list (.csv)</button></p>
           <p className="hint">
             Not tax advice. Only payments for services count, not goods. Totals use bill dates, but the IRS counts payments by the date paid, so check bills near January 1.
             Payments made by card or PayPal are reported by the processor and usually need no 1099 from you. Ask each payee
-            who may need one for a Form W-9.
+            who may need one for a Form W-9, and keep a current insurance certificate for contractors: at a workers' comp audit, payments to
+            uninsured contractors can be added to your own payroll. Ticks are saved in this browser only.
           </p>
         </>
       ) : null}

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { contractorCsv, contractorTotals, thresholdCents, yearsIn } from "../../src/domain/contractors.ts";
+import { contractorCsv, contractorTotals, missingPaperwork, thresholdCents, yearsIn } from "../../src/domain/contractors.ts";
 import type { Invoice } from "../../src/domain/contracts.ts";
 import { tokenScore } from "../../src/domain/reconcile.ts";
 
@@ -47,7 +47,16 @@ test("years found in the bills, newest first", () => {
 
 test("csv lists every payee with status words", () => {
   const csv = contractorCsv(contractorTotals([bill("=Evil", "2026-01-01", 300000)], 2026, words), 2026);
-  assert.ok(csv.startsWith("Payee,Other spellings,Bills,Total (USD),Status\r\n"));
+  assert.ok(csv.startsWith("Payee,Other spellings,Bills,Total (USD),Status,W-9 on file,Insurance certificate on file\r\n"));
   assert.ok(csv.includes("'=Evil"), "formula-looking names are defused");
   assert.ok(csv.includes("3000.00"));
+});
+
+test("payees over the threshold list the paperwork still missing", () => {
+  const r = contractorTotals([bill("Smith Plumbing", "2026-01-01", 300000), bill("Tiny Co", "2026-01-01", 100)], 2026, words);
+  const [smith, tiny] = r.payees;
+  assert.deepEqual(missingPaperwork(smith!), ["W-9", "insurance certificate"]);
+  assert.deepEqual(missingPaperwork(smith!, { w9: true, insurance: false }), ["insurance certificate"]);
+  assert.deepEqual(missingPaperwork(tiny!), []);
+  assert.ok(contractorCsv(r, 2026, (n) => ({ w9: n === "Smith Plumbing", insurance: false })).includes("Yes,No"));
 });

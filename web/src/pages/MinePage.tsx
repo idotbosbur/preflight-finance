@@ -119,7 +119,7 @@ export function forgetOwnMappings(storage: Storage | undefined): void {
   try {
     if (!storage) return;
     const keys: string[] = [];
-    for (let i = 0; i < storage.length; i++) { const k = storage.key(i); if (k?.startsWith(MAP_KEY)) keys.push(k); }
+    for (let i = 0; i < storage.length; i++) { const k = storage.key(i); if (k?.startsWith(MAP_KEY) || k?.startsWith("preflight.payee:")) keys.push(k); }
     for (const k of keys) storage.removeItem(k);
   } catch { /* remembering is a convenience only */ }
 }

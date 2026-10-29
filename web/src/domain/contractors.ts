@@ -98,10 +98,22 @@ export const STATUS_TEXT: Readonly<Record<PayeeStatus, string>> = {
   under: "Under the threshold",
 };
 
-export function contractorCsv(t: ContractorTotals, year: number): string {
+/** What the person has ticked as received from a payee. */
+export interface OnFile { readonly w9: boolean; readonly insurance: boolean }
+const NONE: OnFile = { w9: false, insurance: false };
+
+/** Paperwork still missing for a payee who may need a 1099 (empty otherwise). */
+export function missingPaperwork(p: PayeeTotal, onFile: OnFile = NONE): string[] {
+  if (p.status !== "over") return [];
+  return [...(onFile.w9 ? [] : ["W-9"]), ...(onFile.insurance ? [] : ["insurance certificate"])];
+}
+
+export function contractorCsv(t: ContractorTotals, year: number, onFile: (name: string) => OnFile = () => NONE): string {
+  const yes = (b: boolean) => (b ? "Yes" : "No");
   const lines: (string | number)[][] = [
-    ["Payee", "Other spellings", "Bills", "Total (USD)", "Status"],
-    ...t.payees.map((p) => [p.name, p.names.filter((n) => n !== p.name).join("; "), p.bills, formatCents(p.cents), STATUS_TEXT[p.status]]),
+    ["Payee", "Other spellings", "Bills", "Total (USD)", "Status", "W-9 on file", "Insurance certificate on file"],
+    ...t.payees.map((p) => [p.name, p.names.filter((n) => n !== p.name).join("; "), p.bills, formatCents(p.cents), STATUS_TEXT[p.status],
+      yes(onFile(p.name).w9), yes(onFile(p.name).insurance)]),
     [],
     [`Totals use bill dates in ${year}. Threshold ${formatCents(t.threshold)} USD. Not tax advice: check the IRS Form 1099-NEC instructions.`],
   ];
