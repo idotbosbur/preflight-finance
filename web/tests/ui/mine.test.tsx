@@ -2,8 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { AppShell, pageTitle } from "../../src/components/index.ts";
 import { CasePage, QueuePage } from "../../src/pages/index.ts";
-import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel, forgetOwnMappings, readPreview } from "../../src/pages/MinePage.tsx";
-import { BankSection, MatchResult } from "../../src/pages/BankSection.tsx";
+import { DateOrderQuestion, DeleteConfirmation, MappingForm, MinePage, PreviewTable, forgetOwnMappings, readPreview } from "../../src/pages/MinePage.tsx";
+import { checkItem } from "../../src/pages/DropFiles.tsx";
+import { MatchResult } from "../../src/pages/BankSection.tsx";
 import { ContractorList } from "../../src/pages/MineSummaryPage.tsx";
 import { OWN_BATCH_ID, RULE_NEAR_DUPLICATE } from "../../src/domain/contracts.ts";
 import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contracts.ts";
@@ -40,19 +41,6 @@ test("ambiguous dates ask day-first or month-first", () => {
   assert.match(html, /<fieldset/);
   assert.ok(html.includes("Day first") && html.includes("Month first"));
   assert.equal(html.match(/type="radio"/g)?.length, 2);
-});
-
-test("summary lists skipped reasons and warnings; continue label", () => {
-  const html = render(
-    <ImportSummary readable={3} skipped={[{ row: 4, reason: "missing vendor" }, { row: 9, reason: "not a number" }]}
-      warnings={[{ row: 6, field: "date", reason: "unreadable date" }, { row: 0, field: "date", reason: "format not recognised" }]}
-      totalsCheck={false} onContinue={noop} disabled={false} />,
-  );
-  assert.ok(html.includes("missing vendor") && html.includes("not a number") && html.includes("Row 9"));
-  assert.ok(html.includes("unreadable date") && html.includes("format not recognised"));
-  assert.ok(html.includes("subtotal"), "says the totals check is off");
-  assert.ok(buttons(html).includes("Continue with 3 readable rows (2 skipped)"));
-  assert.equal(continueLabel(5, 0), "Continue with 5 readable rows");
 });
 
 test("mine page: privacy line, file picker, imported files and confirmed delete", () => {
@@ -129,24 +117,23 @@ const loadedOf = (csv: string) => {
 };
 const AMBIGUOUS = "Vendor,Invoice,Date,Total\nAcme,1,03/04/2025,10.00\nAcme,2,05/06/2025,11.00\n";
 
-test("an ambiguous file asks day/month and keeps asking after the answer", () => {
+const item = (l: ReturnType<typeof loadedOf>, over: Partial<Parameters<typeof checkItem>[0]> = {}) =>
+  ({ loaded: l, kind: "bills" as const, bills: guessMapping(l.headers), bank: {}, dateOrder: null, ...over });
+
+test("drop check: an ambiguous file asks day/month, then is ready", () => {
   const l = loadedOf(AMBIGUOUS);
-  const props = { loaded: l, mapping: guessMapping(l.headers), working: false, onMapping: noop, onDateOrder: noop, onContinue: noop };
-  const asked = render(<MapStep {...props} dateOrder={null} />);
-  assert.ok(asked.includes("Day first") && asked.includes("Month first"));
-  assert.ok(!buttons(asked).some((b) => b.startsWith("Continue")), "no continue until answered");
-  const answered = render(<MapStep {...props} dateOrder="DMY" />);
-  assert.ok(answered.includes("Day first"), "question stays after the answer");
-  assert.match(answered, /checked=""/);
-  assert.ok(buttons(answered).includes("Continue with 2 readable rows"));
-  const clear = loadedOf("Vendor,Invoice,Date,Total\nAcme,1,2025-03-04,10.00\n");
-  assert.ok(!render(<MapStep {...props} loaded={clear} mapping={guessMapping(clear.headers)} dateOrder={null} />).includes("Day first"));
+  assert.deepEqual(checkItem(item(l)), { ok: false, need: "dates", detail: "" });
+  assert.deepEqual(checkItem(item(l, { dateOrder: "DMY" })), { ok: true, count: 2, skipped: 0, prices: false });
+  assert.equal(checkItem(item(loadedOf("Vendor,Invoice,Date,Total\nAcme,1,2025-03-04,10.00\n"))).ok, true);
 });
 
-test("header-only file explains itself; too many rows suggests splitting", () => {
-  const l = loadedOf("Vendor,Invoice,Total\n");
-  const html = render(<MapStep loaded={l} mapping={guessMapping(l.headers)} dateOrder={null} working={false} onMapping={noop} onDateOrder={noop} onContinue={noop} />);
-  assert.ok(html.includes("No rows can be imported from this file"));
+test("drop check: header-only file, unknown type, and a missing invoice number column", () => {
+  assert.equal(checkItem(item(loadedOf("Vendor,Invoice,Total\n"))).ok, false);
+  assert.deepEqual(checkItem(item(loadedOf(AMBIGUOUS), { kind: null })), { ok: false, need: "kind", detail: "" });
+  const r = checkItem(item(loadedOf("Vendor,Date,Amount\nUmbrella Sample,2026-01-02,10.00\n"), { bills: { vendor: 0, date: 1, total: 2 } }));
+  assert.ok(!r.ok && r.need === "columns");
+  assert.ok(!r.ok && r.detail.startsWith("Choose a column for Invoice number."), "names the missing field");
+  assert.ok(!r.ok && r.detail.includes("If your file has no invoice or bill number"));
 });
 
 test("own cases start with an empty reviewer; demo keeps the default", () => {
@@ -278,24 +265,12 @@ test("readPreview: a PDF or a spreadsheet file gets a clear 'not a CSV' message"
   assert.equal(typeof readPreview("ok.csv", new TextEncoder().encode("Vendor,Bill No.,Amount\nA,1,2\n")), "object");
 });
 
-test("map step: a file with no invoice number column names what is missing", async () => {
-  const { MapStep } = await import("../../src/pages/MinePage.tsx");
-  const bytes = new TextEncoder().encode("Vendor,Date,Amount\nUmbrella Sample,2026-01-02,10.00\n");
-  const html = render(<MapStep loaded={{ name: "list.csv", bytes, headers: ["Vendor", "Date", "Amount"], rows: [["Umbrella Sample", "2026-01-02", "10.00"]] }}
-    mapping={{ vendor: 0, date: 1, total: 2 }} dateOrder={null} working={false} onMapping={() => {}} onDateOrder={() => {}} onContinue={() => {}} />);
-  assert.ok(html.includes("Choose a column for Invoice number."), "names the missing field");
-  assert.ok(html.includes("If your file has no invoice or bill number"));
-});
-
-test("bank section: disabled until there are bills; result says how names were matched", () => {
-  const noBills = render(<BankSection hasBills={false} onImport={async () => ({ status: "storage_error", message: "x" })} queueHref="#/queue" />);
-  assert.match(noBills, /<input[^>]*id="bank-file"[^>]*disabled/);
-  assert.ok(noBills.includes("Add your bills above first"));
-  const ai = render(<MatchResult report={{ payments: 9, matched: 6, unpaidBills: 1, ai: true, paidTwice: 1, noBill: 1 }} queueHref="#/queue" />);
+test("match result says how names were matched", () => {
+  const ai = render(<MatchResult report={{ payments: 9, matched: 6, unpaidBills: 1, ai: true, paidTwice: 1, noBill: 1 }} />);
   assert.ok(ai.includes("Matched 6 of 9 payments"));
   assert.ok(ai.includes("1 bill paid more than once"));
   assert.ok(ai.includes("AI model running in this browser"));
-  const words = render(<MatchResult report={{ payments: 2, matched: 2, unpaidBills: 0, ai: false, paidTwice: 0, noBill: 0 }} queueHref="#/queue" />);
+  const words = render(<MatchResult report={{ payments: 2, matched: 2, unpaidBills: 0, ai: false, paidTwice: 0, noBill: 0 }} />);
   assert.ok(words.includes("Nothing looks paid twice"));
   assert.ok(words.includes("could not load"));
 });

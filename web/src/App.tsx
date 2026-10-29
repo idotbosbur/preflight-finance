@@ -25,7 +25,6 @@ import { openBestStore } from "./state/openStore.ts";
 import { importBytes } from "./state/importer.ts";
 import { importBankFile, importOwnFile } from "./state/ownImporter.ts";
 import { buildScorer } from "./state/aiMatch.ts";
-import { BankSection } from "./pages/BankSection.tsx";
 import type { BankImport } from "./pages/BankSection.tsx";
 import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
 import type { OwnFileRecord, ReviewStore } from "./state/store.ts";
@@ -515,8 +514,7 @@ export function App() {
         <MinePage
           ownBatch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} files={ownFiles}
           onImport={onImportOwn} onDeleteOwn={onDeleteOwn}
-          bank={<BankSection hasBills={(batches.find((b) => b.batchId === OWN_BATCH_ID)?.rowCount ?? 0) > 0} onImport={onImportBank}
-            queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} />}
+          onImportBank={onImportBank}
           queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} summaryHref={formatRoute({ name: "mine-summary" })}
         />
       );

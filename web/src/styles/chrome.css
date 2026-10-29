@@ -2011,3 +2011,29 @@ body { background: var(--ov-bg, var(--bg)); }
 }
 .ov-guide:hover { border-color: var(--ov-fg-soft, rgba(24, 24, 24, 0.16)); box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25); }
 .ov-guide-kicker { color: var(--ov-fg-soft, var(--ink-soft)); }
+
+/* One drop zone for bills and statements. */
+.drop-zone {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  text-align: center;
+  padding: 28px 18px;
+  border: 1.5px dashed #b7c1c8;
+  border-radius: var(--radius-lg);
+  background: var(--teal-tint);
+  cursor: pointer;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+.drop-zone:hover, .drop-zone.is-over { border-color: var(--ink); background: var(--surface); }
+.drop-zone .file-input { border: 0; background: transparent; padding: 6px 0 0; width: auto; max-width: 100%; }
+.drop-title { font-family: var(--display); font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+.drop-sub { color: var(--ink-soft); max-width: 46ch; }
+.drop-list { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.drop-item { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+.drop-item p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.drop-item-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.drop-item-head .btn-quiet { margin-left: auto; }
+.drop-edit { margin-top: 10px; display: grid; gap: 10px; }
+.btn-link { font: inherit; background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; justify-self: start; }
+.btn-big { min-height: 52px; padding-inline: 1.6rem; font-size: 1.05rem; }
