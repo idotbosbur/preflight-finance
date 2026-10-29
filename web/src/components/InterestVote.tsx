@@ -48,8 +48,8 @@ export function InterestVote({ send = sendFeedback }: { readonly send?: (a: Feed
       <label className="field-label" htmlFor="vote-email">Email, if you'd like to hear when it's ready (optional)</label>
       <input id="vote-email" className="text-input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <p>
-        <button type="submit" className="btn btn-primary" disabled={(picked.size === 0 && other.trim() === "") || state === "sending"}>
-          {state === "sending" ? "Sending…" : "Send my picks"}
+        <button type="submit" className="btn-line vote-send" disabled={(picked.size === 0 && other.trim() === "") || state === "sending"}>
+          {state === "sending" ? "Sending…" : <>Send my picks <span aria-hidden="true">→</span></>}
         </button>
       </p>
       {state === "failed" ? <p className="notice notice-error" role="alert">That didn't send. Check your connection and try again.</p> : null}

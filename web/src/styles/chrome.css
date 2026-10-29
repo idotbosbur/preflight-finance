@@ -2219,3 +2219,70 @@ body { background: var(--ov-bg, var(--bg)); }
 .vote .text-input::placeholder { color: var(--ov-fg-soft, var(--ink-soft)); }
 .vote .btn-primary { background: var(--ov-fg, var(--ink)); color: var(--ov-bg, #fff); }
 .vote .btn-primary:disabled { opacity: 0.45; }
+
+/* ---------- Idea vote, cleaner: rows on hairlines, round ticks, underline fields ---------- */
+.vote fieldset { gap: 0; border-top: 1px solid var(--ov-rule, var(--line)); }
+.vote-option {
+  gap: 14px;
+  align-items: center;
+  padding: 14px 2px;
+  border: 0;
+  border-bottom: 1px solid var(--ov-rule, var(--line));
+  border-radius: 0;
+  background: none;
+  transition: color 200ms ease;
+}
+.vote-option input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1.5px solid var(--ov-fg-soft, var(--ink-soft));
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 200ms ease, background-color 200ms ease;
+}
+.vote-option input::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ov-bg, #fff);
+  transform: scale(0);
+  transition: transform 220ms var(--ease-out);
+}
+.vote-option input:checked { background: var(--ov-fg, var(--ink)); border-color: var(--ov-fg, var(--ink)); }
+.vote-option input:checked::after { transform: scale(1); }
+.vote-option input:focus-visible { outline: var(--focus); outline-offset: 3px; }
+.vote-option:hover input { border-color: var(--ov-fg, var(--ink)); }
+.vote .field-label { margin-top: 22px; font-weight: 500; font-size: 0.85rem; color: var(--ov-fg-soft, var(--ink-soft)); }
+.vote legend.field-label { margin: 0 0 10px; }
+.vote .text-input {
+  border: 0;
+  border-bottom: 1px solid var(--ov-rule, var(--line));
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 2px;
+  margin-bottom: 4px;
+}
+.vote .text-input:focus { outline: none; border-bottom-color: var(--ov-fg, var(--ink)); }
+.vote .text-input:focus-visible { outline: none; box-shadow: 0 1px 0 0 var(--ov-fg, var(--ink)); }
+.vote-send { margin-top: 18px; color: var(--ov-fg, var(--ink)); }
+.vote-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---------- Footer name: one tight, centred lockup, nothing cropped ---------- */
+.footer-hero .footer-wordmark {
+  justify-content: center;
+  gap: 0.12em;
+  transform: none;
+  margin: clamp(56px, 10vh, 112px) 0 0;
+  padding-bottom: clamp(32px, 6vh, 64px);
+  font-size: clamp(3rem, 12vw, 10rem);
+  line-height: 1;
+}
+.footer-hero .footer-lens { width: 1.3em; height: 0.86em; }
+.fh-fine { margin-top: 40px; }
