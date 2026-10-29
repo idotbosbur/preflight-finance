@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { LensChrome } from "../art/LensChrome.tsx";
 
 /** Choreography (ms). Draw → words part → glint → logo flies into the nav while the curtain dissolves. */
-const FLY_AT = 1850;
-const FLY_MS = 750;
+const FLY_AT = 3300;
+const FLY_MS = 900;
 const DONE_AT = FLY_AT + FLY_MS + 50;
 
 const SEEN_KEY = "preflight.introSeen";

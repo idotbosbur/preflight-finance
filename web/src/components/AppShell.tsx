@@ -233,6 +233,8 @@ export function FeedbackLink({ url }: { url: string }) {
   return url.startsWith("#") ? <a href={url}>Feedback</a> : <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a>;
 }
 
+const LINKEDIN_URL = "https://www.linkedin.com/in/aidan-ussher-4a2743335/";
+
 /** Big footer rows on the landing page. */
 const FOOTER_ROWS: readonly (readonly [string, string])[] = [
   ["#/mine", "Check your bills"],
@@ -338,6 +340,10 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               <div className="fh-side">
                 <p className="fh-claim">Your files never leave your browser.</p>
                 <SiteLinks feedbackUrl={feedbackUrl} />
+                <p className="fh-connect">
+                  <span>Connect</span>
+                  <a className="btn-line" href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+                </p>
               </div>
             </div>
             <p className="fh-fine">

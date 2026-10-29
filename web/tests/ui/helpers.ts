@@ -11,8 +11,8 @@ export function render(el: ReactElement): string {
 export function assertNoInlineStyle(html: string): void {
   assert.doesNotMatch(html, /\sstyle=/, "no inline style attributes");
   assert.doesNotMatch(html, /\son[a-z]+=/i, "no inline event-handler attributes");
-  // The one allowed outside address is a plain link to the project's own source code (navigation, not a loaded resource).
-  assert.doesNotMatch(html, /https?:\/\/(?!www\.w3\.org\/2000\/svg|github\.com\/idotbosbur\/preflight-finance")/, "no external URLs");
+  // Allowed outside addresses are plain links (navigation, not loaded resources): the source code and the owner's LinkedIn.
+  assert.doesNotMatch(html, /https?:\/\/(?!www\.w3\.org\/2000\/svg|github\.com\/idotbosbur\/preflight-finance"|www\.linkedin\.com\/in\/)/, "no external URLs");
 }
 
 /** Text of all <button> elements. */

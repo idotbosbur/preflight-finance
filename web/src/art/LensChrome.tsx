@@ -59,7 +59,7 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 
-const ASSEMBLE_MS = 1500;
+const ASSEMBLE_MS = 2100;
 const ease = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
 
 /**

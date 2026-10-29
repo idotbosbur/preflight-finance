@@ -237,8 +237,11 @@ h3 {
   pointer-events: none;
 }
 
+/* Lens in a centre column so it sits over the caption even though "Catch" is wider than "fold". */
 .intro-lockup {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  width: 100%;
   align-items: center;
   gap: clamp(8px, 1.4vw, 18px);
   font-family: var(--display);
@@ -255,9 +258,12 @@ h3 {
   transition: opacity 280ms ease;
 }
 
+.intro-word-left { justify-self: end; }
+.intro-word-right { justify-self: start; }
+
 .intro-word > span {
   display: inline-block;
-  animation: intro-word-left 900ms var(--ease-out) 620ms both;
+  animation: intro-word-left 1200ms var(--ease-out) 950ms both;
 }
 
 .intro-word-right > span {
@@ -282,7 +288,7 @@ h3 {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  animation: fade-in 600ms ease 1100ms both;
+  animation: fade-in 800ms ease 1700ms both;
   transition: opacity 280ms ease;
 }
 
@@ -2118,7 +2124,7 @@ body { background: var(--ov-bg, var(--bg)); }
 .footer-mark { width: 1.35em; height: auto; color: currentColor; }
 .footer-brand-mark { width: 26px; height: auto; color: currentColor; }
 /* The 3D lens is wider than tall; the canvas gets room for the discs to arrive from the sides. */
-.intro-mark { width: clamp(150px, 22vw, 260px); height: clamp(100px, 14.5vw, 172px); animation: fade-in 300ms ease both; }
+.intro-mark { width: clamp(110px, 22vw, 260px); height: clamp(73px, 14.5vw, 172px); animation: fade-in 300ms ease both; }
 .mine-end { margin: 8px 0 18px; }
 
 /* ---------- Landing footer: big rows, small links, one fine line, the name across the width ---------- */
@@ -2140,6 +2146,9 @@ body { background: var(--ov-bg, var(--bg)); }
 .fh-claim { margin: 0; font-family: var(--display); font-size: 1.15rem; letter-spacing: -0.01em; color: var(--ov-fg, var(--ink)); }
 .fh-side .footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
 .fh-side .footer-links a { color: var(--ov-fg-soft, var(--ink-soft)); }
+.fh-connect { margin: 0; display: flex; align-items: baseline; gap: 14px; }
+.fh-connect span { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ov-fg-soft, var(--ink-soft)); }
+.fh-connect a { font-family: var(--display); font-size: 1.15rem; color: var(--ov-fg, var(--ink)); }
 .fh-fine { margin: 56px 0 0; font-size: 0.72rem; line-height: 1.6; color: var(--ov-fg-soft, var(--ink-soft)); max-width: 90ch; }
 .fh-fine .footer-label, .fh-fine .footer-attrib { color: inherit; font-size: inherit; }
 .footer-hero .footer-wordmark { margin-top: clamp(40px, 8vh, 88px); }
