@@ -2208,3 +2208,14 @@ body { background: var(--ov-bg, var(--bg)); }
 .plan-col .muted { margin: 2px 0 10px; }
 .plan-col ul { padding-left: 1.1rem; display: grid; gap: 8px; }
 .glance-feedback { margin: 10px 0 0; font-size: 0.92rem; }
+/* The vote sits on the dark part of the homepage: dark fields, and a light main button so it stays visible. */
+.vote .text-input {
+  width: 100%;
+  margin-bottom: 14px;
+  background: var(--ov-card, var(--surface));
+  color: var(--ov-fg, var(--ink));
+  border: 1px solid var(--ov-rule, var(--line));
+}
+.vote .text-input::placeholder { color: var(--ov-fg-soft, var(--ink-soft)); }
+.vote .btn-primary { background: var(--ov-fg, var(--ink)); color: var(--ov-bg, #fff); }
+.vote .btn-primary:disabled { opacity: 0.45; }
