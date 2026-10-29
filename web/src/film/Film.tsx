@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { VERT } from "../art/ChromeField.tsx";
 import { FILM_FRAG } from "./filmShader.ts";
-import { LensMark } from "../art/LensMark.tsx";
+import { LensChrome } from "../art/LensChrome.tsx";
 
 /**
  * A 30-second film in the site's own visual language, rendered deterministically from `t` (seconds):
@@ -140,17 +140,17 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
 
       {/* Scene A, hero */}
       <Layer className="f-hero" style={{ opacity: heroK }}>
-        <p className="f-kicker" style={rise(seg(t, 0.5, 1.4), 16)}>Invoice review · free prototype</p>
+        <p className="f-kicker" style={rise(seg(t, 0.5, 1.4), 16)}>Free money checkup · nothing uploaded</p>
         <h1 className="f-display">
-          <span style={rise(seg(t, 0.8, 1.9))}>Catch invoice errors</span>
-          <span style={rise(seg(t, 1.15, 2.25))}>before they're paid</span>
+          <span style={rise(seg(t, 0.8, 1.9))}>Find the bills</span>
+          <span style={rise(seg(t, 1.15, 2.25))}>you paid twice</span>
         </h1>
-        <p className="f-lede" style={rise(seg(t, 1.7, 2.7), 14)}>Duplicate bills. Totals that don't add up. Right in your browser.</p>
+        <p className="f-lede" style={rise(seg(t, 1.7, 2.7), 14)}>Paid twice. Overcharged. Quietly went up. Right in your browser.</p>
       </Layer>
 
       {/* Scenes B-D, the data */}
       <Layer className="f-data" style={{ opacity: tableIn }}>
-        <div className="f-caption" style={{ opacity: life(t, 5.0, 8.6, 0.5) }}>Export your bills as a CSV. Drop it in.</div>
+        <div className="f-caption" style={{ opacity: life(t, 5.0, 8.6, 0.5) }}>Drop in your bills. CSV, Excel or your bank's download.</div>
         <div className="f-caption" style={{ opacity: life(t, 9.0, 14.4, 0.5) }}>Says 7,668.65. Adds up to 7,668.66.</div>
         <div className="f-caption" style={{ opacity: life(t, 15.2, 17.0, 0.5) }}>Same vendor. Same invoice number.</div>
         <div className="f-caption" style={{ opacity: life(t, 17.2, 19.6, 0.5) }}>Not every flag is an error. You decide.</div>
@@ -201,8 +201,8 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
               </div>
             ))}
             <div className="f-decide" style={rise(seg(t, 17.4, 18.1), 16)}>
-              <span className="f-btn">Confirm finding</span>
-              <span className={`f-btn ${t > 18.3 ? "is-on" : ""}`}>Dismiss candidate</span>
+              <span className="f-btn">Needs fixing</span>
+              <span className={`f-btn ${t > 18.3 ? "is-on" : ""}`}>It's fine</span>
               <span className="f-reason"><Typed text="Different billing year. Legitimate reuse." k={seg(t, 18.5, 19.5)} /></span>
             </div>
           </div>
@@ -212,7 +212,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
       {/* Scene E, the dark */}
       <Layer className="f-center" style={{ opacity: darkHead }}>
         <h2 className="f-display f-display-mid">
-          <span style={rise(seg(t, 21.6, 22.6))}>Your invoices never</span>
+          <span style={rise(seg(t, 21.6, 22.6))}>Your files never</span>
           <span style={rise(seg(t, 21.9, 22.9))}>leave your browser.</span>
         </h2>
         <p className="f-lede" style={rise(seg(t, 22.6, 23.5), 14)}>No upload · No account · Delete it all in one click</p>
@@ -221,12 +221,13 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
       {/* Scene F, end card */}
       <Layer className="f-center f-end" style={{ opacity: endK }}>
         <div className="f-brand" style={{ transform: `scale(${lerp(0.92, 1, endK)})` }}>
-          <LensMark className="f-mark" />
-          <span>Catchfold</span>
+          <span>Catch</span>
+          <LensChrome className="f-mark" assemble time={t - 26.2} />
+          <span>fold</span>
         </div>
-        <p className="f-lede" style={rise(seg(t, 27.0, 27.8), 12)}>Catch invoice errors before they're paid.</p>
-        <p className="f-url" style={rise(seg(t, 27.5, 28.3), 12)}>preflight-finance-portfolio.vercel.app</p>
-        <p className="f-fine" style={{ opacity: seg(t, 28.0, 28.8) }}>Free prototype · figures shown are from the synthetic demo</p>
+        <p className="f-lede" style={rise(seg(t, 27.0, 27.8), 12)}>A free, private money checkup.</p>
+        <p className="f-url" style={rise(seg(t, 27.5, 28.3), 12)}>catchfold.com</p>
+        <p className="f-fine" style={{ opacity: seg(t, 28.0, 28.8) }}>Free · figures shown are sample data</p>
       </Layer>
     </div>
   );

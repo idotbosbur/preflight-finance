@@ -179,7 +179,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 .f-center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 calc(var(--s) * 100); }
 .f-brand { display: flex; align-items: center; gap: calc(var(--s) * 30); font-size: calc(var(--s) * 150); font-weight: 500; letter-spacing: -0.05em; }
 .film-square .f-brand { font-size: calc(var(--s) * 120); }
-.f-mark { width: calc(var(--s) * 150); height: auto; }
+.f-mark { width: calc(var(--s) * 300); height: calc(var(--s) * 196); margin: 0 calc(var(--s) * -24); }
 .f-url {
   margin: calc(var(--s) * 34) 0 0;
   padding: calc(var(--s) * 16) calc(var(--s) * 34);

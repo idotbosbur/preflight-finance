@@ -62,9 +62,15 @@ void main(){
 const ASSEMBLE_MS = 1500;
 const ease = (x: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
 
-export function LensChrome({ className, assemble = false }: { readonly className?: string; readonly assemble?: boolean }) {
+/**
+ * `time` (seconds) drives the animation from outside, one exact frame per value (used by the film's
+ * frame-by-frame capture); without it the mark animates on its own clock.
+ */
+export function LensChrome({ className, assemble = false, time }: { readonly className?: string; readonly assemble?: boolean; readonly time?: number }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  const drawRef = useRef<((ms: number) => void) | null>(null);
   const [flat, setFlat] = useState(false);
+  const external = time !== undefined;
   useEffect(() => {
     const c = ref.current;
     const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -80,20 +86,22 @@ export function LensChrome({ className, assemble = false }: { readonly className
     const loc = gl.getAttribLocation(pr, "p");
     gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     const uR = gl.getUniformLocation(pr, "R"), uT = gl.getUniformLocation(pr, "T"), uA = gl.getUniformLocation(pr, "A");
-    const t0 = performance.now();
-    let raf = 0;
-    const frame = () => {
+    const draw = (ms: number) => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = Math.max(1, Math.round(c.clientWidth * dpr)), h = Math.max(1, Math.round(c.clientHeight * dpr));
       if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
-      const ms = performance.now() - t0;
       gl.viewport(0, 0, w, h);
       gl.uniform2f(uR, w, h); gl.uniform1f(uT, ms / 1000); gl.uniform1f(uA, assemble ? ease(ms / ASSEMBLE_MS) : 1);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
-      raf = requestAnimationFrame(frame);
     };
+    drawRef.current = draw;
+    if (external) return () => { drawRef.current = null; };
+    const t0 = performance.now();
+    let raf = 0;
+    const frame = () => { draw(performance.now() - t0); raf = requestAnimationFrame(frame); };
     frame();
-    return () => cancelAnimationFrame(raf);
-  }, [assemble]);
+    return () => { cancelAnimationFrame(raf); drawRef.current = null; };
+  }, [assemble, external]);
+  useEffect(() => { if (time !== undefined) drawRef.current?.(Math.max(0, time) * 1000); }, [time]);
   return flat ? <LensMark className={className} /> : <canvas ref={ref} className={className} aria-hidden="true" />;
 }
