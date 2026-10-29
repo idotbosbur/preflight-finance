@@ -95,6 +95,10 @@ export function readPreview(name: string, bytes: Uint8Array): Loaded | string {
   if (/\.(xlsx|xlsm|xls|numbers|ods)$/i.test(name) || starts(0x50, 0x4b, 0x03, 0x04) || starts(0xd0, 0xcf, 0x11, 0xe0)) {
     return "That is a spreadsheet file, not a CSV. In Excel, choose File, then Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
   }
+  // Images and other binary files: a NUL byte or a picture signature in the first few KB.
+  if (starts(0x89, 0x50, 0x4e, 0x47) || starts(0xff, 0xd8, 0xff) || starts(0x47, 0x49, 0x46) || bytes.subarray(0, 4096).includes(0)) {
+    return "This doesn't look like a CSV file. It seems to be a picture or another kind of file. Choose a CSV export from your accounting software or bank.";
+  }
   let text: string;
   try {
     const bom = bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf;
@@ -107,6 +111,9 @@ export function readPreview(name: string, bytes: Uint8Array): Loaded | string {
     if (!headers || headers.every((h) => h.trim() === "")) return "This file has no header row.";
     if (headers.length === 1 && headers[0]!.includes(";")) {
       return "This file looks semicolon-separated. Export it again with commas as the separator (in Excel: “CSV UTF-8 (Comma delimited)”).";
+    }
+    if (headers.length < 2) {
+      return "This doesn't look like a CSV export: it has no columns. Choose a CSV exported from your accounting software or bank.";
     }
     return { name, bytes, headers, rows: rows.filter((r) => r.some((c) => c.trim() !== "")).slice(0, PREVIEW_ROWS) };
   } catch {

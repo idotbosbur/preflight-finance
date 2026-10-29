@@ -90,7 +90,7 @@ export function buildOwnRows(
     if (vendor === "") { skip("missing vendor"); continue; }
     if (number === "") { skip("missing invoice number"); continue; }
     const t = parseLooseAmount(cell(rec, "total"));
-    if (!t.ok) { skip(t.reason === "blank" ? "missing total" : t.reason); continue; }
+    if (!t.ok) { skip(t.reason === "blank" ? "missing total" : `total: ${t.reason}`); continue; }
     const amounts = { subtotal: 0, tax: 0, shipping: 0, discount: 0 };
     for (const f of OPTIONAL) {
       const text = cell(rec, f);

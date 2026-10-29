@@ -86,12 +86,12 @@ test("skipped rows carry reasons", () => {
   assert.ok("invoices" in r);
   assert.deepEqual(r.invoices.map((i) => i.invoiceNorm), ["5"]);
   assert.deepEqual(r.skipped, [
-    { row: 2, reason: "credit or negative amount" },
+    { row: 2, reason: "total: credit or negative amount" },
     { row: 3, reason: "missing vendor" },
     { row: 4, reason: "missing invoice number" },
-    { row: 5, reason: "not a number" },
+    { row: 5, reason: "total: not a number" },
     { row: 6, reason: "missing total" },
-    { row: 9, reason: "credit or negative amount" },
+    { row: 9, reason: "total: credit or negative amount" },
   ]);
 });
 
@@ -140,7 +140,7 @@ test("negative discount uses its absolute value; other negatives still skip", ()
   assert.deepEqual(r.invoices.map((i) => i.discount), [1000, 1000, 1000]);
   assert.deepEqual(r.skipped, [
     { row: 5, reason: "subtotal: credit or negative amount" },
-    { row: 6, reason: "credit or negative amount" },
+    { row: 6, reason: "total: credit or negative amount" },
   ]);
 });
 

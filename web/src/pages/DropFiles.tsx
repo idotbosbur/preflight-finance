@@ -61,11 +61,15 @@ export function checkItem(item: Pick<Item, "loaded" | "kind" | "bills" | "bank" 
     return { ok: false, need: "columns", detail: `Choose a column for ${missing.join(", ")}.${item.bills.invoiceNumber === undefined
       ? " If your file has no invoice or bill number, export a report that includes it." : ""}` };
   }
+  // Nothing usable: say why, from the skipped rows (e.g. "Total: not a number").
+  const why = (skipped: readonly { reason: string }[]) => skipped.length
+    ? ` ${skipped.length} ${skipped.length === 1 ? "row was" : "rows were"} skipped: ${[...new Set(skipped.map((x) => x.reason))].slice(0, 3).join("; ")}.`
+    : " The file has no data rows.";
   if ("invoices" in r) {
-    if (r.invoices.length === 0) return { ok: false, need: "columns", detail: "No bills could be read with these columns." };
+    if (r.invoices.length === 0) return { ok: false, need: "columns", detail: `No bills could be read with these columns.${why(r.skipped)}` };
     return { ok: true, count: r.invoices.length, skipped: r.skipped.length, prices: r.checksAvailable.prices };
   }
-  if (r.payments.length === 0) return { ok: false, need: "columns", detail: "No money-out lines could be read with these columns." };
+  if (r.payments.length === 0) return { ok: false, need: "columns", detail: `No money-out lines could be read with these columns.${why(r.skipped)}` };
   return { ok: true, count: r.payments.length, skipped: r.skipped.length, prices: false };
 }
 
