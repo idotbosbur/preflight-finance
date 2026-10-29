@@ -26,17 +26,14 @@ test("results: benchmark error and null handled", () => {
   assert.ok(loading.includes("No demo batch in this browser yet"));
 });
 
-test("how: principles, Python reference 403 history, truthful attribution", () => {
+test("how: three plain steps, trust points, limits and a truthful one-line credit", () => {
   const html = render(<HowPage />);
-  for (const s of ["Exact cents", "Atomic validation", "Idempotent import by file hash", "Stale-review conflicts", "Browser-local, resettable, unauthenticated history"]) {
+  for (const s of ["Drop in your files", "We check them in your browser", "You decide", "Exact to the cent", "Nothing leaves your browser", "Limits"]) {
     assert.ok(html.includes(s), s);
   }
-  assert.ok(html.includes("Python reference history"));
-  assert.ok(html.includes("403"));
-  assert.ok(html.includes("An earlier assistant elaborated"));
-  assert.ok(html.includes("Claude (Anthropic&#x27;s AI coding agent) wrote the application code and tests"));
-  assert.ok(html.includes("Codex coordinated"));
-  assert.ok(html.includes("The owner does not claim to have written this code."));
+  assert.ok(html.includes("built with Claude, Anthropic&#x27;s AI coding agent"));
+  assert.ok(html.includes('href="https://github.com/idotbosbur/preflight-finance"'), "engineering detail lives on GitHub");
+  assert.ok(!html.includes("Referrer-Policy"), "no engineering war stories on the user page");
 });
 
 test("roadmap: all twelve modules with labels, phases and qualifiers", () => {

@@ -1,115 +1,56 @@
-import { MAX_ROWS, RULESET_VERSION } from "../domain/contracts.ts";
+/** How it works, for people using it: three steps, why it can be trusted, its limits. Engineering detail lives in the README. */
 
-interface Principle {
-  readonly id: string;
-  readonly title: string;
-  readonly body: string;
-  readonly example: string;
-}
+const REPO = "https://github.com/idotbosbur/preflight-finance";
 
-const PRINCIPLES: readonly Principle[] = [
-  {
-    id: "cents",
-    title: "Exact cents, never floating point",
-    body: "Every amount is parsed from its text digits into a whole number of cents, and all checks add and compare whole cents.",
-    example:
-      "In ordinary binary floating point, 0.1 + 0.2 is 0.30000000000000004. Preflight reads \"110.25\" as 11025 cents, so a one-cent gap such as a difference of +0.01 is reported exactly, not rounded away.",
-  },
-  {
-    id: "atomic",
-    title: "Atomic validation",
-    body: "A file is checked completely before anything is stored. If any row is invalid, nothing from that file is imported, and every issue is listed by row and field.",
-    example:
-      "The test file mixed-128.csv has 120 valid rows followed by 8 invalid ones (rows 121 to 128). It is rejected as a whole with 8 issues, and no batch is created.",
-  },
-  {
-    id: "idempotent",
-    title: "Idempotent import by file hash",
-    body: `The batch ID comes from the SHA-256 of the file's original bytes plus the ruleset (${RULESET_VERSION}). Importing the same bytes again opens the same batch.`,
-    example:
-      "Import the sample, confirm a finding, then import the identical file again: you land on the same batch with your decision intact. Change line endings from LF to CRLF and the bytes differ, so it becomes a separate batch.",
-  },
-  {
-    id: "stale",
-    title: "Stale-review conflicts",
-    body: "Each decision is saved against the case version you were looking at. If the case changed in the meantime, the save is refused instead of silently overwriting.",
-    example:
-      "Open the same case in two tabs and confirm it in the first. Dismissing it from the second tab shows a conflict; the reason you typed there is kept so you can reconsider.",
-  },
-  {
-    id: "local",
-    title: "Browser-local, resettable, unauthenticated history",
-    body: "Batches and decisions live only in this browser's storage. There are no accounts and no server; reviewer names are self-declared.",
-    example:
-      "Open the demo on another device and it starts empty. \"Reset this browser's demo data\" in the queue erases this browser's batches and history. It is a review record for the demo, not a tamper-proof audit log.",
-  },
+const STEPS: readonly (readonly [string, string])[] = [
+  ["Drop in your files", "A bills export from your accounting software, and if you like a bank or card statement. CSV, Excel or your bank's download (.qfx, .ofx, .qbo)."],
+  ["We check them in your browser", "Bills entered twice, bills paid twice, payments with no bill, monthly charges and supplier prices that went up, totals that don't add up, and a year-end contractor list."],
+  ["You decide", "Each flag shows its evidence. Mark it as needing a fix or as fine, and email the supplier straight from the result if you need to."],
+];
+
+const TRUST: readonly (readonly [string, string])[] = [
+  ["Exact to the cent", "Amounts are read as whole cents, so a one-cent error is never rounded away."],
+  ["AI matches names, rules check money", "A small AI model in your browser recognises that “SQ *ACME SUPPLY 4412” is Acme Supply. Amounts and dates are always checked by exact rules."],
+  ["Nothing leaves your browser", "No upload and no account. Your files and answers stay on this device until you delete them."],
 ];
 
 export function HowPage() {
   return (
     <div className="workspace how">
       <header className="page-head">
-        <p className="eyebrow">How it works</p>
-        <h1 className="page-title" tabIndex={-1}>Small, checkable guarantees</h1>
-        <p className="lede">
-          Deterministic rules (possible duplicates and total mismatches), a human review step and a measured synthetic
-          benchmark. With your own files, a third lower-confidence rule also looks for same-vendor, same-amount bills within
-          14 days. If you add a bank or card statement, a small AI model running in your browser recognises payee names
-          (“SQ *ACME SUPPLY 4412” is Acme Supply) so payments can be matched to bills, and, for bills with item lines, recognises
-          differently written names of the same item so price increases can be found. Amounts, prices and dates are still checked
-          exactly by rules. Nothing you add leaves your browser.
-        </p>
+        <h1 className="page-title" tabIndex={-1}>How it works</h1>
       </header>
 
-      <ul className="principles">
-        {PRINCIPLES.map((p) => (
-          <li key={p.id} className="panel principle">
-            <h2 className="section-title">{p.title}</h2>
-            <p>{p.body}</p>
-            <p className="example">
-              <strong>Example: </strong>
-              {p.example}
-            </p>
+      <ol className="how-steps">
+        {STEPS.map(([title, text], i) => (
+          <li key={title} className="how-step">
+            <span className="how-n" aria-hidden="true">0{i + 1}</span>
+            <div><h2 className="section-title">{title}</h2><p>{text}</p></div>
           </li>
         ))}
-      </ul>
+      </ol>
 
-      <section className="panel" aria-labelledby="limits-heading">
-        <h2 id="limits-heading" className="section-title">Limits</h2>
-        <ul>
-          <li>Demo: synthetic USD invoices only; at most 1 MiB and {MAX_ROWS.toLocaleString("en-US")} rows per file.</li>
-          <li>Demo: duplicates are found within one batch only, by exact normalized vendor + invoice number + currency. With your own files, checks run across every file you import, and only the 14-day same-amount rule is approximate.</li>
-          <li>Legitimate invoice-number reuse looks the same as a duplicate to this rule; a person must decide.</li>
-          <li>No real integrations, payments or accounts.</li>
+      <section aria-labelledby="trust-heading">
+        <h2 id="trust-heading" className="small-title">Why you can trust the results</h2>
+        <ul className="how-trust">
+          {TRUST.map(([title, text]) => <li key={title}><strong>{title}.</strong> {text}</li>)}
         </ul>
       </section>
 
-      <section className="panel history-note" aria-labelledby="ref-heading">
-        <p className="eyebrow">Python reference history</p>
-        <h2 id="ref-heading" className="section-title">A defect found in real-browser testing</h2>
-        <p>
-          This browser app is a port of an earlier local Python prototype. In that Python reference, submitting a review returned
-          HTTP 403 in a real browser. The cause was the header <code>Referrer-Policy: no-referrer</code>, which makes Chromium send{" "}
-          <code>Origin: null</code> on form posts, so the server's origin check rejected them. The fix changed the policy to{" "}
-          <code>same-origin</code> while keeping the strict origin allowlist and CSRF checks, and added a regression test that
-          submits the real rendered form.
-        </p>
-        <p className="muted">
-          Codex found the defect during browser QA and reported a successful retest; Claude fixed the code. This history belongs
-          to the Python reference, not to this browser port.
-        </p>
+      <section aria-labelledby="limits-heading">
+        <h2 id="limits-heading" className="small-title">Limits</h2>
+        <ul className="how-trust">
+          <li>It flags things to check, not proven mistakes. Some flags will be fine, like a supplier reusing an invoice number.</li>
+          <li>PDFs and photos aren't supported yet.</li>
+          <li>Your data lives in this browser only, so it won't follow you to another device.</li>
+          <li>The contractor list is a starting point, not tax advice.</li>
+        </ul>
       </section>
 
-      <section className="panel" aria-labelledby="credit-heading">
-        <h2 id="credit-heading" className="section-title">Who did what</h2>
-        <ul>
-          <li>The project owner originated the invoice-control concept and made the scope and product decisions.</li>
-          <li>An earlier assistant elaborated the concept into the twelve-module roadmap.</li>
-          <li>Claude (Anthropic's AI coding agent) wrote the application code and tests.</li>
-          <li>Codex coordinated the work, reviewed it and ran browser QA.</li>
-        </ul>
-        <p className="muted">The owner does not claim to have written this code.</p>
-      </section>
+      <p className="how-credit muted">
+        Designed by the project owner and built with Claude, Anthropic's AI coding agent. Code, tests and engineering notes are{" "}
+        <a href={REPO}>on GitHub</a>.
+      </p>
     </div>
   );
 }

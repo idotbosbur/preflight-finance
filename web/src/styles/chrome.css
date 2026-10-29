@@ -2190,3 +2190,11 @@ body { background: var(--ov-bg, var(--bg)); }
 @media (prefers-reduced-motion: reduce) {
   .btn-secondary::after, .btn-quiet::after, .btn-danger::after { transition: none; }
 }
+
+/* ---------- How it works: three steps, short lists ---------- */
+.how-steps { list-style: none; padding: 0; margin: 8px 0 40px; border-top: 1px solid var(--line); }
+.how-step { display: flex; gap: 22px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.how-step p { margin: 6px 0 0; color: var(--ink-soft); max-width: 60ch; }
+.how-n { font-size: 0.8rem; color: var(--ink-soft); padding-top: 0.35rem; font-variant-numeric: tabular-nums; }
+.how-trust { padding-left: 1.1rem; display: grid; gap: 8px; max-width: 70ch; margin-bottom: 32px; }
+.how-credit { margin-top: 24px; font-size: 0.9rem; }
