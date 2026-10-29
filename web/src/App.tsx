@@ -468,7 +468,7 @@ export function App() {
             <button type="button" className="btn btn-secondary" onClick={runDemoRoute}>Try loading the demo again</button>
           ) : null}
         </div>
-      ) : <p className="app-loading" role="status">Loading the synthetic demo batch…</p>;
+      ) : <p className="app-loading" role="status">Loading the sample invoices…</p>;
       break;
     case "queue":
       page = booting ? <p className="app-loading" role="status">Opening browser storage…</p> : (

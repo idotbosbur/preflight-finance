@@ -74,7 +74,7 @@ export const ACTIONS: Readonly<Record<ReviewAction, { readonly from: readonly Re
 export const REASON_MAX = 500;
 export const REVIEWER_MAX = 80;
 
-export const SYNTHETIC_LABEL = "Synthetic demo: invented figures, not real financial records";
+export const SYNTHETIC_LABEL = "Sample data: invented figures, not real financial records";
 
 export type IssueCode =
   | "EMPTY_FILE"

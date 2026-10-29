@@ -5,7 +5,7 @@ import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent
 import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
 import type { Durability } from "../domain/contracts.ts";
 import { FEEDBACK_URL, SYNTHETIC_LABEL } from "../domain/contracts.ts";
-import { DEMO_BADGE, OWN_BADGE } from "./labels.ts";
+import { DEMO_BADGE, FREE_BADGE } from "./labels.ts";
 
 const OWN_LABEL = "Your data stays in this browser. Nothing is uploaded.";
 
@@ -39,7 +39,7 @@ export function nextStep(route: Route, own = false): { readonly kicker: string; 
     case "results":
       return { kicker: "Next", label: "Try it yourself", href: "#/demo" };
     default:
-      return { kicker: "See it work", label: "Try the synthetic demo", href: "#/demo" };
+      return { kicker: "See it work", label: "Try the demo", href: "#/demo" };
   }
 }
 
@@ -66,9 +66,12 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   not_found: "Page not found",
 };
 
-/** document.title for a route: "<page name> | Preflight (synthetic demo)", or no suffix in own mode. */
+/** Pages that show the sample invoices (and so carry the "Sample data" label). */
+export const showsSample = (route: Route, own: boolean): boolean => !own && ["demo", "queue", "case", "results"].includes(route.name);
+
+/** document.title for a route: "<page name> | Preflight", with "(sample data)" on the sample pages. */
 export function pageTitle(route: Route, own = false): string {
-  return own ? `${PAGE_NAME[route.name]} | Preflight` : `${PAGE_NAME[route.name]} | Preflight (synthetic demo)`;
+  return showsSample(route, own) ? `${PAGE_NAME[route.name]} | Preflight (sample data)` : `${PAGE_NAME[route.name]} | Preflight`;
 }
 
 /** Move focus only on a real route change after the first render (never on initial load). */
@@ -212,7 +215,7 @@ function MobileMenu({ route, own, onClose, triggerRef, restoreRef }: MobileMenuP
       <div className="menu-scrim" aria-hidden="true" onClick={() => onClose(true)} />
       <div id={MENU_ID} ref={panelRef} className="menu-panel" role="dialog" aria-modal="true" aria-label="Site menu" onKeyDown={onKeyDown}>
         <div className="menu-panel-head">
-          <span className="badge badge-synthetic">{own ? OWN_BADGE : DEMO_BADGE}</span>
+          <span className="badge badge-synthetic">{showsSample(route, own) ? DEMO_BADGE : FREE_BADGE}</span>
           <button type="button" className="btn btn-quiet" onClick={() => onClose(true)}>
             Close menu
           </button>
@@ -292,8 +295,8 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             Preflight
           </a>
           <NavLinks route={route} own={own} className="nav-links" />
-          <span className={own ? "badge badge-synthetic badge-own" : "badge badge-synthetic"} title={own ? OWN_LABEL : SYNTHETIC_LABEL}>
-            {own ? OWN_BADGE : DEMO_BADGE}
+          <span className={showsSample(route, own) ? "badge badge-synthetic" : "badge badge-synthetic badge-own"} title={showsSample(route, own) ? SYNTHETIC_LABEL : OWN_LABEL}>
+            {showsSample(route, own) ? DEMO_BADGE : FREE_BADGE}
           </span>
           <button
             ref={triggerRef}
@@ -317,7 +320,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             {MEMORY_BANNER}
           </p>
         ) : null}
-        {guide?.active && !own ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
+        {guide?.active && showsSample(route, own) ? <GuideBar guide={guide} onExit={onGuideExit} durability={durability} /> : null}
         <main id={MAIN_ID} tabIndex={-1} className="main">
           {children}
         </main>
@@ -338,7 +341,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               </div>
             </div>
             <p className="fh-fine">
-              <span className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</span> <span className="footer-attrib">{ATTRIBUTION}</span>
+              <span className="footer-label">{showsSample(route, own) ? SYNTHETIC_LABEL : OWN_LABEL}</span> <span className="footer-attrib">{ATTRIBUTION}</span>
             </p>
             <p className="footer-wordmark" aria-hidden="true">
               <span>Pre</span>
@@ -357,7 +360,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             </a>
             <div className="footer-fine">
               <LensMark className="footer-brand-mark" />
-              <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
+              <p className="footer-label">{showsSample(route, own) ? SYNTHETIC_LABEL : OWN_LABEL}</p>
               <p className="footer-credit">Concept: project owner · Code: Claude · QA: Codex</p>
               <SiteLinks feedbackUrl={feedbackUrl} />
             </div>

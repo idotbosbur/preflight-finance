@@ -59,7 +59,7 @@ test("own-batch queue shows the own badge and never Synthetic demo", () => {
   assert.ok(html.includes(OWN_BADGE));
   assert.ok(!/synthetic demo/i.test(html));
   const demo = render(<QueuePage {...queueProps()} />);
-  assert.ok(demo.includes("Synthetic demo") && !demo.includes(OWN_BADGE));
+  assert.ok(demo.includes("Sample data") && !demo.includes(OWN_BADGE));
   assert.ok(!/type="file"/.test(demo), "demo queue has no file input");
 });
 
@@ -97,17 +97,17 @@ test("near-duplicate case: both members, dates, gap, total, currency, own badge"
   }
   assert.ok(html.includes(OWN_BADGE) && !/synthetic demo/i.test(html));
   assert.ok(!/fictional demo name/.test(html));
-  assert.ok(render(<CasePage {...props} view={caseView("open")} />).includes("Synthetic demo"));
+  assert.ok(render(<CasePage {...props} view={caseView("open")} />).includes("Sample data"));
 });
 
 test("shell: own mode badge, title and nav", () => {
   const base = { guide: null, onGuideExit: noop, durability: "persistent" as const, announcement: "" };
   const html = render(<AppShell {...base} route={{ name: "mine" }} own><p /></AppShell>);
-  assert.ok(html.includes(OWN_BADGE) && !/synthetic demo/i.test(html));
+  assert.ok(html.includes("Free · nothing uploaded") && !/sample data/i.test(html));
   assert.match(html, /aria-current="page"[^>]*>Your files/);
   assert.equal(pageTitle({ name: "mine" }, true), "Your files | Preflight");
-  assert.equal(pageTitle({ name: "mine" }), "Your files | Preflight (synthetic demo)");
-  assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Synthetic demo"));
+  assert.equal(pageTitle({ name: "mine" }), "Your files | Preflight");
+  assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Sample data"));
 });
 
 const enc = (t: string) => new TextEncoder().encode(t);

@@ -34,7 +34,7 @@ export function OverviewPage({ demo, onStartGuide, drop }: OverviewProps & { rea
           <button type="button" className="btn-line" onClick={onStartGuide} disabled={busy}>Try the demo</button>
           <a className="btn-line" href="#/how">How it works</a>
         </p>
-        {demo.kind === "loading" ? <p className="hero-status" role="status">Loading the synthetic demo batch…</p> : null}
+        {demo.kind === "loading" ? <p className="hero-status" role="status">Loading the sample invoices…</p> : null}
         {demo.kind === "error" ? <p className="hero-status hero-error" role="alert">The demo could not be loaded: {demo.message}</p> : null}
       </section>
 

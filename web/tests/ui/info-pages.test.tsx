@@ -58,7 +58,7 @@ test("not found: message, home link, optional Load demo data", () => {
   assert.ok(!buttons(render(<NotFoundPage message="x" homeHref="#/" onLoadDemo={null} />)).includes("Load demo data"));
 });
 
-test("every page renders inside the shell with the synthetic label", () => {
+test("every info page renders inside the shell with the free, nothing-uploaded label", () => {
   const pages = [
     <HowPage key="h" />,
     <RoadmapPage key="r" modules={MODULES} />,
@@ -71,7 +71,7 @@ test("every page renders inside the shell with the synthetic label", () => {
         {page}
       </AppShell>,
     );
-    assert.ok(html.includes(SYNTHETIC_LABEL));
+    assert.ok(html.includes("Free · nothing uploaded") && !html.includes(SYNTHETIC_LABEL));
   }
 });
 

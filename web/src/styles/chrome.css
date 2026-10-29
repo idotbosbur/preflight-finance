@@ -2144,3 +2144,6 @@ body { background: var(--ov-bg, var(--bg)); }
 .fh-fine .footer-label, .fh-fine .footer-attrib { color: inherit; font-size: inherit; }
 .footer-hero .footer-wordmark { margin-top: clamp(40px, 8vh, 88px); }
 .footer-lens { width: 1.45em; height: 0.95em; }
+.drop-btn { margin-top: 10px; justify-self: center; pointer-events: none; }
+.drop-input:focus-visible + .drop-btn { outline: var(--focus); outline-offset: 3px; }
+.drop-input:disabled + .drop-btn { opacity: 0.5; }

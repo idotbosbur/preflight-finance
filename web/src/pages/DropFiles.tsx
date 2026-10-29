@@ -146,8 +146,10 @@ export function DropFiles({ onImport, onImportBank, queueHref, hero = false, hea
         onDrop={(e: DragEvent) => { e.preventDefault(); setOver(false); void add([...e.dataTransfer.files]); }}>
         <span className="drop-title">{hero ? "Drop your CSV files here" : "Drop CSV files here, or choose them"}</span>
         <span className="drop-sub">{hero ? "Bills, a bank statement, or both." : "Your bills export, and if you like, a bank or card statement. You can add several at once."}</span>
-        <input id="own-file" className="file-input" type="file" accept=".csv,text/csv" multiple disabled={working !== null}
+        {/* The native control can't be centred or styled; it stays focusable but visually hidden behind a real button look. */}
+        <input id="own-file" className="sr-only drop-input" type="file" accept=".csv,text/csv" multiple disabled={working !== null}
           onChange={(e: ChangeEvent<HTMLInputElement>) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void add(fs); }} />
+        <span className="btn btn-primary drop-btn" aria-hidden="true">Choose files</span>
       </label>
       {problems.map((p) => <p key={p} className="notice notice-error" role="alert">{p}</p>)}
 

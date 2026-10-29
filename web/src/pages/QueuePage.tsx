@@ -214,7 +214,7 @@ export function QueuePage(props: QueueProps) {
         <section className="empty" aria-labelledby="empty-heading">
           <h2 id="empty-heading" className="section-title">No batch loaded yet</h2>
           {demo.kind === "loading" ? (
-            <p role="status">Loading the synthetic demo batch…</p>
+            <p role="status">Loading the sample invoices…</p>
           ) : (
             <>
               <p>Load the synthetic demo batch of invented invoices to see its candidate findings.</p>

@@ -14,7 +14,9 @@ export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
 };
 
 export const OWN_BADGE = "Your data stays in this browser";
-export const DEMO_BADGE = "Synthetic demo";
+export const DEMO_BADGE = "Sample data";
+/** Pill on every page that is not showing the sample invoices. */
+export const FREE_BADGE = "Free · nothing uploaded";
 /** Batches uploaded with an earlier version of the app may hold real data: never call them synthetic. */
 export const LEGACY_UPLOAD_BADGE = "Uploaded file (older version)";
 export const sourceBadge = (source: BatchSource): string =>
