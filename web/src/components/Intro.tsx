@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ChromeMark } from "../art/ChromeMark.tsx";
+import { LensChrome } from "../art/LensChrome.tsx";
 
 /** Choreography (ms). Draw → words part → glint → logo flies into the nav while the curtain dissolves. */
 const FLY_AT = 1850;
@@ -77,7 +77,7 @@ export function Intro({ onDone }: { readonly onDone: () => void }) {
       <div className="intro-lockup">
         <span className="intro-word intro-word-left"><span>Pre</span></span>
         <span ref={markRef} className="intro-mark-wrap">
-          <ChromeMark className="intro-mark" animated />
+          <LensChrome className="intro-mark" assemble />
         </span>
         <span className="intro-word intro-word-right"><span>flight</span></span>
       </div>

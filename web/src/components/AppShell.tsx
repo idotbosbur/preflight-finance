@@ -1,4 +1,4 @@
-import { ChromeMark } from "../art/ChromeMark.tsx";
+import { LensMark } from "../art/LensMark.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, RefObject } from "react";
 import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
@@ -279,7 +279,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
       <header className="topbar" inert={menuOpen}>
         <nav className="topnav" aria-label="Main">
           <a href="#/" className="brand" aria-current={route.name === "overview" ? "page" : undefined}>
-            <ChromeMark className="brand-mark" />
+            <LensMark className="brand-mark" />
             Preflight
           </a>
           <NavLinks route={route} own={own} className="nav-links" />
@@ -323,7 +323,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
             </div>
             <p className="footer-wordmark" aria-hidden="true">
               <span>Pre</span>
-              <ChromeMark className="footer-mark" />
+              <LensMark className="footer-mark" />
               <span>flight</span>
             </p>
           </footer>
@@ -337,7 +337,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               </span>
             </a>
             <div className="footer-fine">
-              <ChromeMark className="footer-brand-mark" />
+              <LensMark className="footer-brand-mark" />
               <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
               <p className="footer-credit">Concept: project owner · Code: Claude · QA: Codex</p>
               <SiteLinks feedbackUrl={feedbackUrl} />

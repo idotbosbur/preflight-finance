@@ -2112,3 +2112,10 @@ body { background: var(--ov-bg, var(--bg)); }
 .ov-checks { padding-bottom: 65vh; }
 .drop-zone { grid-template-columns: minmax(0, 1fr); }
 .drop-zone .file-input { min-width: 0; justify-self: center; }
+
+/* ---------- Lens mark: flat in the chrome, 3D in the intro ---------- */
+.brand-mark { width: 30px; height: 20px; color: var(--ov-fg, var(--ink)); }
+.footer-mark { width: 1.35em; height: auto; color: currentColor; }
+.footer-brand-mark { width: 26px; height: auto; color: currentColor; }
+/* The 3D lens is wider than tall; the canvas gets room for the discs to arrive from the sides. */
+.intro-mark { width: clamp(150px, 22vw, 260px); height: clamp(100px, 14.5vw, 172px); animation: fade-in 300ms ease both; }

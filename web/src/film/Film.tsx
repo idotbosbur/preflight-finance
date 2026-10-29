@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { VERT } from "../art/ChromeField.tsx";
 import { FILM_FRAG } from "./filmShader.ts";
-import { ChromeMark } from "../art/ChromeMark.tsx";
+import { LensMark } from "../art/LensMark.tsx";
 
 /**
  * A 30-second film in the site's own visual language, rendered deterministically from `t` (seconds):
@@ -221,7 +221,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
       {/* Scene F, end card */}
       <Layer className="f-center f-end" style={{ opacity: endK }}>
         <div className="f-brand" style={{ transform: `scale(${lerp(0.92, 1, endK)})` }}>
-          <ChromeMark className="f-mark" />
+          <LensMark className="f-mark" />
           <span>Preflight</span>
         </div>
         <p className="f-lede" style={rise(seg(t, 27.0, 27.8), 12)}>Catch invoice errors before they're paid.</p>
