@@ -2147,3 +2147,46 @@ body { background: var(--ov-bg, var(--bg)); }
 .drop-btn { margin-top: 10px; justify-self: center; pointer-events: none; }
 .drop-input:focus-visible + .drop-btn { outline: var(--focus); outline-offset: 3px; }
 .drop-input:disabled + .drop-btn { opacity: 0.5; }
+
+/* ---------- Secondary actions are words, not pills: a line draws itself underneath on hover ---------- */
+.btn-secondary,
+.btn-quiet,
+.btn-danger {
+  position: relative;
+  min-height: 36px;
+  padding: 0.3rem 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ov-fg, var(--ink));
+  font-weight: 500;
+}
+.btn-danger { color: var(--err-ink); font-weight: 600; }
+.btn-secondary:hover:not(:disabled),
+.btn-quiet:hover:not(:disabled),
+.btn-danger:hover:not(:disabled) { background: none; box-shadow: none; transform: none; }
+.btn-secondary::after,
+.btn-quiet::after,
+.btn-danger::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.2rem;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms var(--ease-out);
+}
+.btn-secondary:hover:not(:disabled)::after,
+.btn-quiet:hover:not(:disabled)::after,
+.btn-danger:hover:not(:disabled)::after,
+.btn-secondary:focus-visible::after,
+.btn-quiet:focus-visible::after,
+.btn-danger:focus-visible::after { transform: scaleX(1); }
+.row-actions { column-gap: 1.6rem; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-secondary::after, .btn-quiet::after, .btn-danger::after { transition: none; }
+}
