@@ -29,7 +29,7 @@ test("queue: at-a-glance headline with the biggest findings first", () => {
   const glance = buildGlance([dupFinding("open"), finding({ state: "open" })], []);
   const html = render(<QueuePage {...queueProps({ glance })} />);
   assert.ok(html.includes("$410.00"));
-  assert.ok(html.includes("may be paid twice or added up wrong"));
+  assert.ok(html.includes("may have been overpaid, or needs a second look"));
   assert.ok(html.includes("3 of 120 bills need a look"));
   assert.ok(buttons(html).includes("Review all 2"));
   assert.ok(buttons(html).includes("Email supplier"));

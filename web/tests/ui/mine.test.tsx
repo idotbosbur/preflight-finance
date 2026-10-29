@@ -163,10 +163,10 @@ test("user text is escaped in preview and file list", () => {
 });
 
 test("singular counts and as-written titles on own pages", () => {
-  const one = { ...ownBatch, rowCount: 1, findingCount: 1, duplicateCount: 1, mismatchCount: 0, nearDuplicateCount: 0 };
+  const one = { ...ownBatch, rowCount: 1, findingCount: 1, duplicateCount: 1, mismatchCount: 0, nearDuplicateCount: 0, openCount: 1, confirmedCount: 0, dismissedCount: 0 };
   const dup = { ...finding({ state: "open", ruleId: "DUPLICATE_CANDIDATE", memberIds: ["R-0005", "R-0032"], evidence: dupEvidence, findingId: "f0000000000dg012" }) };
   const html = render(<QueuePage {...queueProps({ batch: one, batches: [one], findings: [dup] })} />);
-  assert.ok(html.includes("1 invoice checked") && html.includes("1 candidate finding ") && html.includes("1 possible duplicate group,"));
+  assert.ok(html.includes("1 bill checked") && html.includes("1 thing to look at"), "plain counts on own data");
   assert.ok(html.includes("v-acme · inv-7781") && !html.includes("V-ACME · INV-7781"), "own title shows the vendor as written");
   const demoHtml = render(<QueuePage {...queueProps({ findings: [dup] })} />);
   assert.ok(demoHtml.includes("V-ACME · INV-7781"));

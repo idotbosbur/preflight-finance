@@ -73,7 +73,9 @@ export function reconcile(invoices: readonly Invoice[], payments: readonly BankP
       .sort((x, y) => y.s.score - x.s.score || compareStrings(x.b.invoiceDate, y.b.invoiceDate) || compareStrings(x.b.recordId, y.b.recordId));
     if (eligible.length > 0) {
       matched++;
-      const pick = eligible.find((c) => !paid.has(c.b.recordId)) ?? eligible[0]!;
+      // A payment with every eligible bill already paid is a second payment of the most recent of them.
+      const latest = () => [...eligible].sort((x, y) => compareStrings(y.b.invoiceDate, x.b.invoiceDate) || y.s.score - x.s.score)[0]!;
+      const pick = eligible.find((c) => !paid.has(c.b.recordId)) ?? latest();
       paid.set(pick.b.recordId, [...(paid.get(pick.b.recordId) ?? []), paymentEvidence(p, pick.s)]);
       continue;
     }

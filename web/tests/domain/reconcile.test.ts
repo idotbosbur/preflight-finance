@@ -87,3 +87,11 @@ test("reconcile: bills with no payment inside the statement's dates are counted"
     [pay("P-1", "2026-03-02", "ACME", 1000), pay("P-9", "2026-03-30", "STARBUCKS", 1)], words);
   assert.equal(r.unpaidBills, 1);
 });
+
+test("reconcile: a second payment in a later month counts against the most recent bill", () => {
+  const bills = [bill("O-4", "River Phone Co", "2026-04-01", 8900), bill("O-5", "River Phone Co", "2026-05-01", 8900)];
+  const pays = [pay("P-1", "2026-04-05", "RIVER PHONE AUTOPAY", 8900), pay("P-2", "2026-05-04", "RIVER PHONE AUTOPAY", 8900),
+    pay("P-3", "2026-05-06", "RIVER PHONE AUTOPAY", 8900)];
+  const [f] = reconcile(bills, pays, words).findings;
+  assert.deepEqual(f?.memberIds, ["O-5", "P-2", "P-3"]);
+});

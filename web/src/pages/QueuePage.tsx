@@ -11,6 +11,8 @@ import { formatMoney, supplierEmail } from "../domain/glance.ts";
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
 const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE];
+const STATE_OPTION_LABEL: Readonly<Record<ReviewState | "all", string>> = { all: "All states", ...STATE_LABEL };
+const OWN_STATE_OPTION: Readonly<Record<ReviewState | "all", string>> = { all: "Everything", open: "Not answered yet", confirmed: "Needs fixing", dismissed: "Fine" };
 /** Findings shown per page of the queue. */
 export const PAGE_SIZE = 50;
 
@@ -139,7 +141,7 @@ export function AtAGlance({ glance, rowCount, hrefForCase }: { readonly glance: 
     <section className="glance" aria-labelledby="glance-heading">
       <p className="glance-eyebrow">Before you pay</p>
       <h2 id="glance-heading" className="glance-amount">{formatMoney(glance.cents, glance.currency)}</h2>
-      <p className="glance-what">may be paid twice or added up wrong</p>
+      <p className="glance-what">may have been overpaid, or needs a second look</p>
       <p className="glance-sub">
         {glance.bills} of {plural(rowCount, "bill")} need a look · everything else looks fine
         {glance.otherCurrencies.length ? ` · more flagged in ${glance.otherCurrencies.join(", ")}` : ""}
@@ -153,7 +155,7 @@ export function AtAGlance({ glance, rowCount, hrefForCase }: { readonly glance: 
       <ul className="glance-list">
         {glance.items.slice(0, 3).map((i) => <GlanceRow key={i.finding.findingId} item={i} href={hrefForCase(i.finding.findingId)} />)}
       </ul>
-      <p className="hint">These are candidates for you to check, not proof of a mistake. Dismissed findings are not counted.</p>
+      <p className="hint">These are things to check, not proof of a mistake. Anything you mark as fine drops out of the total.</p>
     </section>
   );
 }
@@ -177,7 +179,9 @@ export function QueuePage(props: QueueProps) {
         <h1 id={QUEUE_HEADING_ID} className="page-title" tabIndex={-1}>
           {batch ? batch.displayName : "Findings to review"}
         </h1>
-        {batch ? (
+        {batch && own ? (
+          <p className="lede">{plural(batch.rowCount, "bill")} checked · {plural(batch.openCount, "thing")} to look at{batch.findingCount > batch.openCount ? ` · ${batch.findingCount - batch.openCount} answered` : ""}</p>
+        ) : batch ? (
           <p className="lede">
             {plural(batch.rowCount, "invoice")} checked · {plural(batch.findingCount, "candidate finding")} ({plural(batch.duplicateCount, "possible duplicate group")},{" "}
             {plural(batch.mismatchCount, "total mismatch", "total mismatches")}{own ? `, ${batch.nearDuplicateCount} lower-confidence` : ""}
@@ -232,25 +236,26 @@ export function QueuePage(props: QueueProps) {
           <h2 id="findings-heading" className="sr-only">Findings</h2>
           <div className="filters" role="group" aria-label="Filter findings">
             <div className="filter">
-              <label htmlFor="filter-state" className="field-label">Review state</label>
+              <label htmlFor="filter-state" className="field-label">{own ? "Show" : "Review state"}</label>
               <select id="filter-state" value={filter.state} onChange={(e) => setFilter({ state: e.target.value as ReviewState | "all" })}>
                 {STATE_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s === "all" ? "All states" : STATE_LABEL[s]}</option>
+                  <option key={s} value={s}>{(own ? OWN_STATE_OPTION : STATE_OPTION_LABEL)[s]}</option>
                 ))}
               </select>
             </div>
             <div className="filter">
-              <label htmlFor="filter-rule" className="field-label">Rule</label>
+              <label htmlFor="filter-rule" className="field-label">{own ? "Kind" : "Rule"}</label>
               <select id="filter-rule" value={filter.rule} onChange={(e) => setFilter({ rule: e.target.value as RuleId | "all" })}>
                 {(own ? OWN_RULE_OPTIONS : RULE_OPTIONS).map((r) => (
-                  <option key={r} value={r}>{r === "all" ? "All rules" : RULE_LABEL[r]}</option>
+                  <option key={r} value={r}>{r === "all" ? (own ? "Every kind" : "All rules") : RULE_LABEL[r]}</option>
                 ))}
               </select>
             </div>
           </div>
           <p className="order-note">
-            Showing {findings.length} {findings.length === 1 ? "finding" : "findings"}. Order: open first, then rule, then record
-            ID. No risk score.
+            {own ? `Showing ${findings.length}. Ones you haven't answered come first.` : (
+              <>Showing {findings.length} {findings.length === 1 ? "finding" : "findings"}. Order: open first, then rule, then record ID. No risk score.</>
+            )}
           </p>
           {findings.length === 0 ? (
             <p className="empty-inline">No findings match these filters.</p>
@@ -262,10 +267,10 @@ export function QueuePage(props: QueueProps) {
                     <span className="case-row-kind">{RULE_LABEL[f.ruleId]}</span>
                     <span className="case-row-main">
                       <span className="case-row-title">{caseTitle(f, own)}</span>
-                      <span className="case-row-meta">Records {f.memberIds.join(", ")}</span>
+                      {own ? null : <span className="case-row-meta">Records {f.memberIds.join(", ")}</span>}
                     </span>
                     <StateBadge state={f.state} />
-                    <span className="case-row-go">Investigate<span aria-hidden="true"> →</span></span>
+                    <span className="case-row-go">{own ? "Look" : "Investigate"}<span aria-hidden="true"> →</span></span>
                   </a>
                 </li>
               ))}

@@ -34,6 +34,13 @@ export const ACTION_LABEL: Readonly<Record<ReviewAction, string>> = {
   reopen: "Reopen",
 };
 
+/** Plain wording on the person's own data (the demo keeps the reviewer vocabulary). */
+export const OWN_ACTION_LABEL: Readonly<Record<ReviewAction, string>> = {
+  confirm: "Yes, this needs fixing",
+  dismiss: "No, this is fine",
+  reopen: "Change my answer",
+};
+
 /** Past-tense wording for history entries. */
 export const ACTION_PAST: Readonly<Record<ReviewAction, string>> = {
   confirm: "Confirmed",

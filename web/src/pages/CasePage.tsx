@@ -3,7 +3,7 @@ import type { Invoice, ReviewAction } from "../domain/contracts.ts";
 import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE, codePointLength } from "../domain/contracts.ts";
 import type { PaymentEvidence } from "../domain/contracts.ts";
 import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
-import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
+import { ACTION_LABEL, OWN_ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
 
 const ERRORS_ID = "decision-errors";
 const STATUS_ID = "decision-status";
@@ -118,9 +118,11 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
         <h1 id="case-heading" className="page-title case-title" tabIndex={-1}>
           {caseTitle(finding, own)}
         </h1>
-        <p className="muted">
-          Batch {batch.displayName} · finding <code>{finding.findingId}</code>
-        </p>
+        {own ? null : (
+          <p className="muted">
+            Batch {batch.displayName} · finding <code>{finding.findingId}</code>
+          </p>
+        )}
       </header>
 
       {guideHint ? (
@@ -233,7 +235,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
           <p className="notice notice-warn">Browser storage is unavailable: decisions in this tab will be lost on reload.</p>
         ) : null}
         <div className="field">
-          <label className="field-label" htmlFor="reviewer">Reviewer{own ? "" : " (fictional demo name)"}</label>
+          <label className="field-label" htmlFor="reviewer">{own ? "Your name or initials" : "Reviewer (fictional demo name)"}</label>
           <input
             id="reviewer"
             className="text-input"
@@ -249,7 +251,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
           </p>
         </div>
         <div className="field">
-          <label className="field-label" htmlFor="reason">Reason</label>
+          <label className="field-label" htmlFor="reason">{own ? "Note (what you found out)" : "Reason"}</label>
           <textarea
             id="reason"
             className="text-input"
@@ -281,7 +283,7 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
               disabled={saving}
               onClick={() => onAction(a)}
             >
-              {ACTION_LABEL[a]}
+              {(own ? OWN_ACTION_LABEL : ACTION_LABEL)[a]}
             </button>
           ))}
         </div>
