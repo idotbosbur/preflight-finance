@@ -305,10 +305,19 @@ h3 {
   transition: opacity 280ms ease;
 }
 
-.intro.is-flying .intro-word,
+.intro.is-flying .intro-word {
+  opacity: 0;
+}
+
+/* These fade in by animation, which would hold them at full opacity, so swap in a fade-out. */
 .intro.is-flying .intro-skip,
 .intro.is-flying .intro-caption {
-  opacity: 0;
+  animation: fade-out 200ms ease both;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 /* The tube draws itself: every layer traces the same path (pathLength = 1). */
