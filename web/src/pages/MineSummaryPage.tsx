@@ -103,7 +103,7 @@ export function ContractorList({ rows, scoreNames }: { readonly rows: readonly I
               <ul>{t.maybeSame.map((m) => <li key={m.a + m.b}>{m.a} and {m.b}: {formatMoney(m.cents, "USD")} together</li>)}</ul>
             </div>
           ) : null}
-          <p className="no-print"><button type="button" className="btn btn-secondary" onClick={() => download(`preflight-contractors-${chosen}.csv`, contractorCsv(t, chosen, readOnFile))}>Download the list (.csv)</button></p>
+          <p className="no-print"><button type="button" className="btn btn-secondary" onClick={() => download(`catchfold-contractors-${chosen}.csv`, contractorCsv(t, chosen, readOnFile))}>Download the list (.csv)</button></p>
           <p className="hint">
             Not tax advice. Only payments for services count, not goods. Totals use bill dates, but the IRS counts payments by the date paid, so check bills near January 1.
             Payments made by card or PayPal are reported by the processor and usually need no 1099 from you. Ask each payee
@@ -175,7 +175,7 @@ export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHre
           ) : null}
           <p className="no-print">
             <button type="button" className="btn btn-primary" onClick={() => window.print()}>Print</button>{" "}
-            <button type="button" className="btn btn-secondary" onClick={() => download("preflight-pilot-summary.csv", summaryCsv(s))}>Download (.csv)</button>
+            <button type="button" className="btn btn-secondary" onClick={() => download("catchfold-summary.csv", summaryCsv(s))}>Download (.csv)</button>
           </p>
           {scoreNames ? <ContractorList rows={rows} scoreNames={scoreNames} /> : null}
         </>

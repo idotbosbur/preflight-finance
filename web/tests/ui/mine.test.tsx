@@ -105,8 +105,8 @@ test("shell: own mode badge, title and nav", () => {
   const html = render(<AppShell {...base} route={{ name: "mine" }} own><p /></AppShell>);
   assert.ok(html.includes("Free · nothing uploaded") && !/sample data/i.test(html));
   assert.match(html, /aria-current="page"[^>]*>Your files/);
-  assert.equal(pageTitle({ name: "mine" }, true), "Your files | Preflight");
-  assert.equal(pageTitle({ name: "mine" }), "Your files | Preflight");
+  assert.equal(pageTitle({ name: "mine" }, true), "Your files | Catchfold");
+  assert.equal(pageTitle({ name: "mine" }), "Your files | Catchfold");
   assert.ok(render(<AppShell {...base} route={{ name: "results" }}><p /></AppShell>).includes("Sample data"));
 });
 

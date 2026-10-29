@@ -75,11 +75,11 @@ export function Intro({ onDone }: { readonly onDone: () => void }) {
   return (
     <div ref={rootRef} className="intro" aria-hidden="true" onClick={onDone}>
       <div className="intro-lockup">
-        <span className="intro-word intro-word-left"><span>Pre</span></span>
+        <span className="intro-word intro-word-left"><span>Catch</span></span>
         <span ref={markRef} className="intro-mark-wrap">
           <LensChrome className="intro-mark" assemble />
         </span>
-        <span className="intro-word intro-word-right"><span>flight</span></span>
+        <span className="intro-word intro-word-right"><span>fold</span></span>
       </div>
       <p className="intro-caption">Free bill checker · nothing uploaded</p>
       <p className="intro-skip">Click or press any key to skip</p>

@@ -120,7 +120,7 @@ ${mail.body}`).then(() => setCopied(true), () => setCopied(false));
             }}>{copied ? "Copied" : "Copy"}</button>
             <a className="btn btn-quiet" href={`mailto:?subject=${encodeURIComponent(mail.subject)}&body=${encodeURIComponent(mail.body)}`}>Open in your email app</a>
           </div>
-          <p className="hint">Preflight never sends anything. Add the supplier's address in your own email app.</p>
+          <p className="hint">Catchfold never sends anything. Add the supplier's address in your own email app.</p>
         </div>
       ) : null}
     </li>

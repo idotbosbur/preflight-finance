@@ -49,7 +49,7 @@ export function openIdbStore(factory: IDBFactory, name: string = DB_NAME): Promi
           .createIndex("byFinding", ["batchId", "findingId"]);
       }
     };
-    request.onblocked = () => reject(new Error("Browser storage is blocked by another open Preflight tab."));
+    request.onblocked = () => reject(new Error("Browser storage is blocked by another open Catchfold tab."));
     request.onerror = () => reject(request.error ?? new Error("Could not open browser storage."));
     request.onsuccess = () => {
       const db = request.result;

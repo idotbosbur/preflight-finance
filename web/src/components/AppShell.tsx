@@ -69,9 +69,9 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
 /** Pages that show the sample invoices (and so carry the "Sample data" label). */
 export const showsSample = (route: Route, own: boolean): boolean => !own && ["demo", "queue", "case", "results"].includes(route.name);
 
-/** document.title for a route: "<page name> | Preflight", with "(sample data)" on the sample pages. */
+/** document.title for a route: "<page name> | Catchfold", with "(sample data)" on the sample pages. */
 export function pageTitle(route: Route, own = false): string {
-  return showsSample(route, own) ? `${PAGE_NAME[route.name]} | Preflight (sample data)` : `${PAGE_NAME[route.name]} | Preflight`;
+  return showsSample(route, own) ? `${PAGE_NAME[route.name]} | Catchfold (sample data)` : `${PAGE_NAME[route.name]} | Catchfold`;
 }
 
 /** Move focus only on a real route change after the first render (never on initial load). */
@@ -220,7 +220,7 @@ function MobileMenu({ route, own, onClose, triggerRef, restoreRef }: MobileMenuP
             Close menu
           </button>
         </div>
-        <a href="#/" className="menu-home" onClick={() => onClose(isCurrentHash("#/"))}>Preflight overview</a>
+        <a href="#/" className="menu-home" onClick={() => onClose(isCurrentHash("#/"))}>Catchfold overview</a>
         <NavLinks route={route} own={own} onNavigate={(href) => onClose(isCurrentHash(href))} className="menu-links" />
       </div>
     </div>
@@ -292,7 +292,7 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
         <nav className="topnav" aria-label="Main">
           <a href="#/" className="brand" aria-current={route.name === "overview" ? "page" : undefined}>
             <LensMark className="brand-mark" />
-            Preflight
+            Catchfold
           </a>
           <NavLinks route={route} own={own} className="nav-links" />
           <span className={showsSample(route, own) ? "badge badge-synthetic" : "badge badge-synthetic badge-own"} title={showsSample(route, own) ? SYNTHETIC_LABEL : OWN_LABEL}>
@@ -344,9 +344,9 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
               <span className="footer-label">{showsSample(route, own) ? SYNTHETIC_LABEL : OWN_LABEL}</span> <span className="footer-attrib">{ATTRIBUTION}</span>
             </p>
             <p className="footer-wordmark" aria-hidden="true">
-              <span>Pre</span>
+              <span>Catch</span>
               <LensChrome className="footer-lens" />
-              <span>flight</span>
+              <span>fold</span>
             </p>
           </footer>
         ) : (

@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Privacy | Preflight</title>
-    <meta name="description" content="What Preflight stores, what it does not, and how to delete your data. Your files stay in your browser and are never uploaded." />
+    <title>Privacy Policy | Catchfold</title>
+    <meta name="description" content="How Catchfold handles your information. Your files are processed in your browser and never uploaded; no cookies; anonymous visit counts only." />
     <link rel="canonical" href="https://preflight-finance-portfolio.vercel.app/privacy.html" />
     <link rel="stylesheet" href="/src/styles/static.css" />
       <script defer src="/va.js"></script>
@@ -13,52 +13,80 @@
   </head>
   <body>
     <nav class="site-nav" aria-label="Site">
-      <a class="brand" href="./">Preflight</a>
+      <a class="brand" href="./">Catchfold</a>
       <a href="./pilot-guide.html">Guide</a>
       <a href="./privacy.html" aria-current="page">Privacy</a>
       <a href="./terms.html">Terms</a>
       <a href="./companies.html">Companies</a>
     </nav>
-    <main>
-      <h1>Privacy</h1>
-      <p class="lede">Preflight runs in your browser. Your invoice files are read on your device and are never uploaded.</p>
+    <main class="legal">
+      <p class="legal-kicker">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p class="legal-meta">Effective 29 October 2026</p>
 
-      <h2>What is stored, and where</h2>
+      <section class="legal-summary" aria-labelledby="glance">
+        <h2 id="glance">At a glance</h2>
+        <ul>
+          <li><strong>Your files are never uploaded.</strong> Bills, statements and results are processed and stored only in your browser.</li>
+          <li><strong>No accounts, no cookies, no advertising.</strong></li>
+          <li><strong>We count visits anonymously</strong> to see how many people use the site, without identifying you.</li>
+          <li><strong>You can delete everything</strong> at any time from your browser.</li>
+        </ul>
+      </section>
+
+      <h2><span class="legal-n">1.</span> Who we are</h2>
+      <p>This policy covers Catchfold, a free bill-checking tool available at catchfold.com (the "Service"). "We" and "us" refer to the person who operates the Service.</p>
+
+      <h2><span class="legal-n">2.</span> Information that stays on your device</h2>
+      <p>When you add a file, it is read by code running in your browser. The following is stored in your browser's storage on your device, in your browser profile, and is not sent to us:</p>
       <ul>
-        <li>In "your data" mode, the invoices you import and your review decisions are saved in this browser's IndexedDB. They stay on this device, in this browser profile.</li>
-        <li>The demo also keeps your review decisions on the synthetic invoices in IndexedDB.</li>
-        <li>Small preferences use browser storage (localStorage and sessionStorage): whether the guided tour is on, whether the intro was shown, and which CSV columns you matched to which fields.</li>
+        <li><strong>Your files and results:</strong> the rows read from your bills and statements, the items found, and your answers and notes, saved in IndexedDB.</li>
+        <li><strong>Demo activity:</strong> your answers on the sample invoices, also saved in IndexedDB.</li>
+        <li><strong>Preferences:</strong> small settings in localStorage and sessionStorage, such as which columns you matched, whether the intro has played, the guided-tour step, and the W-9 and insurance ticks on your contractor list.</li>
+      </ul>
+      <p>Supported files include CSV, Excel (.xlsx) and bank downloads (.qfx, .ofx, .qbo). Their contents are never part of any request to us.</p>
+
+      <h2><span class="legal-n">3.</span> Information we receive</h2>
+      <ul>
+        <li><strong>Anonymous visit counts.</strong> We use Vercel Web Analytics, which does not use cookies. It records the page visited, the referring site, country, browser and device type, and identifies a visit only by a temporary hash that Vercel discards after 24 hours. The part of an address after <code>#</code>, where the app keeps its views, is removed before anything is sent. No file contents, rows or results are ever included.</li>
+        <li><strong>Feedback you choose to send.</strong> If you submit the feedback form or the "Want more?" choices, your answers, and your email address only if you enter one, are sent to a Google Form. We use them to improve the Service and, if you gave an email, to reply or let you know about new features.</li>
+        <li><strong>Hosting logs.</strong> Like most websites, our host Vercel may keep standard server logs, such as IP address, time and page requested, when your browser loads the site's files.</li>
       </ul>
 
-      <h2>What is not collected</h2>
+      <h2><span class="legal-n">4.</span> AI model download</h2>
+      <p>To match names (for example a bank line "SQ *ACME SUPPLY" to the supplier Acme Supply), your browser may download a small public AI model (all-MiniLM-L6-v2, about 23 MB) from Hugging Face (huggingface.co) the first time it is needed, and keep it in its cache. The model then runs on your device. Only the model files are downloaded; none of your information is sent to Hugging Face. If the download fails, matching uses name words only.</p>
+
+      <h2><span class="legal-n">5.</span> Cookies and tracking</h2>
+      <p>Catchfold does not set cookies and does not use advertising or cross-site tracking.</p>
+
+      <h2><span class="legal-n">6.</span> Service providers</h2>
       <ul>
-        <li>No uploads. Your files (CSV, Excel or bank downloads such as .qfx) are read by code running in your browser.</li>
-        <li>No accounts and no sign-in.</li>
-        <li>Visit counts: the site uses Vercel Web Analytics, which counts page views without cookies. It records the page path, referring site, country, browser and device type, and identifies a visit only by a short-lived hash that Vercel discards after 24 hours. The part of app addresses after <code>#</code> is removed before anything is sent, and invoice files, rows and findings are never sent.</li>
-        <li>No advertising, no cookies set by the app, and no other tracking. Apart from page views, the app's only network requests are for its own files, the AI model described below, and the feedback form when you choose to send it.</li>
-        <li>AI model: the first time you match a bank or card statement, or add bills with item lines, your browser downloads a small public text model (all-MiniLM-L6-v2, about 23 MB) from Hugging Face (huggingface.co) and keeps it in its cache. The model then runs on your device to compare payee names with supplier names, and item names with each other. Only the model files are downloaded; no invoice, statement or finding is sent to Hugging Face or anyone else. If the download fails, matching uses name words only.</li>
+        <li><strong>Vercel</strong>: website hosting and anonymous visit counts.</li>
+        <li><strong>Google</strong>: the feedback form (Google Forms).</li>
+        <li><strong>Hugging Face</strong>: the public AI model file.</li>
       </ul>
+      <p>Each provider handles information under its own privacy policy. We do not sell or share your information for advertising.</p>
 
-      <h2>Hosting</h2>
-      <p>The site is hosted by Vercel, which serves the app's files. Like most hosts, Vercel may keep standard server logs (for example IP address, time and page requested) when your browser loads those files. Your invoice data is not part of any request, because it never leaves your browser.</p>
-
-      <h2>Deleting your data</h2>
+      <h2><span class="legal-n">7.</span> Deleting your information</h2>
       <ul>
-        <li>Open <a href="./#/mine">Your data</a> and choose "Delete my data". It erases your imported files, rows, findings, decisions and remembered column choices from this browser. The demo is separate and is not affected.</li>
-        <li>Or clear this site's data in your browser settings. That removes everything, including the small preferences above.</li>
+        <li>On <a href="./#/mine">Your files</a>, choose "Delete my data". This erases your files, results, answers, matched columns and contractor ticks from this browser. The sample demo is separate.</li>
+        <li>Or clear this site's data in your browser settings to remove everything, including preferences.</li>
+        <li>To remove feedback you sent, contact us through the feedback form and tell us what to delete.</li>
       </ul>
-      <p>Because nothing is stored on a server, there is no copy for us to delete, and your data cannot be recovered if you delete it or your browser clears it.</p>
+      <p>Because your files are never on our servers, we cannot recover them for you once deleted.</p>
 
-      <h2>Feedback</h2>
-      <p>If you send the <a href="./#/feedback">feedback form</a>, your answers (and your email, if you give one) go to the site owner's Google Form, and Google's privacy policy applies to them. Nothing else from the app is sent, and the form never includes invoice data.</p>
+      <h2><span class="legal-n">8.</span> Children</h2>
+      <p>The Service is meant for businesses and adults managing their own finances. It is not directed at children under 13, and we do not knowingly collect information from them.</p>
 
-      <h2>Contact</h2>
-      <p>Send feedback through the <a href="./#/feedback">feedback form</a>. This prototype has no other contact channel yet.</p>
-      <p class="updated">Last updated 23 October 2026.</p>
+      <h2><span class="legal-n">9.</span> Changes to this policy</h2>
+      <p>If this policy changes, we will update it here and change the effective date above.</p>
+
+      <h2><span class="legal-n">10.</span> Contact</h2>
+      <p>Questions or requests about privacy can be sent through the <a href="./#/feedback">feedback form</a>.</p>
     </main>
     <footer>
-      <p>Preflight is a prototype. Your files stay in your browser and are never uploaded. <a href="./">Open the app</a>.</p>
-      <p>Guides: <a href="./guide-quickbooks-duplicate-bills.html">QuickBooks duplicate bills</a> · <a href="./guide-xero-export-bills-csv.html">Xero bills to CSV</a> · <a href="./guide-excel-duplicate-invoices.html">Excel duplicate invoices</a></p>
+      <p>Catchfold checks your bills in your browser. Your files are never uploaded. <a href="./">Open Catchfold</a>.</p>
+      <p>Guides: <a href="./guide-quickbooks-duplicate-bills.html">QuickBooks duplicate bills</a> · <a href="./guide-xero-export-bills-csv.html">Xero bills to CSV</a> · <a href="./guide-excel-duplicate-invoices.html">Excel duplicate invoices</a> · <a href="./pilot-guide.html">Pilot guide</a> · <a href="./terms.html">Terms</a> · <a href="./companies.html">Companies</a></p>
     </footer>
   </body>
 </html>

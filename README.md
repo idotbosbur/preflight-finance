@@ -1,8 +1,8 @@
-# Preflight: find the bills you paid twice
+# Catchfold: find the bills you paid twice
 
 **Live:** https://preflight-finance-portfolio.vercel.app/ · free · no sign-up · your files never leave your browser
 
-Preflight is a free web tool for small businesses and individuals. You drop in a bills export from your accounting
+Catchfold (formerly Preflight) is a free web tool for small businesses and individuals. You drop in a bills export from your accounting
 software and, if you like, a bank or card statement. In a few seconds it shows what may have been paid twice,
 overcharged or quietly gone up, with the evidence for each, and you decide what to do about it. It never pays, blocks
 or approves anything.

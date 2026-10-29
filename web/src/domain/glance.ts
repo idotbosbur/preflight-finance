@@ -127,7 +127,7 @@ export function formatMoney(cents: Cents, currency: string | null): string {
   return currency ? `${grouped}.${frac} ${currency}` : `${grouped}.${frac}`;
 }
 
-/** A polite draft the person can copy into their own email. Preflight never sends it. */
+/** A polite draft the person can copy into their own email. Catchfold never sends it. */
 export function supplierEmail(i: GlanceItem): { readonly subject: string; readonly body: string } {
   const ev = i.finding.evidence;
   const nums = list(i.invoices.map((n) => `#${n}`)) || "these invoices";

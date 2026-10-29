@@ -222,7 +222,7 @@ export function Film({ t, shape }: { readonly t: number; readonly shape: Shape }
       <Layer className="f-center f-end" style={{ opacity: endK }}>
         <div className="f-brand" style={{ transform: `scale(${lerp(0.92, 1, endK)})` }}>
           <LensMark className="f-mark" />
-          <span>Preflight</span>
+          <span>Catchfold</span>
         </div>
         <p className="f-lede" style={rise(seg(t, 27.0, 27.8), 12)}>Catch invoice errors before they're paid.</p>
         <p className="f-url" style={rise(seg(t, 27.5, 28.3), 12)}>preflight-finance-portfolio.vercel.app</p>

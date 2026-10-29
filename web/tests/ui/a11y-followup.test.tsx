@@ -56,9 +56,9 @@ test("route focus helpers: title, initial load, change detection, heading target
     { name: "overview" }, { name: "demo" }, { name: "queue", batchId: null }, { name: "case", batchId: "b", findingId: "f" },
     { name: "results" }, { name: "how" }, { name: "roadmap" }, { name: "not_found", hash: "#/x" },
   ];
-  for (const r of routes) assert.match(pageTitle(r), /^.+ \| Preflight( \(sample data\))?$/);
-  assert.equal(pageTitle({ name: "case", batchId: "b", findingId: "f" }), "Investigation | Preflight (sample data)");
-  assert.equal(pageTitle({ name: "overview" }), "Overview | Preflight", "the real tool's pages carry no demo suffix");
+  for (const r of routes) assert.match(pageTitle(r), /^.+ \| Catchfold( \(sample data\))?$/);
+  assert.equal(pageTitle({ name: "case", batchId: "b", findingId: "f" }), "Investigation | Catchfold (sample data)");
+  assert.equal(pageTitle({ name: "overview" }), "Overview | Catchfold", "the real tool's pages carry no demo suffix");
   assert.equal(shouldFocusOnRouteChange(null, "a"), false, "initial load never steals focus");
   assert.equal(shouldFocusOnRouteChange("a", "a"), false);
   assert.equal(shouldFocusOnRouteChange("a", "b"), true);
