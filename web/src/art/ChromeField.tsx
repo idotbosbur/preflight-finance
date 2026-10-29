@@ -91,6 +91,11 @@ void main(){
   gl_FragColor = acc;
 }`;
 
+/** Whole-page scroll moves the flow this far (shader units), however long the page is. */
+const PAGE_TRAVEL = 1.4;
+/** Idle drift speed relative to real time: slow and calm. */
+const IDLE_SPEED = 0.6;
+
 type Mode = "hero" | "statement" | "vortex" | "haze" | "dark" | "off";
 interface Target { readonly alpha: number; readonly swirl: number; readonly cx: number; readonly cy: number; readonly clear: number }
 const TARGET: Readonly<Record<Mode, Target>> = {
@@ -98,7 +103,7 @@ const TARGET: Readonly<Record<Mode, Target>> = {
   statement: { alpha: 1, swirl: 0, cx: 0, cy: 0, clear: 1 },        // centred statement
   vortex: { alpha: 1, swirl: 1, cx: 0, cy: 0, clear: 0 },           // pure visual, no text
   haze: { alpha: 0.11, swirl: 0, cx: 0, cy: 0, clear: 0 },          // dense reading sections
-  dark: { alpha: 0.85, swirl: 0.35, cx: 0, cy: 0.05, clear: 0.6 },   // black chrome behind light text
+  dark: { alpha: 0.85, swirl: 0, cx: 0, cy: 0.05, clear: 0.6 },      // black chrome behind light text (no twirl: calm)
   off: { alpha: 0, swirl: 0, cx: 0, cy: 0, clear: 0 },
 };
 
@@ -226,24 +231,29 @@ export function ChromeField({ className }: { readonly className?: string }) {
       };
     }
 
+    let shift = 0;
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (document.hidden) { last = now; return; }
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
-      time += dt;
+      time += dt * IDLE_SPEED;
       const secs = sections();
       const target = TARGET[modeAt(secs, window.innerHeight / 2)];
       const dark = darknessAt(secs, window.innerHeight / 2, window.innerHeight * 0.6);
       const ease = 1 - Math.exp(-dt * 3.2);
       for (const k of ["alpha", "swirl", "cx", "cy", "clear"] as const) cur[k] += (target[k] - cur[k]) * ease;
+      // Flow follows how far through the page you are (not how many screens), and glides toward it.
+      const range = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      const targetShift = (window.scrollY / range) * PAGE_TRAVEL;
+      shift += (targetShift - shift) * (1 - Math.exp(-dt * 1.8));
       if (lost) return;
       if (cur.alpha < 0.004 && target.alpha === 0) {
         if (!cleared) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); cleared = true; }
         return; // invisible (e.g. behind the dark band): skip the full-screen shader
       }
       cleared = false;
-      draw(time, cur.alpha, cur.swirl, window.scrollY / Math.max(window.innerHeight, 1), dark);
+      draw(time, cur.alpha, cur.swirl, shift, dark);
     };
     raf = requestAnimationFrame(frame);
     window.addEventListener("resize", resize);
