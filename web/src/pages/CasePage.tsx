@@ -1,6 +1,6 @@
 import type { CaseProps, SaveStatus } from "../ui-contracts.ts";
 import type { Invoice, ReviewAction } from "../domain/contracts.ts";
-import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, codePointLength } from "../domain/contracts.ts";
+import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE, codePointLength } from "../domain/contracts.ts";
 import type { PaymentEvidence } from "../domain/contracts.ts";
 import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
 import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
@@ -152,6 +152,24 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
             <p>
               Bill: <strong>{ev.bill.rawVendor}</strong> · invoice <code>{ev.bill.rawInvoice}</code> · {ev.bill.invoiceDate || "no date"} ·{" "}
               {ev.bill.total} {ev.currency}
+            </p>
+            <PaymentsTable payments={ev.payments} />
+          </>
+        ) : ev.kind === RULE_RECURRING_INCREASE ? (
+          <>
+            <p>
+              This looks like a monthly charge (it appears about once a month, at the same few amounts). It went from{" "}
+              <strong className="num">{ev.from}</strong> to <strong className="num">{ev.to}</strong> (+{ev.percent}%). That is{" "}
+              <strong className="num">{ev.extra}</strong> more than the first price so far, and about <strong className="num">{ev.perYear}</strong> a year
+              if it stays. The plan may have changed on purpose, so a person decides.
+            </p>
+            <PaymentsTable payments={ev.payments} />
+          </>
+        ) : ev.kind === RULE_CHARGED_TWICE ? (
+          <>
+            <p>
+              This payee is normally charged once a month, but in {ev.month} the same amount ({ev.amount}) was taken {ev.payments.length} times.
+              One may be a mistake or a duplicate subscription, so a person decides.
             </p>
             <PaymentsTable payments={ev.payments} />
           </>

@@ -67,3 +67,15 @@ describe("price increases across two Xero line-item files", () => {
     assert.equal((await s.listOwnRows()).every((r) => r.lines?.length === 2), true);
   });
 });
+
+describe("a card statement on its own", () => {
+  test("finds a monthly charge that went up and one taken twice, with no bills at all", async () => {
+    const s = createMemoryStore();
+    const card = "Transaction Date,Description,Amount\n2026-01-05,COMCAST BUSINESS 123,99.00\n2026-02-05,COMCAST BUSINESS 456,99.00\n"
+      + "2026-03-05,COMCAST BUSINESS 789,119.00\n2026-01-10,ADOBE *CREATIVE CLD,59.99\n2026-02-10,ADOBE *CREATIVE CLD,59.99\n"
+      + "2026-03-10,ADOBE *CREATIVE CLD,59.99\n2026-03-12,ADOBE *CREATIVE CLD,59.99\n";
+    const out = await importBankFile(s, enc(card), { date: 0, description: 1, amount: 2 }, await opts(s, "card.csv"));
+    assert.ok("status" in out && out.status === "merged", JSON.stringify(out));
+    assert.deepEqual((await s.listFindings(OWN_BATCH_ID)).map((f) => f.ruleId).sort(), ["CHARGED_TWICE", "RECURRING_INCREASE"]);
+  });
+});

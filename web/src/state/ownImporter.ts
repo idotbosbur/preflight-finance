@@ -10,6 +10,7 @@ import { buildBankRows } from "../domain/own/bank.ts";
 import type { BankMapping, BankParseResult, BankPayment } from "../domain/own/bank.ts";
 import { reconcile, tokenScore } from "../domain/reconcile.ts";
 import { priceIncreases } from "../domain/prices.ts";
+import { recurringChecks } from "../domain/recurring.ts";
 import type { NameScorer } from "../domain/reconcile.ts";
 import type { ColumnMapping } from "../domain/own/columns.ts";
 import { buildOwnRows } from "../domain/own/rows.ts";
@@ -43,7 +44,7 @@ async function ownFindings(invoices: readonly OwnInvoice[], payments: readonly B
   let report: MatchReport | null = null;
   const items = [...new Set(invoices.flatMap((i) => (i.lines ?? []).map((l) => l.description)))];
   const reconciling = payments.length > 0 && invoices.length > 0;
-  if (!reconciling && items.length === 0) return { findings: await withIds(candidates), report };
+  if (!reconciling && items.length === 0) return { findings: await withIds([...candidates, ...recurringChecks(payments, new Set())]), report };
   const vendors = [...new Set(invoices.map((i: Invoice) => (i.raw[VENDOR_INDEX] ?? "").trim() || i.vendorNorm))];
   const { scorer, ai } = await scorers([...payments.map((p) => p.description), ...items], vendors);
   candidates.push(...priceIncreases(invoices, scorer));
@@ -53,6 +54,9 @@ async function ownFindings(invoices: readonly OwnInvoice[], payments: readonly B
     const count = (id: string) => r.findings.filter((f) => f.ruleId === id).length;
     report = { payments: payments.length, matched: r.matched, unpaidBills: r.unpaidBills, ai, paidTwice: count(RULE_PAID_TWICE), noBill: count(RULE_PAYMENT_NO_BILL) };
   }
+  // Payments already shown as paying a bill twice are not reported again as a monthly charge taken twice.
+  const inPaidTwice = new Set(candidates.filter((c) => c.ruleId === RULE_PAID_TWICE).flatMap((c) => c.memberIds));
+  candidates.push(...recurringChecks(payments, inPaidTwice));
   return { findings: await withIds(candidates), report };
 }
 

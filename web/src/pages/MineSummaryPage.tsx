@@ -5,7 +5,7 @@ import type { ContractorTotals } from "../domain/contractors.ts";
 import { formatMoney } from "../domain/glance.ts";
 import type { NameScorer } from "../domain/reconcile.ts";
 import type { BatchSummary, FindingView, Invoice } from "../domain/contracts.ts";
-import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "../domain/contracts.ts";
+import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE } from "../domain/contracts.ts";
 import { buildPilotSummary, summaryCsv } from "../domain/own/summary.ts";
 import type { OwnFileRecord } from "../state/store.ts";
 import { OWN_BADGE, RULE_LABEL } from "../components/labels.ts";
@@ -131,6 +131,8 @@ export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHre
             {stat(RULE_LABEL[RULE_PAID_TWICE], s.byRule.paidTwice)}
             {stat(RULE_LABEL[RULE_PAYMENT_NO_BILL], s.byRule.noBill)}
             {stat(RULE_LABEL[RULE_PRICE_INCREASE], s.byRule.priceUp)}
+            {stat(RULE_LABEL[RULE_RECURRING_INCREASE], s.byRule.monthlyUp)}
+            {stat(RULE_LABEL[RULE_CHARGED_TWICE], s.byRule.chargedTwice)}
             {stat("Confirmed", s.confirmed)}
             {stat("Dismissed", s.dismissed)}
             {stat("Open", s.open)}

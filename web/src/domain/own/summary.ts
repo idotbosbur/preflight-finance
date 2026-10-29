@@ -1,6 +1,6 @@
 /** Pure pilot-summary builder + CSV writer. Counts by default; vendor/invoice/reason only with includeDetails. */
 import type { BatchSummary, FindingView, Invoice } from "../contracts.ts";
-import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "../contracts.ts";
+import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE } from "../contracts.ts";
 import { RULE_LABEL, STATE_LABEL } from "../../components/labels.ts";
 import type { OwnFileRecord } from "../../state/store.ts";
 
@@ -10,7 +10,7 @@ export interface PilotSummary {
   readonly files: number;
   readonly dateFrom: string;
   readonly dateTo: string;
-  readonly byRule: { readonly duplicate: number; readonly mismatch: number; readonly nearDuplicate: number; readonly paidTwice: number; readonly noBill: number; readonly priceUp: number };
+  readonly byRule: { readonly duplicate: number; readonly mismatch: number; readonly nearDuplicate: number; readonly paidTwice: number; readonly noBill: number; readonly priceUp: number; readonly monthlyUp: number; readonly chargedTwice: number };
   readonly confirmed: number;
   readonly dismissed: number;
   readonly open: number;
@@ -36,6 +36,8 @@ export function buildPilotSummary(
       paidTwice: count((f) => f.ruleId === RULE_PAID_TWICE),
       noBill: count((f) => f.ruleId === RULE_PAYMENT_NO_BILL),
       priceUp: count((f) => f.ruleId === RULE_PRICE_INCREASE),
+      monthlyUp: count((f) => f.ruleId === RULE_RECURRING_INCREASE),
+      chargedTwice: count((f) => f.ruleId === RULE_CHARGED_TWICE),
     },
     confirmed: count((f) => f.state === "confirmed"),
     dismissed: count((f) => f.state === "dismissed"),
@@ -70,6 +72,8 @@ export function summaryCsv(s: PilotSummary): string {
     ["Candidates", RULE_LABEL[RULE_PAID_TWICE], s.byRule.paidTwice],
     ["Candidates", RULE_LABEL[RULE_PAYMENT_NO_BILL], s.byRule.noBill],
     ["Candidates", RULE_LABEL[RULE_PRICE_INCREASE], s.byRule.priceUp],
+    ["Candidates", RULE_LABEL[RULE_RECURRING_INCREASE], s.byRule.monthlyUp],
+    ["Candidates", RULE_LABEL[RULE_CHARGED_TWICE], s.byRule.chargedTwice],
     ["Review", "Confirmed", s.confirmed],
     ["Review", "Dismissed", s.dismissed],
     ["Review", "Open", s.open],

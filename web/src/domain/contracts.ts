@@ -51,7 +51,10 @@ export const RULE_PAYMENT_NO_BILL = "PAYMENT_NO_BILL";
 /** Supplier unit price rose (own data with line items only). */
 export const RULE_PRICE_INCREASE = "PRICE_INCREASE";
 export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE | typeof RULE_PAID_TWICE | typeof RULE_PAYMENT_NO_BILL
-  | typeof RULE_PRICE_INCREASE;
+  | typeof RULE_PRICE_INCREASE | typeof RULE_RECURRING_INCREASE | typeof RULE_CHARGED_TWICE;
+/** Monthly charges on a bank or card statement (own data only). */
+export const RULE_RECURRING_INCREASE = "RECURRING_INCREASE";
+export const RULE_CHARGED_TWICE = "CHARGED_TWICE";
 
 export const OWN_BATCH_ID = "00000000000000a1";
 export const OWN_MAX_BYTES = 10_485_760;
@@ -278,7 +281,30 @@ export interface PriceIncreaseEvidence {
   /** How differently written item names were grouped: "same name", "name words" or "AI similarity 0.84". */
   readonly match: string;
 }
-export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence | PaidTwiceEvidence | PaymentNoBillEvidence | PriceIncreaseEvidence;
+export interface RecurringIncreaseEvidence {
+  readonly kind: typeof RULE_RECURRING_INCREASE;
+  /** Latest statement description. */
+  readonly payee: string;
+  /** Date order. */
+  readonly payments: readonly PaymentEvidence[];
+  readonly from: string;
+  readonly to: string;
+  readonly percent: string;
+  /** Paid above the first amount so far. */
+  readonly extra: string;
+  /** (to - from) x 12. */
+  readonly perYear: string;
+}
+export interface ChargedTwiceEvidence {
+  readonly kind: typeof RULE_CHARGED_TWICE;
+  readonly payee: string;
+  /** YYYY-MM. */
+  readonly month: string;
+  readonly amount: string;
+  readonly payments: readonly PaymentEvidence[];
+}
+export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence | PaidTwiceEvidence | PaymentNoBillEvidence | PriceIncreaseEvidence
+  | RecurringIncreaseEvidence | ChargedTwiceEvidence;
 
 /** Rule output before ID finalization. memberIds sorted ascending (compareStrings). */
 export interface CandidateFinding {

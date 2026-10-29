@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import type { QueueFilter, QueueProps, RouteHref } from "../ui-contracts.ts";
 import type { ReviewState, RuleId } from "../domain/contracts.ts";
-import { RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "../domain/contracts.ts";
+import { RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
 import { RULE_LABEL, sourceBadge, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
 import type { Glance, GlanceItem } from "../domain/glance.ts";
@@ -10,7 +10,7 @@ import { formatMoney, supplierEmail } from "../domain/glance.ts";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
-const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE];
+const OWN_RULE_OPTIONS: readonly (RuleId | "all")[] = [...RULE_OPTIONS, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE];
 /** Findings shown per page of the queue. */
 export const PAGE_SIZE = 50;
 

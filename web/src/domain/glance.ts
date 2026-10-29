@@ -7,7 +7,7 @@
  * are left out. Amounts in other currencies are named, never added together.
  */
 import type { Cents, FindingView, Invoice } from "./contracts.ts";
-import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "./contracts.ts";
+import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE } from "./contracts.ts";
 import { formatCents, parseCents } from "./money.ts";
 
 const VENDOR_INDEX = CSV_HEADER.indexOf("vendor_id");
@@ -45,6 +45,18 @@ function item(f: FindingView, byId: ReadonlyMap<string, Invoice>, currencyOf: (v
     return {
       finding: f, cents: parseCents(ev.bill.total) * (n - 1), currency: ev.currency, vendor: ev.bill.rawVendor.trim() || "Unknown supplier",
       invoices: unique([ev.bill.rawInvoice]), reason: `Invoice #${ev.bill.rawInvoice.trim()} was paid ${n} times (${list(ev.payments.map((p) => p.date))})`,
+    };
+  }
+  if (ev.kind === RULE_RECURRING_INCREASE) {
+    return {
+      finding: f, cents: parseCents(ev.extra), currency: "USD", vendor: ev.payee, invoices: [],
+      reason: `Went from ${ev.from} to ${ev.to} a month (+${ev.percent}%), about ${ev.perYear} more a year`,
+    };
+  }
+  if (ev.kind === RULE_CHARGED_TWICE) {
+    return {
+      finding: f, cents: parseCents(ev.amount) * (ev.payments.length - 1), currency: "USD", vendor: ev.payee, invoices: [],
+      reason: `Charged ${ev.payments.length} times in ${ev.month} (${list(ev.payments.map((p) => p.date))})`,
     };
   }
   if (ev.kind === RULE_PRICE_INCREASE) {
@@ -125,6 +137,20 @@ export function supplierEmail(i: GlanceItem): { readonly subject: string; readon
       subject: `Invoice ${nums} may have been paid twice`,
       body: `Hello,\n\nOur records show invoice ${nums} (${ev.bill.total} ${i.currency}) was paid ${ev.payments.length} times, on ${list(ev.payments.map((p) => p.date))}. `
         + `Could you check on your side and, if so, refund or credit the extra payment?${sign}`,
+    };
+  }
+  if (ev.kind === RULE_RECURRING_INCREASE) {
+    return {
+      subject: "Question about our monthly charge",
+      body: `Hello,\n\nOur monthly charge from you went from ${ev.from} to ${ev.to} (${ev.payments[ev.payments.length - 1]!.date}). `
+        + `Could you tell us why it changed, and whether we can go back to the earlier price or a cheaper plan?${sign}`,
+    };
+  }
+  if (ev.kind === RULE_CHARGED_TWICE) {
+    return {
+      subject: `Charged twice in ${ev.month}`,
+      body: `Hello,\n\nWe were charged ${ev.amount} ${ev.payments.length} times in ${ev.month} (${list(ev.payments.map((p) => p.date))}), `
+        + `but we expect one charge a month. Could you refund the extra charge?${sign}`,
     };
   }
   if (ev.kind === RULE_PRICE_INCREASE) {

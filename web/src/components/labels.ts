@@ -1,6 +1,6 @@
 /** Plain-language labels shared by pages. Text only, no arithmetic on money. */
 import type { BatchSource, ReviewAction, ReviewState, RuleId, FindingView } from "../domain/contracts.ts";
-import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE } from "../domain/contracts.ts";
+import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULE_PRICE_INCREASE, RULE_RECURRING_INCREASE, RULE_CHARGED_TWICE } from "../domain/contracts.ts";
 
 export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   DUPLICATE_CANDIDATE: "Possible duplicate",
@@ -9,6 +9,8 @@ export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   PAID_TWICE: "Paid twice",
   PAYMENT_NO_BILL: "Payment with no bill",
   PRICE_INCREASE: "Price went up",
+  RECURRING_INCREASE: "Monthly charge went up",
+  CHARGED_TWICE: "Charged twice in a month",
 };
 
 export const OWN_BADGE = "Your data stays in this browser";
@@ -56,6 +58,8 @@ export function caseTitle(finding: FindingView, asWritten = false): string {
   if (ev.kind === RULE_PAID_TWICE) {
     return `Bill paid ${ev.payments.length} times: ${ev.bill.rawVendor.trim() || "supplier"} · ${ev.bill.rawInvoice} · ${ev.bill.total}`;
   }
+  if (ev.kind === RULE_RECURRING_INCREASE) return `Monthly charge went up ${ev.percent}%: ${ev.payee} · ${ev.from} to ${ev.to}`;
+  if (ev.kind === RULE_CHARGED_TWICE) return `Charged twice in ${ev.month}: ${ev.payee} · ${ev.amount}`;
   if (ev.kind === RULE_PRICE_INCREASE) {
     return `Price went up ${ev.percent}%: ${ev.vendor} · ${ev.purchases[ev.purchases.length - 1]?.description ?? ""} · ${ev.from} to ${ev.to}`;
   }
