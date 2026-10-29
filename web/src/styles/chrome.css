@@ -2120,3 +2120,27 @@ body { background: var(--ov-bg, var(--bg)); }
 /* The 3D lens is wider than tall; the canvas gets room for the discs to arrive from the sides. */
 .intro-mark { width: clamp(150px, 22vw, 260px); height: clamp(100px, 14.5vw, 172px); animation: fade-in 300ms ease both; }
 .mine-end { margin: 8px 0 18px; }
+
+/* ---------- Landing footer: big rows, small links, one fine line, the name across the width ---------- */
+.footer-hero { padding-top: clamp(56px, 9vh, 96px); }
+.fh-grid { display: grid; gap: 48px; }
+@media (min-width: 900px) { .fh-grid { grid-template-columns: 1.4fr 1fr; gap: 72px; } }
+.fh-big { display: grid; border-top: 1px solid var(--ov-rule, rgba(24, 24, 24, 0.12)); }
+.fh-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--ov-rule, rgba(24, 24, 24, 0.12));
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem); letter-spacing: -0.035em; line-height: 1.05;
+  color: var(--ov-fg, var(--ink)); text-decoration: none;
+}
+.fh-arrow { font-size: 0.7em; opacity: 0.35; transition: transform 360ms var(--ease-out), opacity 360ms ease; }
+.fh-row:hover .fh-arrow, .fh-row:focus-visible .fh-arrow { transform: translateX(8px); opacity: 1; }
+.fh-side { display: grid; align-content: end; gap: 18px; }
+.fh-claim { margin: 0; font-family: var(--display); font-size: 1.15rem; letter-spacing: -0.01em; color: var(--ov-fg, var(--ink)); }
+.fh-side .footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.fh-side .footer-links a { color: var(--ov-fg-soft, var(--ink-soft)); }
+.fh-fine { margin: 56px 0 0; font-size: 0.72rem; line-height: 1.6; color: var(--ov-fg-soft, var(--ink-soft)); max-width: 90ch; }
+.fh-fine .footer-label, .fh-fine .footer-attrib { color: inherit; font-size: inherit; }
+.footer-hero .footer-wordmark { margin-top: clamp(40px, 8vh, 88px); }
+.footer-lens { width: 1.45em; height: 0.95em; }

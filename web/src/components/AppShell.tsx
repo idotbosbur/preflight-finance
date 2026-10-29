@@ -1,4 +1,5 @@
 import { LensMark } from "../art/LensMark.tsx";
+import { LensChrome } from "../art/LensChrome.tsx";
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, RefObject } from "react";
 import type { AppShellProps, GuideView, Route } from "../ui-contracts.ts";
@@ -229,6 +230,14 @@ export function FeedbackLink({ url }: { url: string }) {
   return url.startsWith("#") ? <a href={url}>Feedback</a> : <a href={url} target="_blank" rel="noopener noreferrer">Send feedback</a>;
 }
 
+/** Big footer rows on the landing page. */
+const FOOTER_ROWS: readonly (readonly [string, string])[] = [
+  ["#/mine", "Check your bills"],
+  ["#/demo", "Try the demo"],
+  ["#/how", "How it works"],
+  ["#/roadmap", "What's next"],
+];
+
 function SiteLinks({ feedbackUrl }: { feedbackUrl: string }) {
   return (
     <nav className="footer-links" aria-label="About">
@@ -314,16 +323,26 @@ export function AppShell({ route, guide, onGuideExit, durability, announcement, 
         </main>
         {route.name === "overview" ? (
           <footer className="footer footer-hero">
-            <div className="footer-top">
-              <div className="footer-meta">
-                <p className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</p>
-                <p className="footer-attrib">{ATTRIBUTION}</p>
+            <div className="fh-grid">
+              <nav className="fh-big" aria-label="Footer">
+                {FOOTER_ROWS.map(([href, label]) => (
+                  <a key={href} className="fh-row" href={href}>
+                    <span>{label}</span>
+                    <span className="fh-arrow" aria-hidden="true">→</span>
+                  </a>
+                ))}
+              </nav>
+              <div className="fh-side">
+                <p className="fh-claim">Your files never leave your browser.</p>
                 <SiteLinks feedbackUrl={feedbackUrl} />
               </div>
             </div>
+            <p className="fh-fine">
+              <span className="footer-label">{own ? OWN_LABEL : SYNTHETIC_LABEL}</span> <span className="footer-attrib">{ATTRIBUTION}</span>
+            </p>
             <p className="footer-wordmark" aria-hidden="true">
               <span>Pre</span>
-              <LensMark className="footer-mark" />
+              <LensChrome className="footer-lens" />
               <span>flight</span>
             </p>
           </footer>
