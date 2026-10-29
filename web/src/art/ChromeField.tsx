@@ -51,7 +51,7 @@ void main(){
   vec2 p = s;
   float r = length(p);
   p = rot(u_swirl * (2.6 / (r * 3.0 + 0.30) + u_time * 0.12)) * p;   // vortex twirl
-  p = rot(-0.42 + 0.08 * sin(u_shift * 0.9)) * p;                      // diagonal flow
+  p = rot(-0.42 + 0.08 * sin(u_shift * 0.9) + 0.26 * u_dark) * p;     // diagonal flow; tilts as the page turns dark
 
   float bundle = -0.10 + 0.22 * sin(p.x * 0.75 + u_time * 0.14 + u_shift * 1.25) + 0.05 * sin(p.x * 1.9 - u_time * 0.09);
   vec4 acc = vec4(0.0);
@@ -93,6 +93,8 @@ void main(){
 
 /** Whole-page scroll moves the flow this far (shader units), however long the page is. */
 const PAGE_TRAVEL = 1.4;
+/** Extra flow travel during the white-to-black fade: the one noticeable move on the page. */
+const DARK_SWEEP = 0.9;
 /** Idle drift speed relative to real time: slow and calm. */
 const IDLE_SPEED = 0.6;
 
@@ -245,15 +247,17 @@ export function ChromeField({ className }: { readonly className?: string }) {
       for (const k of ["alpha", "swirl", "cx", "cy", "clear"] as const) cur[k] += (target[k] - cur[k]) * ease;
       // Flow follows how far through the page you are (not how many screens), and glides toward it.
       const range = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
-      const targetShift = (window.scrollY / range) * PAGE_TRAVEL;
+      // Plus one deliberate sweep while the page fades from white to black (dark is smooth in scroll).
+      const targetShift = (window.scrollY / range) * PAGE_TRAVEL + dark * DARK_SWEEP;
       shift += (targetShift - shift) * (1 - Math.exp(-dt * 1.8));
       if (lost) return;
-      if (cur.alpha < 0.004 && target.alpha === 0) {
+      if (cur.alpha < 0.004 && target.alpha === 0 && dark < 0.004) {
         if (!cleared) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); cleared = true; }
         return; // invisible (e.g. behind the dark band): skip the full-screen shader
       }
       cleared = false;
-      draw(time, cur.alpha, cur.swirl, shift, dark);
+      // The ribbons come forward as the page darkens, so the sweep is seen during the fade itself.
+      draw(time, Math.max(cur.alpha, dark * 0.8), cur.swirl, shift, dark);
     };
     raf = requestAnimationFrame(frame);
     window.addEventListener("resize", resize);
