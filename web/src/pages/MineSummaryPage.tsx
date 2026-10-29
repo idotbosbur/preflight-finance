@@ -1,7 +1,7 @@
 /** Printable pilot summary for the person's own workspace. Counts only unless the box is ticked. */
 import { useState } from "react";
 import type { BatchSummary, FindingView, Invoice } from "../domain/contracts.ts";
-import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
+import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "../domain/contracts.ts";
 import { buildPilotSummary, summaryCsv } from "../domain/own/summary.ts";
 import type { OwnFileRecord } from "../state/store.ts";
 import { OWN_BADGE, RULE_LABEL } from "../components/labels.ts";
@@ -53,6 +53,8 @@ export function MineSummaryPage({ batch, findings, files, rows, reasons, mineHre
             {stat(RULE_LABEL[RULE_DUPLICATE], s.byRule.duplicate)}
             {stat(RULE_LABEL[RULE_MISMATCH], s.byRule.mismatch)}
             {stat(RULE_LABEL[RULE_NEAR_DUPLICATE], s.byRule.nearDuplicate)}
+            {stat(RULE_LABEL[RULE_PAID_TWICE], s.byRule.paidTwice)}
+            {stat(RULE_LABEL[RULE_PAYMENT_NO_BILL], s.byRule.noBill)}
             {stat("Confirmed", s.confirmed)}
             {stat("Dismissed", s.dismissed)}
             {stat("Open", s.open)}

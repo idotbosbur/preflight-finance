@@ -3,7 +3,7 @@
  * Pure and synchronous. Output sorted by (ruleId, memberIds) with Python tuple ordering.
  */
 import type { CandidateFinding, Invoice, RunInvoiceRules } from "./contracts.ts";
-import { NEAR_DUP_WINDOW_DAYS, RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULESET_VERSION, assertSafeCents, compareStrings, compareTuples } from "./contracts.ts";
+import { NEAR_DUP_WINDOW_DAYS, RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, RULESET_VERSION, assertSafeCents, compareStrings, compareTuples } from "./contracts.ts";
 import { compareMembers, duplicateEvidence, mismatchEvidence, nearDuplicateEvidence } from "./evidence.ts";
 import { expectedTotalCents } from "./money.ts";
 import type { OwnInvoice } from "./own/rows.ts";
@@ -87,7 +87,11 @@ export function nearDuplicates(invoices: readonly Invoice[], windowDays: number)
 }
 
 function evidenceRow(f: CandidateFinding): number {
-  return f.evidence.kind === RULE_MISMATCH ? f.evidence.row : (f.evidence.members[0]?.row ?? 0);
+  const ev = f.evidence;
+  if (ev.kind === RULE_MISMATCH) return ev.row;
+  if (ev.kind === RULE_PAID_TWICE) return ev.bill.row;
+  if (ev.kind === RULE_PAYMENT_NO_BILL) return ev.payment.row;
+  return ev.members[0]?.row ?? 0;
 }
 
 /** Python `sorted(key=lambda f: (f.rule_id, f.member_ids))`; row tie-break only for invalid duplicate IDs. */

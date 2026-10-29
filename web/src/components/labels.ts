@@ -1,11 +1,13 @@
 /** Plain-language labels shared by pages. Text only, no arithmetic on money. */
 import type { BatchSource, ReviewAction, ReviewState, RuleId, FindingView } from "../domain/contracts.ts";
-import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
+import { RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "../domain/contracts.ts";
 
 export const RULE_LABEL: Readonly<Record<RuleId, string>> = {
   DUPLICATE_CANDIDATE: "Possible duplicate",
   TOTAL_MISMATCH: "Total mismatch",
   NEAR_DUPLICATE: "Possible duplicate (lower confidence)",
+  PAID_TWICE: "Paid twice",
+  PAYMENT_NO_BILL: "Payment with no bill",
 };
 
 export const OWN_BADGE = "Your data stays in this browser";
@@ -50,5 +52,9 @@ export function caseTitle(finding: FindingView, asWritten = false): string {
   if (ev.kind === RULE_NEAR_DUPLICATE) {
     return `Same vendor and amount, ${ev.daysApart} days apart: ${asWritten && ev.members[0] ? ev.members[0].rawVendor : ev.vendor} · ${ev.total}`;
   }
+  if (ev.kind === RULE_PAID_TWICE) {
+    return `Bill paid ${ev.payments.length} times: ${ev.bill.rawVendor.trim() || "supplier"} · ${ev.bill.rawInvoice} · ${ev.bill.total}`;
+  }
+  if (ev.kind === RULE_PAYMENT_NO_BILL) return `Payment with no matching bill: ${ev.payment.description} · ${ev.payment.amount}`;
   return `Total doesn't add up: invoice says ${ev.declared}, parts add to ${ev.expected}`;
 }

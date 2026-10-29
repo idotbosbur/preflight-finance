@@ -54,7 +54,9 @@ export function HowPage() {
         <p className="lede">
           Deterministic rules (possible duplicates and total mismatches), a human review step and a measured synthetic
           benchmark. With your own files, a third lower-confidence rule also looks for same-vendor, same-amount bills within
-          14 days. No AI model is used, and nothing leaves your browser.
+          14 days. If you add a bank or card statement, a small AI model running in your browser recognises payee names
+          (“SQ *ACME SUPPLY 4412” is Acme Supply) so payments can be matched to bills; amounts and dates are still checked
+          exactly by rules. Nothing you add leaves your browser.
         </p>
       </header>
 

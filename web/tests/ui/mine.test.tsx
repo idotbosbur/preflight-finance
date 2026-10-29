@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { AppShell, pageTitle } from "../../src/components/index.ts";
 import { CasePage, QueuePage } from "../../src/pages/index.ts";
 import { DateOrderQuestion, DeleteConfirmation, ImportSummary, MapStep, MappingForm, MinePage, PreviewTable, continueLabel, forgetOwnMappings, readPreview } from "../../src/pages/MinePage.tsx";
+import { BankSection, MatchResult } from "../../src/pages/BankSection.tsx";
 import { OWN_BATCH_ID, RULE_NEAR_DUPLICATE } from "../../src/domain/contracts.ts";
 import type { BatchSummary, CaseView, FindingView } from "../../src/domain/contracts.ts";
 import { guessMapping } from "../../src/domain/own/columns.ts";
@@ -283,4 +284,17 @@ test("map step: a file with no invoice number column names what is missing", asy
     mapping={{ vendor: 0, date: 1, total: 2 }} dateOrder={null} working={false} onMapping={() => {}} onDateOrder={() => {}} onContinue={() => {}} />);
   assert.ok(html.includes("Choose a column for Invoice number."), "names the missing field");
   assert.ok(html.includes("If your file has no invoice or bill number"));
+});
+
+test("bank section: disabled until there are bills; result says how names were matched", () => {
+  const noBills = render(<BankSection hasBills={false} onImport={async () => ({ status: "storage_error", message: "x" })} queueHref="#/queue" />);
+  assert.match(noBills, /<input[^>]*id="bank-file"[^>]*disabled/);
+  assert.ok(noBills.includes("Add your bills above first"));
+  const ai = render(<MatchResult report={{ payments: 9, matched: 6, unpaidBills: 1, ai: true, paidTwice: 1, noBill: 1 }} queueHref="#/queue" />);
+  assert.ok(ai.includes("Matched 6 of 9 payments"));
+  assert.ok(ai.includes("1 bill paid more than once"));
+  assert.ok(ai.includes("AI model running in this browser"));
+  const words = render(<MatchResult report={{ payments: 2, matched: 2, unpaidBills: 0, ai: false, paidTwice: 0, noBill: 0 }} queueHref="#/queue" />);
+  assert.ok(words.includes("Nothing looks paid twice"));
+  assert.ok(words.includes("could not load"));
 });

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import type { ChangeEvent } from "react";
 import type { BatchSummary } from "../domain/contracts.ts";
 import { FEEDBACK_URL, OWN_MAX_BYTES } from "../domain/contracts.ts";
@@ -238,6 +238,8 @@ export interface MinePageProps {
   readonly queueHref: string;
   readonly summaryHref: string;
   readonly feedbackUrl?: string;
+  /** The bank statement section, rendered between the bills import and the file list. */
+  readonly bank?: ReactNode;
 }
 
 const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
@@ -246,7 +248,7 @@ const PARSE_MESSAGE: Readonly<Record<OwnParseError["error"], string>> = {
   "missing required column": "Choose a column for each required field.", "ambiguous date order": "Choose day first or month first.",
 };
 
-export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, summaryHref, feedbackUrl = FEEDBACK_URL }: MinePageProps) {
+export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, summaryHref, feedbackUrl = FEEDBACK_URL, bank }: MinePageProps) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping>({});
   const [dateOrder, setDateOrder] = useState<DateOrder | null>(null);
@@ -351,6 +353,8 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
           onMapping={(m) => { setMapping(m); setDateOrder(null); }} onDateOrder={setDateOrder} onContinue={() => void onContinue()} />
       ) : null}
 
+      {bank}
+
       <section className="panel" aria-labelledby="files-heading">
         <h2 id="files-heading" className="section-title">Files in this browser</h2>
         {files.length === 0 ? <p className="muted">Nothing imported yet.</p> : (
@@ -358,7 +362,7 @@ export function MinePage({ ownBatch, files, onImport, onDeleteOwn, queueHref, su
             {files.map((f) => (
               <li key={f.fileSha256} className="issue">
                 <span className="issue-where">{f.displayName}</span>{" "}
-                <span className="muted">{plural(f.rowsAdded, "row")} added, {f.rowsSkipped} skipped · <time dateTime={f.importedAt}>{readableTime(f.importedAt)}</time></span>
+                <span className="muted">{plural(f.rowsAdded, f.kind === "bank" ? "payment" : "row")} added, {f.rowsSkipped} skipped · <time dateTime={f.importedAt}>{readableTime(f.importedAt)}</time></span>
               </li>
             ))}
           </ul>

@@ -1,6 +1,7 @@
 import type { CaseProps, SaveStatus } from "../ui-contracts.ts";
 import type { Invoice, ReviewAction } from "../domain/contracts.ts";
-import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, codePointLength } from "../domain/contracts.ts";
+import { ACTIONS, CSV_HEADER, OWN_BATCH_ID, PAY_WINDOW_DAYS, REASON_MAX, REVIEWER_MAX, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL, codePointLength } from "../domain/contracts.ts";
+import type { PaymentEvidence } from "../domain/contracts.ts";
 import { DuplicateMembers, MismatchArithmetic, NearDuplicateMembers, RuleBadge, StateBadge } from "../components/Evidence.tsx";
 import { ACTION_LABEL, ACTION_ORDER, ACTION_PAST, OWN_BADGE, STATE_LABEL, caseTitle, sourceBadge } from "../components/labels.ts";
 
@@ -69,6 +70,23 @@ function RawFields({ invoice }: { readonly invoice: Invoice }) {
   );
 }
 
+/** Statement lines behind a bank-vs-bills finding, with how each payee name was matched. */
+function PaymentsTable({ payments }: { readonly payments: readonly PaymentEvidence[] }) {
+  return (
+    <div className="dup-scroll">
+      <table className="dup-table">
+        <caption className="sr-only">Payments from your statement</caption>
+        <thead><tr><th scope="col">Paid on</th><th scope="col">Statement description</th><th scope="col" className="num">Amount</th><th scope="col">Name matched by</th></tr></thead>
+        <tbody>
+          {payments.map((p) => (
+            <tr key={p.paymentId}><td><code>{p.date}</code></td><td><code>{p.description}</code></td><td className="num">{p.amount}</td><td>{p.match}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function CasePage({ view, form, onFormChange, onAction, save, durability, guideHint, queueHref, prevHref, nextHref, suggestedReasons }: CaseProps) {
   const { batch, finding, members, history } = view;
   const ev = finding.evidence;
@@ -122,6 +140,29 @@ export function CasePage({ view, form, onFormChange, onAction, save, durability,
               number. The rule cannot tell which, so a person decides.
             </p>
             <DuplicateMembers evidence={ev} currency={currency} />
+          </>
+        ) : ev.kind === RULE_PAID_TWICE ? (
+          <>
+            <p>
+              More than one payment on your bank or card statement matches this one bill: the same amount, paid on or up to{" "}
+              {PAY_WINDOW_DAYS} days after the bill date, to a payee whose name matches the supplier. Each match says how the name
+              was recognised. It may be a real double payment, or a second bill with the same amount that is missing from your
+              file, so a person decides.
+            </p>
+            <p>
+              Bill: <strong>{ev.bill.rawVendor}</strong> · invoice <code>{ev.bill.rawInvoice}</code> · {ev.bill.invoiceDate || "no date"} ·{" "}
+              {ev.bill.total} {ev.currency}
+            </p>
+            <PaymentsTable payments={ev.payments} />
+          </>
+        ) : ev.kind === RULE_PAYMENT_NO_BILL ? (
+          <>
+            <p>
+              This payment's description looks like your supplier <strong>{ev.vendor}</strong>, but none of their bills in your file has
+              this exact amount with a bill date up to {PAY_WINDOW_DAYS} days before the payment. The bill may be missing from your
+              export, or the payment may be a mistake, so a person decides.
+            </p>
+            <PaymentsTable payments={[ev.payment]} />
           </>
         ) : ev.kind === RULE_NEAR_DUPLICATE ? (
           <>

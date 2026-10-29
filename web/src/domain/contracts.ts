@@ -45,12 +45,17 @@ export const MAX_AMOUNT_CENTS = 99_999_999_999;
 export const RULE_DUPLICATE = "DUPLICATE_CANDIDATE";
 export const RULE_MISMATCH = "TOTAL_MISMATCH";
 export const RULE_NEAR_DUPLICATE = "NEAR_DUPLICATE";
-export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE;
+/** Bank statement vs bills (own data only). */
+export const RULE_PAID_TWICE = "PAID_TWICE";
+export const RULE_PAYMENT_NO_BILL = "PAYMENT_NO_BILL";
+export type RuleId = typeof RULE_DUPLICATE | typeof RULE_MISMATCH | typeof RULE_NEAR_DUPLICATE | typeof RULE_PAID_TWICE | typeof RULE_PAYMENT_NO_BILL;
 
 export const OWN_BATCH_ID = "00000000000000a1";
 export const OWN_MAX_BYTES = 10_485_760;
 export const OWN_MAX_ROWS = 20_000;
 export const NEAR_DUP_WINDOW_DAYS = 14;
+/** A payment matches a bill dated up to this many days before it. */
+export const PAY_WINDOW_DAYS = 90;
 
 export type ReviewState = "open" | "confirmed" | "dismissed";
 export type ReviewAction = "confirm" | "dismiss" | "reopen";
@@ -219,7 +224,32 @@ export interface NearDuplicateEvidence {
   readonly daysApart: number;
   readonly members: readonly DuplicateMemberEvidence[];
 }
-export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence;
+/** One money-out line from a bank or card statement, as evidence. */
+export interface PaymentEvidence {
+  readonly paymentId: string;
+  readonly row: number;
+  /** ISO YYYY-MM-DD, or "" when unreadable. */
+  readonly date: string;
+  readonly description: string;
+  /** Decimal string, e.g. "110.25". */
+  readonly amount: string;
+  /** How the supplier was recognised: "name words" or "AI similarity 0.82". */
+  readonly match: string;
+}
+export interface PaidTwiceEvidence {
+  readonly kind: typeof RULE_PAID_TWICE;
+  readonly bill: DuplicateMemberEvidence;
+  readonly currency: string;
+  /** Date order. */
+  readonly payments: readonly PaymentEvidence[];
+}
+export interface PaymentNoBillEvidence {
+  readonly kind: typeof RULE_PAYMENT_NO_BILL;
+  /** Supplier name as written on the user's bills. */
+  readonly vendor: string;
+  readonly payment: PaymentEvidence;
+}
+export type Evidence = DuplicateEvidence | MismatchEvidence | NearDuplicateEvidence | PaidTwiceEvidence | PaymentNoBillEvidence;
 
 /** Rule output before ID finalization. memberIds sorted ascending (compareStrings). */
 export interface CandidateFinding {
@@ -368,9 +398,10 @@ export const MODULES: readonly ModuleStatus[] = [
     next: "Bank-detail change vs approved baseline, duplicate vendors, unusual payments with benign controls",
     validation: "Independent-verification action; no fraud certainty from a flag" },
   { number: 4, name: "Cross-System Reconciliation", summary: "Matches invoices, orders, receipts and bank records", label: "Implemented foundation", phase: "P2",
-    exists: "Source-row provenance and file hashes",
-    next: "Linked invoice/PO/receipt/bank/accounting records: unmatched, partial and one-to-many",
-    validation: "Arithmetic and source IDs on every case" },
+    exists: "Source-row provenance, file hashes, and bank or card statements matched to bills (paid twice, payment with no bill)",
+    next: "Linked invoice/PO/receipt/accounting records: unmatched, partial and one-to-many",
+    validation: "Arithmetic and source IDs on every case",
+    qualifier: "AI matches payee names in your browser; amounts and dates are exact rules" },
   { number: 5, name: "Financial Investigation AI", summary: "Explains exactly why each case was flagged", label: "Implemented foundation", phase: "P1",
     exists: "Deterministic why-flagged evidence and exact arithmetic",
     next: "Linked multi-record investigations (P2); model interpretation only with an approved backend",

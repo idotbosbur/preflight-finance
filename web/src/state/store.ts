@@ -14,6 +14,7 @@ import {
   assertSafeCents,
 } from "../domain/contracts.ts";
 import type { OwnInvoice } from "../domain/own/rows.ts";
+import type { BankPayment } from "../domain/own/bank.ts";
 import type {
   BatchImportOutcome,
   Finding,
@@ -62,6 +63,8 @@ export interface OwnFileRecord {
   readonly importedAt: string;
   readonly rowsAdded: number;
   readonly rowsSkipped: number;
+  /** Bank or card statement (payments), not bills. */
+  readonly kind?: "bank";
 }
 
 export type OwnMergeOutcome =
@@ -86,13 +89,15 @@ export interface ReviewStore {
    * Own-data workspace: unions `rows` into the single OWN_BATCH_ID batch by recordId and replaces its
    * findings with `findings` (computed by the caller over the whole workspace), keeping decided ones.
    */
-  mergeOwn(rows: readonly Invoice[], findings: readonly Finding[], file: OwnFileRecord, now: string, expectedResetGeneration: number, expectedOwnGeneration: number): Promise<OwnMergeOutcome>;
+  mergeOwn(rows: readonly Invoice[], findings: readonly Finding[], file: OwnFileRecord, now: string, expectedResetGeneration: number, expectedOwnGeneration: number, payments?: readonly BankPayment[]): Promise<OwnMergeOutcome>;
   /** Bumped by deleteOwnData (the demo reset generation is untouched); lets an in-flight own import notice a delete. */
   getOwnGeneration(): Promise<number>;
   /** Stored own-workspace rows (empty when none), so the caller can rerun the rules over the union. */
   listOwnRows(): Promise<OwnInvoice[]>;
   /** Stored invoices of any batch (empty when the batch is missing), for the at-a-glance headline. */
   listInvoices(batchId: string): Promise<Invoice[]>;
+  /** Stored bank/card payments of the own workspace (empty when none). */
+  listOwnPayments(): Promise<BankPayment[]>;
   listOwnFiles(): Promise<OwnFileRecord[]>;
   /** Removes only the own batch, its findings and their events; the demo batch stays. */
   deleteOwnData(): Promise<{ ok: boolean; message?: string }>;
@@ -134,7 +139,19 @@ export interface BatchRecord {
   readonly invoices: readonly SerializedInvoice[];
   /** Own batch only. */
   readonly files?: readonly OwnFileRecord[];
+  /** Own batch only: money-out lines from bank or card statements. */
+  readonly payments?: readonly SerializedPayment[];
 }
+
+export interface SerializedPayment {
+  readonly paymentId: string;
+  readonly row: number;
+  readonly date: string;
+  readonly description: string;
+  readonly cents: string;
+}
+export const serializePayment = (p: BankPayment): SerializedPayment => ({ ...p, cents: centsToString(p.cents) });
+export const deserializePayment = (p: SerializedPayment): BankPayment => ({ ...p, cents: centsFromString(p.cents) });
 
 export interface FindingRecord {
   readonly schemaVersion: number;
@@ -204,6 +221,7 @@ export function planOwnMerge(
   file: OwnFileRecord,
   now: string,
   generation: number,
+  payments: readonly BankPayment[] = [],
 ): OwnMergePlan {
   const invoices = [...(existing?.invoices ?? [])];
   const at = new Map(invoices.map((inv, i) => [inv.recordId, i] as const));
@@ -218,13 +236,21 @@ export function planOwnMerge(
     invoices.push(s);
     added += 1;
   }
+  const stored = [...(existing?.payments ?? [])];
+  const seenPayment = new Set(stored.map((p) => p.paymentId));
+  for (const p of payments) {
+    if (seenPayment.has(p.paymentId)) continue;
+    seenPayment.add(p.paymentId);
+    stored.push(serializePayment(p));
+    added += 1;
+  }
   // Re-importing a known file keeps its original record (rowsAdded, importedAt).
   const prevFiles = existing?.files ?? [];
   const files = prevFiles.some((f) => f.fileSha256 === file.fileSha256) ? prevFiles : [...prevFiles, { ...file, rowsAdded: added }];
   const batch: BatchRecord = {
     schemaVersion: SCHEMA_VERSION, contractsVersion: WEB_CONTRACTS_VERSION, batchId: OWN_BATCH_ID, fileSha256: "",
     displayName: "Your data", source: "own", ruleset: "invoice-v1", importedAt: now, rowCount: invoices.length,
-    resetGeneration: generation, invoices, files,
+    resetGeneration: generation, invoices, files, ...(stored.length ? { payments: stored } : {}),
   };
   const old = new Map(oldFindings.map((f) => [f.findingId, f] as const));
   const keep: FindingRecord[] = [];
@@ -239,7 +265,7 @@ export function planOwnMerge(
   }
   const remove: FindingRecord[] = [];
   for (const f of old.values()) (f.sequence > 0 ? keep : remove).push(f);
-  return { batch, put, remove, summary: summarize(batch, keep), added, alreadySeen: rows.length - added };
+  return { batch, put, remove, summary: summarize(batch, keep), added, alreadySeen: rows.length + payments.length - added };
 }
 
 export function makeBatchRecord(batch: PreparedBatch, meta: ImportMeta, resetGeneration: number): BatchRecord {

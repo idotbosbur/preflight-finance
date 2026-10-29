@@ -11,7 +11,7 @@ import type {
 } from "../domain/contracts.ts";
 import { compareCases, validateDecision } from "./review.ts";
 import {
-  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, createChannel, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords,
+  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, createChannel, decide, deserializeOwnInvoice, deserializePayment, makeBatchRecord, makeFindingRecords,
   planOwnMerge, summarize, toFindingView,
 } from "./store.ts";
 import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore } from "./store.ts";
@@ -229,7 +229,7 @@ function wrap(db: IDBDatabase): ReviewStore {
       }
     },
 
-    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration): Promise<OwnMergeOutcome> {
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration, payments = []): Promise<OwnMergeOutcome> {
       try {
         const outcome = await run<OwnMergeOutcome>(["meta", "batches", "findings"], "readwrite", (tx, set) => {
           const metaReq = tx.objectStore("meta").get(META_KEY);
@@ -250,7 +250,7 @@ function wrap(db: IDBDatabase): ReviewStore {
             // A stale import from another tab now refuses (R23).
             tx.objectStore("meta").put({ key: OWN_META_KEY, value: ownGeneration + 1 });
             const plan = planOwnMerge(batchReq.result as BatchRecord | undefined, oldReq.result as FindingRecord[],
-              rows, newFindings, file, now, generation);
+              rows, newFindings, file, now, generation, payments);
             tx.objectStore("batches").put(plan.batch);
             const fs = tx.objectStore("findings");
             for (const r of plan.put) fs.put(r);
@@ -282,6 +282,10 @@ function wrap(db: IDBDatabase): ReviewStore {
         r.onsuccess = () => set(r.result as BatchRecord | undefined);
       });
       return (rec?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+
+    async listOwnPayments() {
+      return ((await readOwnBatch())?.payments ?? []).map(deserializePayment);
     },
 
     async listOwnFiles() {

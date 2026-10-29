@@ -6,7 +6,7 @@ import { OWN_BATCH_ID } from "../domain/contracts.ts";
 import type { BatchImportOutcome, DecisionRequest, ReviewEvent, ReviewResult } from "../domain/contracts.ts";
 import { validateDecision, compareCases } from "./review.ts";
 import {
-  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, decide, deserializeOwnInvoice, makeBatchRecord, makeFindingRecords, planOwnMerge,
+  OWN_RESET_MESSAGE, STALE_IMPORT_MESSAGE, ownStaleMessage, buildCase, decide, deserializeOwnInvoice, deserializePayment, makeBatchRecord, makeFindingRecords, planOwnMerge,
   summarize, toFindingView,
 } from "./store.ts";
 import type { BatchRecord, FindingRecord, ImportMeta, OwnMergeOutcome, ReviewStore, StoreChange } from "./store.ts";
@@ -102,10 +102,10 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
       if (error) return { ok: false, message: error };
       return { ok: true, resetGeneration: generation };
     },
-    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration): Promise<OwnMergeOutcome> {
+    async mergeOwn(rows, newFindings, file, now, expectedResetGeneration, expectedOwnGeneration, payments = []): Promise<OwnMergeOutcome> {
       if (expectedResetGeneration !== generation) return { status: "storage_error", message: OWN_RESET_MESSAGE };
       if (expectedOwnGeneration !== ownGeneration) return { status: "storage_error", message: ownStaleMessage(batches.get(OWN_BATCH_ID)) };
-      const plan = planOwnMerge(batches.get(OWN_BATCH_ID), findingsOf(OWN_BATCH_ID), rows, newFindings, file, now, generation);
+      const plan = planOwnMerge(batches.get(OWN_BATCH_ID), findingsOf(OWN_BATCH_ID), rows, newFindings, file, now, generation, payments);
       const error = commit(() => {
         ownGeneration += 1; // a stale import from another tab now refuses (R23)
         batches.set(OWN_BATCH_ID, plan.batch);
@@ -123,6 +123,9 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
     },
     async listInvoices(batchId) {
       return (batches.get(batchId)?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+    async listOwnPayments() {
+      return (batches.get(OWN_BATCH_ID)?.payments ?? []).map(deserializePayment);
     },
     async listOwnFiles() {
       return [...(batches.get(OWN_BATCH_ID)?.files ?? [])];

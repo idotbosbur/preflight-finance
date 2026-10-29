@@ -1,6 +1,6 @@
 /** Pure pilot-summary builder + CSV writer. Counts by default; vendor/invoice/reason only with includeDetails. */
 import type { BatchSummary, FindingView, Invoice } from "../contracts.ts";
-import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE } from "../contracts.ts";
+import { RULE_DUPLICATE, RULE_MISMATCH, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "../contracts.ts";
 import { RULE_LABEL, STATE_LABEL } from "../../components/labels.ts";
 import type { OwnFileRecord } from "../../state/store.ts";
 
@@ -10,7 +10,7 @@ export interface PilotSummary {
   readonly files: number;
   readonly dateFrom: string;
   readonly dateTo: string;
-  readonly byRule: { readonly duplicate: number; readonly mismatch: number; readonly nearDuplicate: number };
+  readonly byRule: { readonly duplicate: number; readonly mismatch: number; readonly nearDuplicate: number; readonly paidTwice: number; readonly noBill: number };
   readonly confirmed: number;
   readonly dismissed: number;
   readonly open: number;
@@ -33,6 +33,8 @@ export function buildPilotSummary(
       duplicate: count((f) => f.ruleId === RULE_DUPLICATE),
       mismatch: count((f) => f.ruleId === RULE_MISMATCH),
       nearDuplicate: count((f) => f.ruleId === RULE_NEAR_DUPLICATE),
+      paidTwice: count((f) => f.ruleId === RULE_PAID_TWICE),
+      noBill: count((f) => f.ruleId === RULE_PAYMENT_NO_BILL),
     },
     confirmed: count((f) => f.state === "confirmed"),
     dismissed: count((f) => f.state === "dismissed"),
@@ -41,7 +43,7 @@ export function buildPilotSummary(
       const row = byId.get(f.memberIds[0] ?? "");
       return {
         rule: RULE_LABEL[f.ruleId], state: STATE_LABEL[f.state],
-        vendor: row?.raw[1] ?? "", invoice: row?.raw[2] ?? "", reason: reasons.get(f.findingId) ?? "",
+        vendor: row?.raw[1] ?? (f.evidence.kind === RULE_PAYMENT_NO_BILL ? f.evidence.vendor : ""), invoice: row?.raw[2] ?? "", reason: reasons.get(f.findingId) ?? "",
       };
     }) : [],
   };
@@ -64,6 +66,8 @@ export function summaryCsv(s: PilotSummary): string {
     ["Candidates", RULE_LABEL[RULE_DUPLICATE], s.byRule.duplicate],
     ["Candidates", RULE_LABEL[RULE_MISMATCH], s.byRule.mismatch],
     ["Candidates", RULE_LABEL[RULE_NEAR_DUPLICATE], s.byRule.nearDuplicate],
+    ["Candidates", RULE_LABEL[RULE_PAID_TWICE], s.byRule.paidTwice],
+    ["Candidates", RULE_LABEL[RULE_PAYMENT_NO_BILL], s.byRule.noBill],
     ["Review", "Confirmed", s.confirmed],
     ["Review", "Dismissed", s.dismissed],
     ["Review", "Open", s.open],

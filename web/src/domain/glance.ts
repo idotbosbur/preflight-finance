@@ -7,7 +7,7 @@
  * are left out. Amounts in other currencies are named, never added together.
  */
 import type { Cents, FindingView, Invoice } from "./contracts.ts";
-import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE } from "./contracts.ts";
+import { CSV_HEADER, RULE_DUPLICATE, RULE_NEAR_DUPLICATE, RULE_PAID_TWICE, RULE_PAYMENT_NO_BILL } from "./contracts.ts";
 import { formatCents, parseCents } from "./money.ts";
 
 const VENDOR_INDEX = CSV_HEADER.indexOf("vendor_id");
@@ -37,9 +37,23 @@ export interface Glance {
 const list = (xs: readonly string[]) => (xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 const unique = (xs: readonly string[]) => [...new Set(xs.map((x) => x.trim()).filter(Boolean))];
 
-function item(f: FindingView, byId: ReadonlyMap<string, Invoice>): GlanceItem {
+function item(f: FindingView, byId: ReadonlyMap<string, Invoice>, currencyOf: (vendor: string) => string): GlanceItem {
   const first = byId.get(f.memberIds[0] ?? "");
   const ev = f.evidence;
+  if (ev.kind === RULE_PAID_TWICE) {
+    const n = ev.payments.length;
+    return {
+      finding: f, cents: parseCents(ev.bill.total) * (n - 1), currency: ev.currency, vendor: ev.bill.rawVendor.trim() || "Unknown supplier",
+      invoices: unique([ev.bill.rawInvoice]), reason: `Invoice #${ev.bill.rawInvoice.trim()} was paid ${n} times (${list(ev.payments.map((p) => p.date))})`,
+    };
+  }
+  if (ev.kind === RULE_PAYMENT_NO_BILL) {
+    const p = ev.payment;
+    return {
+      finding: f, cents: parseCents(p.amount), currency: currencyOf(ev.vendor), vendor: ev.vendor, invoices: [],
+      reason: `Paid on ${p.date} ("${p.description}"), but no bill matches this amount`,
+    };
+  }
   const vendorOf = (fallback: string) => (first?.raw[VENDOR_INDEX] ?? fallback).trim() || fallback;
   if (ev.kind === RULE_DUPLICATE) {
     const totals = ev.members.map((m) => parseCents(m.total));
@@ -69,8 +83,9 @@ function item(f: FindingView, byId: ReadonlyMap<string, Invoice>): GlanceItem {
 
 export function buildGlance(findings: readonly FindingView[], invoices: readonly Invoice[]): Glance {
   const byId = new Map(invoices.map((i) => [i.recordId, i]));
+  const currencyOf = (vendor: string) => invoices.find((i) => (i.raw[VENDOR_INDEX] ?? "").trim() === vendor)?.currency ?? "";
   const counted = findings.filter((f) => f.state !== "dismissed");
-  const items = counted.map((f) => item(f, byId))
+  const items = counted.map((f) => item(f, byId, currencyOf))
     .sort((a, b) => b.cents - a.cents || (a.finding.findingId < b.finding.findingId ? -1 : 1));
   const perCurrency = new Map<string, number>();
   for (const i of items) perCurrency.set(i.currency, (perCurrency.get(i.currency) ?? 0) + i.cents);
@@ -79,7 +94,8 @@ export function buildGlance(findings: readonly FindingView[], invoices: readonly
     cents: ranked[0]?.[1] ?? 0,
     currency: ranked[0]?.[0] ?? null,
     otherCurrencies: ranked.slice(1).map(([c]) => c).filter(Boolean),
-    bills: new Set(counted.flatMap((f) => f.memberIds)).size,
+    // Payment IDs ("P-") are statement lines, not bills.
+    bills: new Set(counted.flatMap((f) => f.memberIds).filter((id) => !id.startsWith("P-"))).size,
     items,
   };
 }
@@ -97,6 +113,20 @@ export function supplierEmail(i: GlanceItem): { readonly subject: string; readon
   const ev = i.finding.evidence;
   const nums = list(i.invoices.map((n) => `#${n}`)) || "these invoices";
   const sign = "\n\nThank you,\n";
+  if (ev.kind === RULE_PAID_TWICE) {
+    return {
+      subject: `Invoice ${nums} may have been paid twice`,
+      body: `Hello,\n\nOur records show invoice ${nums} (${ev.bill.total} ${i.currency}) was paid ${ev.payments.length} times, on ${list(ev.payments.map((p) => p.date))}. `
+        + `Could you check on your side and, if so, refund or credit the extra payment?${sign}`,
+    };
+  }
+  if (ev.kind === RULE_PAYMENT_NO_BILL) {
+    return {
+      subject: `Invoice for our payment of ${ev.payment.amount} on ${ev.payment.date}`,
+      body: `Hello,\n\nWe have a payment to you of ${ev.payment.amount} on ${ev.payment.date}, but we cannot find the invoice it was for. `
+        + `Could you send us a copy of that invoice, or let us know if it was paid by mistake?${sign}`,
+    };
+  }
   if (ev.kind === "TOTAL_MISMATCH") {
     return {
       subject: `Question about invoice ${nums}`,

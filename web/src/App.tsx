@@ -23,7 +23,10 @@ import {
 import { formatRoute, parseRoute } from "./state/router.ts";
 import { openBestStore } from "./state/openStore.ts";
 import { importBytes } from "./state/importer.ts";
-import { importOwnFile } from "./state/ownImporter.ts";
+import { importBankFile, importOwnFile } from "./state/ownImporter.ts";
+import { buildScorer } from "./state/aiMatch.ts";
+import { BankSection } from "./pages/BankSection.tsx";
+import type { BankImport } from "./pages/BankSection.tsx";
 import { DEMO_TARGETS, SUGGESTED_REASONS, deriveGuide } from "./state/guide.ts";
 import type { OwnFileRecord, ReviewStore } from "./state/store.ts";
 import { onCaseLoaded, onConflictShown, onSaved, reviewerFor } from "./state/draft.ts";
@@ -394,9 +397,21 @@ export function App() {
 
   const onImportOwn = useCallback(async (bytes: Uint8Array, mapping: ColumnMapping, opts: { displayName: string; dateOrder: DateOrder | null }) => {
     if (!store) return { status: "storage_error" as const, message: "Browser storage is still opening. Try again in a moment." };
-    const outcome = await importOwnFile(store, bytes, mapping, { ...opts, now: nowIso(), expectedResetGeneration: await store.getResetGeneration() });
+    const outcome = await importOwnFile(store, bytes, mapping, { ...opts, now: nowIso(), expectedResetGeneration: await store.getResetGeneration() },
+      (d, v) => buildScorer(d, v));
     if ("status" in outcome && outcome.status === "merged") {
       setAnnouncement(`Added ${outcome.added} invoices to your data.`);
+      bump();
+    }
+    return outcome;
+  }, [store, bump]);
+
+  const onImportBank: BankImport = useCallback(async (bytes, mapping, opts, onProgress) => {
+    if (!store) return { status: "storage_error" as const, message: "Browser storage is still opening. Try again in a moment." };
+    const outcome = await importBankFile(store, bytes, mapping, { ...opts, now: nowIso(), expectedResetGeneration: await store.getResetGeneration() },
+      (d, v) => buildScorer(d, v, onProgress));
+    if ("status" in outcome && outcome.status === "merged") {
+      setAnnouncement(`Matched your statement against your bills.`);
       bump();
     }
     return outcome;
@@ -500,6 +515,8 @@ export function App() {
         <MinePage
           ownBatch={batches.find((b) => b.batchId === OWN_BATCH_ID) ?? null} files={ownFiles}
           onImport={onImportOwn} onDeleteOwn={onDeleteOwn}
+          bank={<BankSection hasBills={(batches.find((b) => b.batchId === OWN_BATCH_ID)?.rowCount ?? 0) > 0} onImport={onImportBank}
+            queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} />}
           queueHref={formatRoute({ name: "queue", batchId: OWN_BATCH_ID })} summaryHref={formatRoute({ name: "mine-summary" })}
         />
       );
