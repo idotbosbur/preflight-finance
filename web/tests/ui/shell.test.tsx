@@ -16,7 +16,7 @@ const base = {
 
 test("shell: nav, synthetic badge and label, skip link, live region, attribution", () => {
   const html = render(<AppShell {...base}><p>child</p></AppShell>);
-  for (const label of ["Demo", "Results", "How it works", "Roadmap"]) assert.ok(html.includes(`>${label}</a>`), label);
+  for (const label of ["Demo", "Results", "How it works", "What&#x27;s next"]) assert.ok(html.includes(`>${label}</a>`), label);
   assert.ok(html.includes("Sample data"), "results page shows the sample-data pill");
   assert.ok(html.includes(SYNTHETIC_LABEL));
   assert.ok(html.includes("Skip to main content"));

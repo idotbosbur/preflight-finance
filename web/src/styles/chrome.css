@@ -2198,3 +2198,13 @@ body { background: var(--ov-bg, var(--bg)); }
 .how-n { font-size: 0.8rem; color: var(--ink-soft); padding-top: 0.35rem; font-variant-numeric: tabular-nums; }
 .how-trust { padding-left: 1.1rem; display: grid; gap: 8px; max-width: 70ch; margin-bottom: 32px; }
 .how-credit { margin-top: 24px; font-size: 0.9rem; }
+
+/* ---------- Where Catchfold is going ---------- */
+.plan { display: grid; gap: 18px; margin: 8px 0 28px; }
+@media (min-width: 860px) { .plan { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.plan-col { border-top: 2px solid var(--ink); padding-top: 14px; }
+.plan-col:nth-child(2) { border-top-color: var(--ink-soft); }
+.plan-col:nth-child(3) { border-top-color: var(--line); }
+.plan-col .muted { margin: 2px 0 10px; }
+.plan-col ul { padding-left: 1.1rem; display: grid; gap: 8px; }
+.glance-feedback { margin: 10px 0 0; font-size: 0.92rem; }

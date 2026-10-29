@@ -156,6 +156,7 @@ export function AtAGlance({ glance, rowCount, hrefForCase }: { readonly glance: 
         {glance.items.slice(0, 3).map((i) => <GlanceRow key={i.finding.findingId} item={i} href={hrefForCase(i.finding.findingId)} />)}
       </ul>
       <p className="hint">These are things to check, not proof of a mistake. Anything you mark as fine drops out of the total.</p>
+      <p className="glance-feedback">Was this useful? <a href="#/feedback">Tell us what to change</a>.</p>
     </section>
   );
 }

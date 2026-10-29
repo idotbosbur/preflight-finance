@@ -258,7 +258,7 @@ test("readPreview: a PDF or a spreadsheet file gets a clear 'not a CSV' message"
   const pdf = readPreview("bills.pdf", new TextEncoder().encode("%PDF-1.4"));
   assert.equal(typeof pdf, "string");
   assert.match(pdf as string, /PDFs aren't supported yet/);
-  assert.match(pdf as string, /Want more\?/, "points to the vote");
+  assert.match(pdf as string, /Where Catchfold is going/, "points to the vote");
   // Excel is converted before readPreview; anything unconverted that still looks like a spreadsheet is explained.
   const odd = readPreview("bills.numbers", new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2, 3]));
   assert.match(odd as string, /spreadsheet format can't be read/);

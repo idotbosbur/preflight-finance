@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BatchSummary, CaseView, Durability, FindingView, Invoice, ReviewAction } from "./domain/contracts.ts";
 import type { ColumnMapping } from "./domain/own/columns.ts";
 import type { DateOrder } from "./domain/own/values.ts";
-import { MODULES, OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
+import { OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
 import { parseInvoiceCsv } from "./domain/csv.ts";
 import { runInvoiceRules } from "./domain/rules.ts";
 import { buildGlance } from "./domain/glance.ts";
@@ -535,7 +535,7 @@ export function App() {
       page = <HowPage />;
       break;
     case "roadmap":
-      page = <RoadmapPage modules={MODULES} />;
+      page = <RoadmapPage />;
       break;
     case "feedback":
       page = <FeedbackPage demoHref={formatRoute({ name: "demo" })} />;

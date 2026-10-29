@@ -28,7 +28,7 @@ export function OverviewPage({ demo, onStartGuide, drop }: OverviewProps & { rea
 
       <section className="ov-hero ov-hero-drop" data-chrome="hero" aria-labelledby="hero-heading">
         <h1 id="hero-heading" className="ov-display hero-rise" tabIndex={-1}>Find the bills you paid twice</h1>
-        <p className="ov-lede hero-rise">Drop in your bills or a bank statement. Free, and your files never leave your browser.</p>
+        <p className="ov-lede hero-rise">A free, private money checkup for people without a finance team. Drop in your bills or a bank statement; your files never leave your browser.</p>
         <div className="hero-rise hero-drop">{drop}</div>
         <p className="ov-hero-links hero-rise">
           <button type="button" className="btn-line" onClick={onStartGuide} disabled={busy}>Try the demo</button>
@@ -57,14 +57,16 @@ export function OverviewPage({ demo, onStartGuide, drop }: OverviewProps & { rea
         <Reveal>
           <h2 id="private-heading" className="ov-h2 ov-dark-title">Your files never leave your browser.</h2>
           <p className="ov-dark-points">No upload · No account · Delete everything in one click</p>
+          <p className="ov-dark-points">That won't change as Catchfold grows.</p>
         </Reveal>
       </section>
 
       <section className="ov-section ov-after" data-chrome="haze" aria-labelledby="later-heading">
         <div className="ov-split">
           <Reveal className="ov-split-head">
-            <h2 id="later-heading" className="ov-h2">Want more?</h2>
-            <p className="ov-later-text">These would need a paid version later. Tick what you'd use.</p>
+            <h2 id="later-heading" className="ov-h2">Where Catchfold is going</h2>
+            <p className="ov-later-text">The core checks stay free and private. These are ideas we're exploring, not built yet. Tick what you'd use.</p>
+            <a className="btn-line ov-more" href="#/roadmap">See the plan →</a>
           </Reveal>
           <Reveal>
             <InterestVote />

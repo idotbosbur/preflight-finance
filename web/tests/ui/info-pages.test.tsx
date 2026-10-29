@@ -36,15 +36,11 @@ test("how: three plain steps, trust points, limits and a truthful one-line credi
   assert.ok(!html.includes("Referrer-Policy"), "no engineering war stories on the user page");
 });
 
-test("roadmap: all twelve modules with labels, phases and qualifiers", () => {
-  const html = render(<RoadmapPage modules={MODULES} />);
-  assert.equal(MODULES.length, 12);
-  for (const m of MODULES) {
-    assert.ok(html.includes(m.name), m.name);
-    assert.ok(html.includes(`Phase ${m.phase}`));
-    if (m.qualifier) assert.ok(html.includes(m.qualifier.replace(/'/g, "&#x27;")), m.qualifier);
-  }
-  for (const l of ["Working in this demo", "Implemented foundation", "Next synthetic scenario", "Planned"]) assert.ok(html.includes(l), l);
+test("what's next: Now, Next and Later, honest labels, the vote and a feedback link", () => {
+  const html = render(<RoadmapPage />);
+  for (const s of ["Where Catchfold is going", "Now", "Free and live today", "Next", "not built yet", "Later", "Which would you use?"]) assert.ok(html.includes(s), s);
+  assert.ok(html.includes('href="#/feedback"'));
+  assert.doesNotMatch(html, /\$\d/, "no prices");
 });
 
 test("not found: message, home link, optional Load demo data", () => {
@@ -58,7 +54,7 @@ test("not found: message, home link, optional Load demo data", () => {
 test("every info page renders inside the shell with the free, nothing-uploaded label", () => {
   const pages = [
     <HowPage key="h" />,
-    <RoadmapPage key="r" modules={MODULES} />,
+    <RoadmapPage key="r" />,
     <ResultsPage key="s" benchmark={benchmark} benchmarkError={null} visitor={null} />,
     <NotFoundPage key="n" message="x" homeHref="#/" onLoadDemo={null} />,
   ];

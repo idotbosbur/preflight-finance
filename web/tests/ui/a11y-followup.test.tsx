@@ -77,7 +77,7 @@ test("every page h1 is programmatically focusable", () => {
     render(<OverviewPage story={null} demo={{ kind: "not_loaded" }} onStartGuide={noop} onExplore={noop} />),
     render(<QueuePage {...queueProps()} />),
     render(<HowPage />),
-    render(<RoadmapPage modules={MODULES} />),
+    render(<RoadmapPage />),
     render(<ResultsPage benchmark={null} benchmarkError={null} visitor={null} />),
     render(<NotFoundPage message="x" homeHref="#/" onLoadDemo={null} />),
   ];

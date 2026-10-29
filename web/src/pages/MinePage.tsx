@@ -90,7 +90,7 @@ export function readPreview(name: string, bytes: Uint8Array, converted = false):
   // The two commonest wrong picks: a PDF, or a spreadsheet format we cannot read (converted text skips this).
   const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
   if (!converted && (/\.pdf$/i.test(name) || starts(0x25, 0x50, 0x44, 0x46))) {
-    return "PDFs aren't supported yet. Export a CSV or Excel file instead. Want PDF support? Tick it under “Want more?” on the home page.";
+    return "PDFs aren't supported yet. Export a CSV or Excel file instead. Want PDF support? Vote for it under “Where Catchfold is going” on the home page.";
   }
   if (!converted && (/\.(xlsx|xlsm|xls|numbers|ods)$/i.test(name) || starts(0x50, 0x4b, 0x03, 0x04) || starts(0xd0, 0xcf, 0x11, 0xe0))) {
     return "This spreadsheet format can't be read. Save it as .xlsx or “CSV UTF-8 (Comma delimited)” and add it again.";

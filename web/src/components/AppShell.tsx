@@ -20,7 +20,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "#/mine", label: "Your files", match: ["mine", "mine-summary"] },
   { href: "#/results", label: "Results", match: ["results"] },
   { href: "#/how", label: "How it works", match: ["how"] },
-  { href: "#/roadmap", label: "Roadmap", match: ["roadmap"] },
+  { href: "#/roadmap", label: "What's next", match: ["roadmap"] },
 ];
 
 /** The footer's single "what next" step, chosen for the page the visitor is on. */
@@ -59,7 +59,7 @@ const PAGE_NAME: Readonly<Record<Route["name"], string>> = {
   case: "Investigation",
   results: "Results",
   how: "How it works",
-  roadmap: "Roadmap",
+  roadmap: "What's next",
   feedback: "Feedback",
   mine: "Your files",
   "mine-summary": "Your data summary",
