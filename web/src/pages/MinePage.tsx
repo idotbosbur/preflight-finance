@@ -86,14 +86,14 @@ export interface Loaded { readonly name: string; readonly bytes: Uint8Array; rea
 
 const NOT_UTF8 = "This file is not saved as UTF-8 text. In Excel, choose Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
 
-export function readPreview(name: string, bytes: Uint8Array): Loaded | string {
-  // The two commonest wrong picks: a PDF, or the spreadsheet itself instead of its CSV export.
+export function readPreview(name: string, bytes: Uint8Array, converted = false): Loaded | string {
+  // The two commonest wrong picks: a PDF, or a spreadsheet format we cannot read (converted text skips this).
   const starts = (...sig: number[]) => sig.every((b, i) => bytes[i] === b);
-  if (/\.pdf$/i.test(name) || starts(0x25, 0x50, 0x44, 0x46)) {
-    return "That is a PDF. Export your bills from your accounting software as a CSV file instead (the pilot guide shows how).";
+  if (!converted && (/\.pdf$/i.test(name) || starts(0x25, 0x50, 0x44, 0x46))) {
+    return "PDFs aren't supported yet. Export a CSV or Excel file instead. Want PDF support? Tick it under “Want more?” on the home page.";
   }
-  if (/\.(xlsx|xlsm|xls|numbers|ods)$/i.test(name) || starts(0x50, 0x4b, 0x03, 0x04) || starts(0xd0, 0xcf, 0x11, 0xe0)) {
-    return "That is a spreadsheet file, not a CSV. In Excel, choose File, then Save As, then “CSV UTF-8 (Comma delimited)”, and choose the new file.";
+  if (!converted && (/\.(xlsx|xlsm|xls|numbers|ods)$/i.test(name) || starts(0x50, 0x4b, 0x03, 0x04) || starts(0xd0, 0xcf, 0x11, 0xe0))) {
+    return "This spreadsheet format can't be read. Save it as .xlsx or “CSV UTF-8 (Comma delimited)” and add it again.";
   }
   // Images and other binary files: a NUL byte or a picture signature in the first few KB.
   if (starts(0x89, 0x50, 0x4e, 0x47) || starts(0xff, 0xd8, 0xff) || starts(0x47, 0x49, 0x46) || bytes.subarray(0, 4096).includes(0)) {

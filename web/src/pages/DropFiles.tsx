@@ -12,6 +12,8 @@ import { REQUIRED_FIELDS } from "../domain/own/columns.ts";
 import type { ColumnMapping } from "../domain/own/columns.ts";
 import { buildOwnRows } from "../domain/own/rows.ts";
 import { buildBankRows, guessBankMapping } from "../domain/own/bank.ts";
+import { delimitedToCsv, ofxToCsv } from "../domain/own/convert.ts";
+import { xlsxToCsv } from "../state/excel.ts";
 import type { BankMapping } from "../domain/own/bank.ts";
 import type { DateOrder } from "../domain/own/values.ts";
 import type { OwnMergeOutcome } from "../state/store.ts";
@@ -84,6 +86,27 @@ function columnsLine(item: Item): string {
 
 let nextId = 1;
 
+const isZip = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b && b[2] === 0x03 && b[3] === 0x04;
+const isOle = (b: Uint8Array) => b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0;
+const csvBytes = (text: string) => new TextEncoder().encode(text);
+
+/** CSV as it is; Excel, bank downloads and semicolon/tab files converted to CSV first. */
+async function readAny(name: string, bytes: Uint8Array): Promise<Loaded | string> {
+  if (/\.(xlsx|xlsm)$/i.test(name) || isZip(bytes)) {
+    try { return readPreview(name, csvBytes(await xlsxToCsv(bytes)), true); } catch {
+      return "This Excel file could not be read. Open it in Excel and save it again as .xlsx or CSV.";
+    }
+  }
+  if (/\.xls$/i.test(name) || isOle(bytes)) return "This is an old Excel file (.xls). Open it in Excel, save it as .xlsx or CSV, and add it again.";
+  let text: string | null = null;
+  try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { /* not UTF-8: readPreview explains */ }
+  if (text !== null) {
+    const converted = ofxToCsv(text) ?? delimitedToCsv(text);
+    if (converted !== null) return readPreview(name, csvBytes(converted), true);
+  }
+  return readPreview(name, bytes);
+}
+
 export function DropFiles({ onImport, onImportBank, queueHref, hero = false, heading = "Add your files" }: {
   readonly onImport: BillsImport; readonly onImportBank: BankImport; readonly queueHref: string; readonly heading?: string;
   /** Landing-page version: no panel or heading, a glass card over the artwork. */
@@ -104,7 +127,7 @@ export function DropFiles({ onImport, onImportBank, queueHref, hero = false, hea
     for (const file of files) {
       if (file.size > OWN_MAX_BYTES) { bad.push(`${file.name}: over 10 MB, so it was not read.`); continue; }
       let result: Loaded | string;
-      try { result = readPreview(file.name, new Uint8Array(await file.arrayBuffer())); } catch { result = "the browser could not read it."; }
+      try { result = await readAny(file.name, new Uint8Array(await file.arrayBuffer())); } catch { result = "the browser could not read it."; }
       if (typeof result === "string") { bad.push(`${file.name}: ${result}`); continue; }
       const kind = classifyHeaders(result.headers);
       found.push({ id: nextId++, loaded: result, kind, bills: initialMapping(result.headers), bank: guessBankMapping(result.headers), dateOrder: null, editing: false });
@@ -148,10 +171,10 @@ export function DropFiles({ onImport, onImportBank, queueHref, hero = false, hea
       <label htmlFor="own-file" className={`drop-zone${over ? " is-over" : ""}`}
         onDragOver={(e: DragEvent) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
         onDrop={(e: DragEvent) => { e.preventDefault(); setOver(false); void add([...e.dataTransfer.files]); }}>
-        <span className="drop-title">{hero ? "Drop your CSV files here" : "Drop CSV files here, or choose them"}</span>
-        <span className="drop-sub">{hero ? "Bills, a bank statement, or both." : "Your bills export, and if you like, a bank or card statement. You can add several at once."}</span>
+        <span className="drop-title">{hero ? "Drop your files here" : "Drop files here, or choose them"}</span>
+        <span className="drop-sub">{hero ? "Bills, a bank statement, or both. CSV, Excel or your bank's download." : "Your bills export, and if you like, a bank or card statement: CSV, Excel (.xlsx) or a bank download (.qfx, .ofx, .qbo). You can add several at once."}</span>
         {/* The native control can't be centred or styled; it stays focusable but visually hidden behind a real button look. */}
-        <input id="own-file" className="sr-only drop-input" type="file" accept=".csv,text/csv" multiple disabled={working !== null}
+        <input id="own-file" className="sr-only drop-input" type="file" accept=".csv,text/csv,.xlsx,.xlsm,.ofx,.qfx,.qbo,.txt,.tsv" multiple disabled={working !== null}
           onChange={(e: ChangeEvent<HTMLInputElement>) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void add(fs); }} />
         <span className="btn btn-primary drop-btn" aria-hidden="true">Choose files</span>
       </label>

@@ -257,11 +257,12 @@ test("readPreview: a PDF or a spreadsheet file gets a clear 'not a CSV' message"
   const { readPreview } = await import("../../src/pages/MinePage.tsx");
   const pdf = readPreview("bills.pdf", new TextEncoder().encode("%PDF-1.4"));
   assert.equal(typeof pdf, "string");
-  assert.match(pdf as string, /That is a PDF/);
-  const xlsx = readPreview("bills.xlsx", new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2, 3]));
-  assert.match(xlsx as string, /spreadsheet file, not a CSV/);
-  const zipNamedCsv = readPreview("bills.csv", new Uint8Array([0x50, 0x4b, 0x03, 0x04]));
-  assert.match(zipNamedCsv as string, /spreadsheet file/);
+  assert.match(pdf as string, /PDFs aren't supported yet/);
+  assert.match(pdf as string, /Want more\?/, "points to the vote");
+  // Excel is converted before readPreview; anything unconverted that still looks like a spreadsheet is explained.
+  const odd = readPreview("bills.numbers", new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2, 3]));
+  assert.match(odd as string, /spreadsheet format can't be read/);
+  assert.equal(typeof readPreview("converted.xlsx", new TextEncoder().encode("Vendor,Bill No.,Amount\nA,1,2\n"), true), "object");
   assert.equal(typeof readPreview("ok.csv", new TextEncoder().encode("Vendor,Bill No.,Amount\nA,1,2\n")), "object");
 });
 
