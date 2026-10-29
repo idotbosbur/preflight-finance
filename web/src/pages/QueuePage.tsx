@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
-import type { QueueFilter, QueueProps } from "../ui-contracts.ts";
+import type { QueueFilter, QueueProps, RouteHref } from "../ui-contracts.ts";
 import type { ReviewState, RuleId } from "../domain/contracts.ts";
 import { RULE_NEAR_DUPLICATE } from "../domain/contracts.ts";
 import { StateBadge } from "../components/Evidence.tsx";
 import { RULE_LABEL, sourceBadge, STATE_LABEL, caseTitle, plural } from "../components/labels.ts";
+import type { Glance, GlanceItem } from "../domain/glance.ts";
+import { formatMoney, supplierEmail } from "../domain/glance.ts";
 
 const STATE_OPTIONS: readonly (ReviewState | "all")[] = ["all", "open", "confirmed", "dismissed"];
 const RULE_OPTIONS: readonly (RuleId | "all")[] = ["all", "DUPLICATE_CANDIDATE", "TOTAL_MISMATCH"];
@@ -83,8 +85,81 @@ function ResetControl({ onResetDemo }: { readonly onResetDemo: () => void }) {
   );
 }
 
+/** One of the biggest findings, with a ready-to-copy supplier email. */
+function GlanceRow({ item, href }: { readonly item: GlanceItem; readonly href: RouteHref }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const mail = supplierEmail(item);
+  const id = `email-${item.finding.findingId}`;
+  const amount = formatMoney(item.cents, item.currency);
+  return (
+    <li className="glance-item">
+      <p className="glance-item-title">
+        <strong>{item.vendor} · {item.finding.ruleId === "TOTAL_MISMATCH" ? `${amount} off` : amount}</strong>
+        <span>{item.reason}</span>
+      </p>
+      <div className="row-actions">
+        <a className="btn btn-secondary" href={href}>Review</a>
+        <button type="button" className="btn btn-quiet" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
+          Email supplier
+        </button>
+      </div>
+      {open ? (
+        <div className="glance-email" id={id}>
+          <label className="field-label" htmlFor={`${id}-text`}>Draft email</label>
+          <textarea id={`${id}-text`} readOnly rows={8} value={`Subject: ${mail.subject}
+
+${mail.body}`} />
+          <div className="row-actions">
+            <button type="button" className="btn btn-secondary" onClick={() => {
+              navigator.clipboard?.writeText(`${mail.subject}
+
+${mail.body}`).then(() => setCopied(true), () => setCopied(false));
+            }}>{copied ? "Copied" : "Copy"}</button>
+            <a className="btn btn-quiet" href={`mailto:?subject=${encodeURIComponent(mail.subject)}&body=${encodeURIComponent(mail.body)}`}>Open in your email app</a>
+          </div>
+          <p className="hint">Preflight never sends anything. Add the supplier's address in your own email app.</p>
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+/** The headline: how much money needs a second look, and the three biggest problems. */
+export function AtAGlance({ glance, rowCount, hrefForCase }: { readonly glance: Glance; readonly rowCount: number; readonly hrefForCase: (findingId: string) => RouteHref }) {
+  if (glance.items.length === 0) {
+    return (
+      <section className="glance glance-clear" aria-label="At a glance">
+        <p className="glance-eyebrow">Before you pay</p>
+        <p className="glance-ok">Nothing needs a second look. All {plural(rowCount, "bill")} passed the checks.</p>
+      </section>
+    );
+  }
+  return (
+    <section className="glance" aria-labelledby="glance-heading">
+      <p className="glance-eyebrow">Before you pay</p>
+      <h2 id="glance-heading" className="glance-amount">{formatMoney(glance.cents, glance.currency)}</h2>
+      <p className="glance-what">may be paid twice or added up wrong</p>
+      <p className="glance-sub">
+        {glance.bills} of {plural(rowCount, "bill")} need a look · everything else looks fine
+        {glance.otherCurrencies.length ? ` · more flagged in ${glance.otherCurrencies.join(", ")}` : ""}
+      </p>
+      <p>
+        <button type="button" className="btn btn-primary" onClick={() => document.getElementById("findings")?.scrollIntoView({ behavior: "smooth" })}>
+          Review all {glance.items.length}
+        </button>
+      </p>
+      <h3 className="small-title">Biggest first</h3>
+      <ul className="glance-list">
+        {glance.items.slice(0, 3).map((i) => <GlanceRow key={i.finding.findingId} item={i} href={hrefForCase(i.finding.findingId)} />)}
+      </ul>
+      <p className="hint">These are candidates for you to check, not proof of a mistake. Dismissed findings are not counted.</p>
+    </section>
+  );
+}
+
 export function QueuePage(props: QueueProps) {
-  const { batch, batches, findings, filter, onFilterChange, hrefForCase, hrefForBatch, demo, onLoadDemo } = props;
+  const { batch, batches, findings, filter, onFilterChange, hrefForCase, hrefForBatch, demo, onLoadDemo, glance } = props;
   const [shown, setShown] = useState(PAGE_SIZE);
   const own = batch?.source === "own";
   useEffect(() => setShown(PAGE_SIZE), [batch?.batchId]);
@@ -149,7 +224,9 @@ export function QueuePage(props: QueueProps) {
           )}
         </section>
       ) : (
-        <section aria-labelledby="findings-heading">
+        <>
+        {glance ? <AtAGlance glance={glance} rowCount={batch.rowCount} hrefForCase={hrefForCase} /> : null}
+        <section id="findings" aria-labelledby="findings-heading">
           <h2 id="findings-heading" className="sr-only">Findings</h2>
           <div className="filters" role="group" aria-label="Filter findings">
             <div className="filter">
@@ -201,6 +278,7 @@ export function QueuePage(props: QueueProps) {
             </p>
           ) : null}
         </section>
+        </>
       )}
 
       <section className="tools" aria-label={own ? "Your data" : "Reset"}>

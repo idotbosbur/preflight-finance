@@ -1339,3 +1339,53 @@ textarea.text-input {
     transform: none;
   }
 }
+
+/* At-a-glance headline on the review queue. */
+.glance {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  margin: 0 0 24px;
+}
+.glance > .glance-eyebrow, .glance > .glance-amount, .glance > .glance-what, .glance > .glance-sub, .glance > p:has(> .btn-primary) {
+  text-align: center;
+}
+.glance-eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.glance-amount {
+  margin: 6px 0 2px;
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 9vw, 3.8rem);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.glance-what { margin: 0; font-size: 1.1rem; }
+.glance-sub { margin: 4px 0 14px; color: var(--ink-soft); }
+.glance-ok { margin: 6px 0 0; font-size: 1.1rem; }
+.glance-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 10px; }
+.glance-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.glance-item-title { margin: 0 0 8px; display: grid; gap: 2px; }
+.glance-item-title span { color: var(--ink-soft); overflow-wrap: anywhere; }
+.glance-email { margin-top: 10px; }
+.glance-email textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  margin: 4px 0 8px;
+}

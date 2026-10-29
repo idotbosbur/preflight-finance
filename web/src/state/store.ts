@@ -91,6 +91,8 @@ export interface ReviewStore {
   getOwnGeneration(): Promise<number>;
   /** Stored own-workspace rows (empty when none), so the caller can rerun the rules over the union. */
   listOwnRows(): Promise<OwnInvoice[]>;
+  /** Stored invoices of any batch (empty when the batch is missing), for the at-a-glance headline. */
+  listInvoices(batchId: string): Promise<Invoice[]>;
   listOwnFiles(): Promise<OwnFileRecord[]>;
   /** Removes only the own batch, its findings and their events; the demo batch stays. */
   deleteOwnData(): Promise<{ ok: boolean; message?: string }>;

@@ -10,6 +10,7 @@ import type { DateOrder } from "./domain/own/values.ts";
 import { MODULES, OWN_BATCH_ID, RULE_DUPLICATE, RULE_MISMATCH, compareTuples } from "./domain/contracts.ts";
 import { parseInvoiceCsv } from "./domain/csv.ts";
 import { runInvoiceRules } from "./domain/rules.ts";
+import { buildGlance } from "./domain/glance.ts";
 import { makeBatchId, makeFindingId, sha256Hex } from "./domain/ids.ts";
 import type {
   BenchmarkFile, DecisionForm, DemoStatus, GuideView, QueueFilter, Route, SaveStatus, StoryData,
@@ -113,6 +114,7 @@ export function App() {
 
   const [filter, setFilter] = useState<QueueFilter>({ state: "all", rule: "all" });
   const [queueFindings, setQueueFindings] = useState<FindingView[]>([]);
+  const [queueInvoices, setQueueInvoices] = useState<Invoice[]>([]);
   const [caseView, setCaseView] = useState<CaseView | null | "missing">(null);
   const [caseOrder, setCaseOrder] = useState<FindingView[]>([]);
   const [form, setForm] = useState<DecisionForm>({ reviewer: DEFAULT_REVIEWER, reason: "" });
@@ -195,11 +197,12 @@ export function App() {
     || (route.name === "queue" && queueBatch?.source === "own") || (route.name === "case" && route.batchId === OWN_BATCH_ID);
 
   useEffect(() => {
-    if (!store || !queueBatchId) { setQueueFindings([]); return; }
+    if (!store || !queueBatchId) { setQueueFindings([]); setQueueInvoices([]); return; }
     let cancelled = false;
-    store.listFindings(queueBatchId).then((f) => {
+    Promise.all([store.listFindings(queueBatchId), store.listInvoices(queueBatchId)]).then(([f, inv]) => {
       if (cancelled) return;
       setQueueFindings(f);
+      setQueueInvoices(inv);
       setCaseOrder(stableOrder(f));
     }, onReadError);
     return () => { cancelled = true; };
@@ -423,6 +426,7 @@ export function App() {
   }, [store, bump]);
 
   // ---- render ----
+  const glance = useMemo(() => (queueBatch ? buildGlance(queueFindings, queueInvoices) : null), [queueBatch, queueFindings, queueInvoices]);
   const filtered = queueFindings.filter((f) =>
     (filter.state === "all" || f.state === filter.state) && (filter.rule === "all" || f.ruleId === filter.rule));
 
@@ -456,7 +460,7 @@ export function App() {
           batch={queueBatch} batches={batches} findings={filtered} filter={filter} onFilterChange={setFilter}
           hrefForCase={(id) => formatRoute({ name: "case", batchId: queueBatchId ?? "", findingId: id })}
           hrefForBatch={(id) => formatRoute({ name: "queue", batchId: id })}
-          demo={demoStatus} onLoadDemo={explore} onResetDemo={onResetDemo}
+          demo={demoStatus} onLoadDemo={explore} onResetDemo={onResetDemo} glance={glance}
         />
       );
       break;

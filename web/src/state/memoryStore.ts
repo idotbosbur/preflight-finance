@@ -121,6 +121,9 @@ export function createMemoryStore(faults: MemoryFaults = {}): ReviewStore & { fa
     async listOwnRows() {
       return (batches.get(OWN_BATCH_ID)?.invoices ?? []).map(deserializeOwnInvoice);
     },
+    async listInvoices(batchId) {
+      return (batches.get(batchId)?.invoices ?? []).map(deserializeOwnInvoice);
+    },
     async listOwnFiles() {
       return [...(batches.get(OWN_BATCH_ID)?.files ?? [])];
     },

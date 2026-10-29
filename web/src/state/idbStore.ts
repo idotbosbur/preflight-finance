@@ -276,6 +276,14 @@ function wrap(db: IDBDatabase): ReviewStore {
       return ((await readOwnBatch())?.invoices ?? []).map(deserializeOwnInvoice);
     },
 
+    async listInvoices(batchId) {
+      const rec = await run<BatchRecord | undefined>(["batches"], "readonly", (tx, set) => {
+        const r = tx.objectStore("batches").get(batchId);
+        r.onsuccess = () => set(r.result as BatchRecord | undefined);
+      });
+      return (rec?.invoices ?? []).map(deserializeOwnInvoice);
+    },
+
     async listOwnFiles() {
       return [...((await readOwnBatch())?.files ?? [])];
     },

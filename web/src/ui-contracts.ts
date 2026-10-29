@@ -17,6 +17,7 @@ import type {
   ReviewState,
   RuleId,
 } from "./domain/contracts.ts";
+import type { Glance } from "./domain/glance.ts";
 
 // ---- Routing (hash-based; no server rewrites) ----
 
@@ -168,6 +169,8 @@ export interface QueueProps {
   readonly demo: DemoStatus;
   readonly onLoadDemo: () => void;
   readonly onResetDemo: () => void; // explicit reset of this visitor's local state (UI must confirm first)
+  /** Headline over every finding in the batch (not just the filtered ones); null while loading. */
+  readonly glance?: Glance | null;
 }
 
 export interface CaseProps {
